@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xml-stylesheet type="text/xsl" href="lua.xsl"?>
+
+<lua
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  >
+
+  <globals>
+
+    <object name="config">
+      Configuration values.
+
+      <value name="gravity_z" type="float">Z gravity</value>
+      <value name="cfm" type="float">Global CFM (constraint force mixing)</value>
+      <value name="step_dt" type="float">Time interval between each simulation step</value>
+      <value name="contacts_nb" type="int">Number of contact points</value>
+      <value name="drop_epsilon" type="float">Default droping height gap for dynamic objects</value>
+      <value name="draw_epsilon" type="float">Gap size between to contiguous surfaces</value>
+      <value name="draw_div" type="int">Slices and stacks for GLUT geometry objects</value>
+      <value name="draw_direction_r" type="float">Robot direction cone radius</value>
+      <value name="draw_direction_h" type="float">Robot direction cone height</value>
+      <value name="perspective_fov" type="float">Perspective field of view (in degrees)</value>
+      <value name="perspective_near" type="float">Near clipping plance distance</value>
+      <value name="perspective_far" type="float">Far clipping plance distance</value>
+      <value name="screen_x" type="int">Starting screen width</value>
+      <value name="screen_y" type="int">Starting screen height</value>
+      <value name="fullscreen" type="bool">Start fullscreen</value>
+      <value name="fps" type="float">Refresh rate (frames per second) and SDL event handling rate</value>
+      <value name="bg_color" type="Color">Background color</value>
+      <value name="log_flush" type="bool">Flush logs after each write</value>
+    </object>
+
+    <object name="ode">
+      ODE geom creation, and destruction.
+
+      <function name="sphere"><return type="Geom"/>
+        <arg name="radius" type="float"/>
+      </function>
+      <function name="box"><return type="Geom"/>
+        <arg name="lx" type="float"/>
+        <arg name="ly" type="float"/>
+        <arg name="lz" type="float"/>
+      </function>
+      <function name="plane"><return type="Geom"/>
+        <arg name="a" type="float"/>
+        <arg name="b" type="float"/>
+        <arg name="c" type="float"/>
+        <arg name="d" type="float"/>
+      </function>
+      <function name="capsule"><return type="Geom"/>
+        <arg name="radius" type="float"/>
+        <arg name="length" type="float"/>
+      </function>
+      <function name="cylinder"><return type="Geom"/>
+        <arg name="radius" type="float"/>
+        <arg name="length" type="float"/>
+      </function>
+      <function name="ray"><return type="Geom"/>
+        <arg name="length" type="float"/>
+      </function>
+      <function name="destroy">
+        <arg name="geom" type="Geom"/>
+      </function>
+
+    </object>
+
+  </globals>
+
+  
+  <class name="Object">
+    Basic static object.
+
+    <constructor>
+      <arg name="geom" type="Geom"/>
+    </constructor>
+
+    <function name="get_pos">
+      Return x, y and z position.
+      <return type="float"/>
+      <return type="float"/>
+      <return type="float"/>
+    </function>
+
+    <function name="set_pos">
+      Set position. If z is omitted, place above the ground.
+      <arg name="x" type="float"/>
+      <arg name="y" type="float"/>
+      <arg name="z" type="float" required="0"/>
+    </function>
+
+    <function name="set_pos">
+      Set rotation from a quaternion.
+      <arg name="w" type="float"/>
+      <arg name="a" type="float"/>
+      <arg name="b" type="float"/>
+      <arg name="c" type="float"/>
+    </function>
+
+    <function name="set_visible">
+      <arg type="bool"/>
+    </function>
+
+  </class>
+
+
+  <class name="ObjectDynamic" base="Object">
+    Non static object.
+    <constructor>
+      <arg name="geom" type="Geom"/>
+    </constructor>
+  </class>
+
+  <class name="ObjectColor" base="Object">
+    Colored static object.
+    <constructor>
+      <arg name="geom" type="Geom"/>
+    </constructor>
+    <function name="set_color">
+      <arg type="Color"/>
+    </function>
+  </class>
+
+  <class name="ObjectDynamicColor" base="ObjectDynamic">
+    Colored dynamic object.
+    <constructor>
+      <arg name="geom" type="Geom"/>
+    </constructor>
+    <function name="set_color">
+      <arg type="Color"/>
+    </function>
+  </class>
+
+  <class name="OGround" base="Object">
+    Standard table ground with starting areas.
+    <constructor>
+      <arg name="table" type="Color"/>
+      <arg name="team1" type="Color"/>
+      <arg name="team2" type="Color"/>
+    </constructor>
+  </class>
+
+  <class name="Robot" base="ObjectDynamic">
+    Robot base class.
+    <constructor>
+      <arg name="geom" type="Geom"/>
+      <arg name="mass" type="float"/>
+    </constructor>
+
+    <function name="get_team">
+      Return robot's team, or -1 if not set. (Teams numbers are set at match start.)
+      <return type="int"/>
+    </function>
+  </class>
+
+  <class name="RBasic" base="Robot">
+    Basic robot.<br/>
+    Default values are null, including maximum velocities and accelerations.
+    They should be set, otherwise the robot will not move.
+    <constructor>
+      <arg name="geom" type="Geom"/>
+      <arg name="mass" type="float"/>
+    </constructor>
+    <constructor>
+      Create a default box robot with given size and mass.
+      <arg name="lx" type="float"/>
+      <arg name="ly" type="float"/>
+      <arg name="lz" type="float"/>
+      <arg name="mass" type="float"/>
+    </constructor>
+
+    <function name="get_team">
+      Return robot's team, or -1 if not set. (Teams numbers are set at match start.)
+      <return type="int"/>
+    </function>
+
+    <function name="get_x"><return type="float"/></function>
+    <function name="get_y"><return type="float"/></function>
+    <function name="get_a"><return type="float"/></function>
+    <function name="get_v"><return type="float"/></function>
+    <function name="get_av"><return type="float"/></function>
+
+    <function name="set_dv_max"><arg type="float"/>Set linear acceleration.</function>
+    <function name="set_dav_max"><arg type="float"/>Set angular acceleration.</function>
+    <function name="set_v_max"><arg type="float"/>Set maximum linear velocity.</function>
+    <function name="set_av_max"><arg type="float"/>Set maximum angular velocity.</function>
+    <function name="set_threshold_xy"><arg type="float"/>Set distance precision for XY orders.</function>
+    <function name="set_threshold_a"><arg type="float"/>Set angle precision for angle orders.</function>
+
+    <function name="order_xy">
+      <arg name="x" type="float"/>
+      <arg name="y" type="float"/>
+      <arg name="rel" type="bool" required="0"/>
+    </function>
+    <function name="order_a">
+      <arg name="a" type="float"/>
+      <arg name="rel" type="bool" required="0"/>
+    </function>
+    <function name="order_xya">
+      <arg name="x" type="float"/>
+      <arg name="y" type="float"/>
+      <arg name="a" type="float"/>
+      <arg name="rel" type="bool" required="0"/>
+    </function>
+    <function name="order_back">
+      <arg name="d" type="float"/>
+    </function>
+    <function name="order_stop">
+    </function>
+
+    <function name="is_waiting">
+      <return type="bool"/>
+    </function>
+  </class>
+
+</lua>
+
