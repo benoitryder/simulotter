@@ -5,6 +5,10 @@
 #include "physics.h"
 #include "object.h"
 
+/** @file
+ * @brief Implementation of Eurobot 2009 rules, Atlantis
+ */
+
 
 namespace rules2009
 {
@@ -44,6 +48,9 @@ namespace rules2009
     static const dReal disp_offset_x;
     static const dReal disp_offset_y;
     static const dReal disp_offset_z;
+
+    static const dReal wall_width;
+    static const dReal wall_height;
   };
 
 
@@ -52,7 +59,7 @@ namespace rules2009
   {
   public:
     OColElem():
-      ObjectDynamicColor(dCreateCylinder(0, 0.035, 0.030), 100)
+      ObjectDynamicColor(dCreateCylinder(0, 0.035, 0.030), 0.100)
     {
       set_category(CAT_ELEMENT);
     }
@@ -63,7 +70,7 @@ namespace rules2009
   {
   public:
     OLintel():
-      ObjectDynamicColor(dCreateBox(0, 0.200, 0.070, 0.030), 300)
+      ObjectDynamicColor(dCreateBox(0, 0.200, 0.070, 0.030), 0.300)
     {
       set_category(CAT_ELEMENT);
     }
@@ -84,6 +91,13 @@ namespace rules2009
      * @param  side dispenser attach side (0 top, 1 right, 2 bottom, 3 left)
      */
     void set_pos(dReal x, dReal y, dReal z, int side);
+
+    /** @brief Put an object in the dispenser
+     *
+     * @param  o  Object to move in the dispenser
+     * @param  z  Z position, in the global coordinates
+     */
+    void fill(ObjectDynamic *o, dReal z);
 
     void draw();
   };

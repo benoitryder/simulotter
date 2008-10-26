@@ -5,6 +5,7 @@
 #include <exception>
 #include <malloc.h>
 
+///@file
 
 
 /** @brief Allocate a formatted string

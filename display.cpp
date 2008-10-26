@@ -45,7 +45,6 @@ void Display::resize(int width, int height)
     throw(Error("SDL: cannot change video mode"));
   }
 
-  //XXX get the effective size using SDL_GetVideoInfo
   this->screen_x = width;
   this->screen_y = height;
 
@@ -243,8 +242,7 @@ void Display::handle_events()
     switch(event.type)
     {
       case SDL_QUIT:
-        window_destroy();
-        exit(0);//XXX exception
+        throw(0);
         break;
       case SDL_VIDEORESIZE:
         resize(event.resize.w, event.resize.h);
@@ -292,10 +290,7 @@ void Display::handle_events()
   keys = SDL_GetKeyState(NULL);
 
   if( keys[SDLK_ESCAPE] )
-  {
-    window_destroy(); //XXX exception
-    exit(0);
-  }
+    throw(0);
   //XXX-config
   if( camera.mode == CAM_FIXED )
   {

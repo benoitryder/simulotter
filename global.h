@@ -8,14 +8,13 @@
 #include "lua_utils.h"
 #include "log.h"
 
-
-/** @name Global variable instance
+/** @file
+ * @brief Global variable instances
  *
  * Associated classes are accessed via these singletons
  * 
  * @note These variables are defined in \e main.cpp
  */
-//@{
 
 extern Config  *cfg;
 extern Physics *physics;
@@ -24,6 +23,5 @@ extern Rules   *rules;
 extern LuaManager *lm;
 extern Log *LOG; // lowercase log is already defined :(
 
-//@}
 
 #endif

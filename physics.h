@@ -5,6 +5,8 @@
 #include <vector>
 #include "object.h"
 
+///@file
+
 
 /** @brief Physics environment
  */
@@ -23,14 +25,14 @@ public:
 
   dSpaceID get_space() const { return this->space; }
   dWorldID get_world() const { return this->world; }
-  dJointGroupID get_contacts() const { return this->contacts; }
+  dJointGroupID get_joints() const { return this->joints; }
 
   std::vector<Object*> &get_objs() { return this->objs; }
 
 private:
   dWorldID world;
   dSpaceID space;
-  dJointGroupID contacts;
+  dJointGroupID joints;
 
   std::vector<Object*> objs;
 

@@ -14,9 +14,10 @@ Physics::Physics()
   space = dSimpleSpaceCreate(0);
 
   dWorldSetGravity(world, 0, 0, cfg->gravity_z);
+  dWorldSetCFM(world, cfg->cfm);
 
-  contacts = dJointGroupCreate(0);
-  dJointGroupEmpty(contacts);
+  joints = dJointGroupCreate(0);
+  dJointGroupEmpty(joints);
 }
 
 Physics::~Physics()
@@ -49,7 +50,7 @@ void Physics::step()
   // Cylinder hack
   // Convert the top cylinder into a box
   // Fine with small cylinders (h < r)
-  // XXX si les base ne touchent pas, utiliser deux capsules?
+  // XXX use two capsules if there are no contact on bases?
   std::vector<GeomPair>::iterator it;
   for( it=hack_cylinders.begin(); it!=hack_cylinders.end(); it++ )
   {
@@ -110,20 +111,25 @@ void Physics::step()
       }
     }
 
+    
     collide_callback(this, b1, o2);
+    //Note: uncomment to display hack_boxes
+    // AND comment dGeomDestroy();
     //hack_boxes.push_back(b1);
+    dGeomDestroy(b1);
   }
 
   dWorldStep(world, cfg->step_dt);
-  dJointGroupEmpty(contacts);
+  dJointGroupEmpty(joints);
 
-  // Update robot values, and asserv them
+  // Update robot values, do asserv and strategy
   std::vector<Robot*> &robots = Robot::get_robots();
   std::vector<Robot*>::iterator itr;
   for( itr=robots.begin(); itr!=robots.end(); itr++ )
   {
     (*itr)->update();
     (*itr)->asserv();
+    (*itr)->strategy();
   }
 }
 
@@ -142,7 +148,7 @@ void Physics::collide_callback(void *data, dGeomID o1, dGeomID o2)
   if( (cat1==CAT_DISPENSER) && (cat2==CAT_ELEMENT) ||
       (cat2==CAT_DISPENSER) && (cat1==CAT_ELEMENT) )
   {
-    dJointID c = dJointCreateSlider(physics->get_world(), physics->get_contacts());
+    dJointID c = dJointCreateSlider(physics->get_world(), physics->get_joints());
     dJointAttach(c, dGeomGetBody(o1), dGeomGetBody(o2));
     dJointSetSliderAxis(c, 0.0, 0.0, 1.0);
     return;
@@ -171,18 +177,22 @@ void Physics::collide_callback(void *data, dGeomID o1, dGeomID o2)
   {
     dBodyID b1, b2;
 
-    // Robots are not affected (XXX change?)
-    if( (cat1&CAT_ROBOT)!=CAT_ROBOT || cat2==CAT_GROUND )
-      b1 = dGeomGetBody(contacts[i].geom.g1);
-    else
+    /*
+    // Robots are not affected by elements
+    if( (cat1&CAT_ROBOT)==CAT_ROBOT && (cat2&CAT_ELEMENT)==CAT_ELEMENT )
       b1 = 0;
-    if( (cat2&CAT_ROBOT)!=CAT_ROBOT || cat1==CAT_GROUND )
-      b2 = dGeomGetBody(contacts[i].geom.g2);
     else
+      b1 = dGeomGetBody(contacts[i].geom.g1);
+    if( (cat2&CAT_ROBOT)==CAT_ROBOT && (cat1&CAT_ELEMENT)==CAT_ELEMENT )
       b2 = 0;
+    else
+      b2 = dGeomGetBody(contacts[i].geom.g2);
+      */
+    b1 = dGeomGetBody(contacts[i].geom.g1);
+    b2 = dGeomGetBody(contacts[i].geom.g2);
 
     memcpy(&contacts[i].surface, &sp, sizeof(sp));;
-    dJointID c = dJointCreateContact(physics->get_world(), physics->get_contacts(), &contacts[i]);
+    dJointID c = dJointCreateContact(physics->get_world(), physics->get_joints(), &contacts[i]);
     dJointAttach(c, b1, b2);
   }
 }

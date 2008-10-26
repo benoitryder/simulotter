@@ -7,7 +7,13 @@
 Config::Config()
 {
   gravity_z = -CONST_EARTH_GRAVITY;
+#ifdef dDOUBLE
+  cfm = 1e-10;
+#else
+  cfm = 1e-5;
+#endif
   step_dt = 0.001;
+  time_scale = 1.0;
   contacts_nb = 5;
   drop_epsilon = 0.001;
 
@@ -61,7 +67,9 @@ int Config::lua_index(lua_State *L)
   if( strcmp(name, #n) == 0 ) {LuaClassBase::push(L, config->n); return 1;}
 
   CONFIG_INDEX_VAL(gravity_z);
+  CONFIG_INDEX_VAL(cfm);
   CONFIG_INDEX_VAL(step_dt);
+  CONFIG_INDEX_VAL(time_scale);
   CONFIG_INDEX_VAL(contacts_nb);
   CONFIG_INDEX_VAL(drop_epsilon);
   CONFIG_INDEX_VAL(draw_epsilon);
@@ -95,7 +103,9 @@ int Config::lua_newindex(lua_State *L)
   if( strcmp(name, #n) == 0 ) {config->n = m(3); return 0;}
 
   CONFIG_NEWINDEX_VAL(gravity_z,        LARG_f);
+  CONFIG_NEWINDEX_VAL(cfm,              LARG_f);
   CONFIG_NEWINDEX_VAL(step_dt,          LARG_f);
+  CONFIG_NEWINDEX_VAL(time_scale,       LARG_f);
   CONFIG_NEWINDEX_VAL(contacts_nb,      LARG_i);
   CONFIG_NEWINDEX_VAL(drop_epsilon,     LARG_f);
   CONFIG_NEWINDEX_VAL(draw_epsilon,     LARG_f);

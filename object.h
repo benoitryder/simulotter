@@ -8,6 +8,8 @@
 
 #include "colors.h"
 
+///@file
+
 
 /** @brief Basic object
  *
@@ -39,6 +41,7 @@ public:
 
   bool is_visible() const { return this->visible; }
 
+  const dReal *get_pos() { return dGeomGetPosition(geom); }
   void set_pos(dReal x, dReal y, dReal z) { dGeomSetPosition(geom, x, y, z); }
   /// Place above (not on or in) the ground
   void set_pos(dReal x, dReal y);

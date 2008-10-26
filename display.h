@@ -4,6 +4,8 @@
 #include <SDL/SDL.h>
 #include "object.h"
 
+///@file
+
 
 class Display
 {

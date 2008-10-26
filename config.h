@@ -5,6 +5,7 @@
 #include "lua_utils.h"
 #include "colors.h"
 
+///@file
 
 /// Gravity at the Earth's surface
 #define CONST_EARTH_GRAVITY   9.80665f
@@ -22,18 +23,36 @@ class Config
 {
 public:
 
-  /** @name Physical parameters
+  /** @name Simulation parameters
    */
   //@{
 
   float gravity_z;
 
-  /// Time interval between each simulation step
-  float step_dt;
-  /// Number of contact points
-  int contacts_nb;
+  /** @name Global CFM (constraint force mixing)
+   */
+  float cfm;
 
-  /// Default droping height gap for dynamic objects
+  /** @brief Time interval between each simulation step
+   *
+   * @note It also defines asserv and strategy delay.
+   * @warning Value must not be changed after the simulation starts.
+   */
+  float step_dt;
+
+  /** @brief Time scale coefficient.
+   *
+   * If greater than 1, slow down the simulation.
+   * If less than 1, speed up the simulation.
+   *
+   * @note Value can be changed while the simulation is running.
+   */
+  float time_scale;
+
+  /// Number of contact points
+  unsigned int contacts_nb;
+
+  /// Default dropping height gap for dynamic objects
   float drop_epsilon;
 
   //@}
@@ -46,7 +65,7 @@ public:
   /// Gap size between to contiguous surfaces
   float draw_epsilon;
   /// Slices and stacks for GLUT geometry objects
-  int draw_div;
+  unsigned int draw_div;
   /// Robot direction cone radius
   float draw_direction_r;
   /// Robot direction cone height
@@ -64,11 +83,11 @@ public:
    */
   //@{
 
-  int screen_x;
-  int screen_y;
+  unsigned int screen_x;
+  unsigned int screen_y;
   bool fullscreen;
 
-  /** @brief Refresh rate (frames per seconde
+  /** @brief Refresh rate (frames per second)
    *
    * @note It also defines SDL event handling rate.
    */

@@ -17,6 +17,7 @@ Object::Object(dGeomID geom)
   LOG->trace("Object: NEW (geom)");
   this->geom = geom;
   this->visible = true;
+  set_category(0);
   dSpaceAdd(physics->get_space(), this->geom);
   physics->get_objs().push_back(this);
 }
@@ -124,13 +125,13 @@ ObjectDynamic::ObjectDynamic(dGeomID geom, dBodyID body):
   this->body = body;
   dGeomSetBody(this->geom, this->body);
 
-  add_category(CAT_DYNAMIC);
+  set_category(CAT_DYNAMIC);
 }
 
 ObjectDynamic::ObjectDynamic(dGeomID geom, dReal m):
   Object(geom)
 {
-  LOG->trace("ObjectDynamic: NEW (geom, m)");
+  LOG->trace("ObjectDynamic: NEW (geom, m=%f)", m);
   this->body = dBodyCreate(physics->get_world());
   dMass mass;
   switch( dGeomGetClass(geom) )
@@ -270,9 +271,17 @@ class LuaObject: public LuaClass<Object>
     return 0;
   }
 
+  static int get_pos(lua_State *L)
+  {
+    const dReal *pos = get_ptr(L)->get_pos();
+    push(L, pos[0]);
+    push(L, pos[1]);
+    push(L, pos[2]);
+    return 3;
+  }
+
   static int set_pos(lua_State *L)
   {
-    LOG->trace("Object: set_pos");
     if( lua_isnone(L, 4) )
       get_ptr(L)->set_pos(LARG_f(2), LARG_f(3));
     else
@@ -295,6 +304,7 @@ public:
   LuaObject()
   {
     LUA_REGFUNC(_ctor);
+    LUA_REGFUNC(get_pos);
     LUA_REGFUNC(set_pos);
     LUA_REGFUNC(set_rot);
     LUA_REGFUNC(set_visible);

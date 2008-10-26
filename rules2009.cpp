@@ -26,6 +26,7 @@ namespace rules2009
     int i, j;
     ObjectDynamicColor *o;
     ObjectColor *so;
+    ODispenser *od;
 
     if( fconf == -1 )
       fconf = create_conf(rand()%10, rand()%2);
@@ -36,6 +37,36 @@ namespace rules2009
 
     // Ground
     new OGround((Color4)COLOR_RAL_5015, colors[0], colors[1]);
+
+    // Walls (N, E, W, small SE, small SW, plexi S)
+
+    so = new ObjectColor(dCreateBox(0, table_size_x+2*wall_width, wall_width, wall_height));
+    so->set_pos(0, +table_size_y/2+wall_width/2, wall_height/2);
+    so->set_color((Color4)COLOR_WHITE);
+    so = new ObjectColor(dCreateBox(0, wall_width, table_size_y+2*wall_width, wall_height));
+    so->set_pos(+table_size_x/2+wall_width/2, 0, wall_height/2);
+    so->set_color((Color4)COLOR_WHITE);
+    so = new ObjectColor(dCreateBox(0, wall_width, table_size_y+2*wall_width, wall_height));
+    so->set_pos(-table_size_x/2-wall_width/2, 0, wall_height/2);
+    so->set_color((Color4)COLOR_WHITE);
+
+    so = new ObjectColor(dCreateBox(0, wall_width, 0.100, wall_height));
+    so->set_pos(+0.900+wall_width/2, -table_size_y/2+0.050, wall_height/2);
+    so->set_color((Color4)COLOR_WHITE);
+    so = new ObjectColor(dCreateBox(0, wall_width, 0.100, wall_height));
+    so->set_pos(-0.900-wall_width/2, -table_size_y/2+0.050, wall_height/2);
+    so->set_color((Color4)COLOR_WHITE);
+
+    so = new ObjectColor(dCreateBox(0, 1.800+wall_width, cfg->draw_epsilon, 0.250));
+    so->set_pos(0, -table_size_y/2, 0.125);
+    so->set_color((Color4)COLOR_PLEXI);
+    so = new ObjectColor(dCreateBox(0, 0.578+wall_width, cfg->draw_epsilon, wall_height));
+    so->set_pos(+1.200, -table_size_y/2, wall_height/2);
+    so->set_color((Color4)COLOR_PLEXI);
+    so = new ObjectColor(dCreateBox(0, 0.578+wall_width, cfg->draw_epsilon, wall_height));
+    so->set_pos(-1.200, -table_size_y/2, wall_height/2);
+    so->set_color((Color4)COLOR_PLEXI);
+
 
     // Building areas
     
@@ -75,20 +106,43 @@ namespace rules2009
       o->set_pos(+col_offset_x+(2-(int)(j%3))*col_space_x, -col_offset_y+((int)(j/3))*col_space_y);
     }
 
-    ODispenser *od;
-
     // Fixed dispensers
     od = new ODispenser();
     od->set_pos(table_size_x/2-disp_offset_x, -table_size_y/2, disp_offset_z, 2);
+    for( i=1; i<=2; i++ )
+    {
+      o = new OColElem();
+      o->set_color(colors[0]);
+      od->fill(o, i*0.035);
+    }
+
     od = new ODispenser();
     od->set_pos(disp_offset_x-table_size_x/2, -table_size_y/2, disp_offset_z, 2);
+    for( i=1; i<=2; i++ )
+    {
+      o = new OColElem();
+      o->set_color(colors[1]);
+      od->fill(o, i*0.035);
+    }
 
     // Random dispensers
     od = new ODispenser();
-    od->set_pos(table_size_x/2, conf_disp==0 ? disp_offset_y : -disp_offset_y, disp_offset_z, 1);
-    od = new ODispenser();
-    od->set_pos(-table_size_x/2, conf_disp==0 ? disp_offset_y : -disp_offset_y, disp_offset_z, 2);
+    od->set_pos(table_size_x/2-wall_width/2, conf_disp==0 ? disp_offset_y : -disp_offset_y, disp_offset_z, 1);
+    for( i=1; i<=2; i++ )
+    {
+      o = new OColElem();
+      o->set_color(colors[0]);
+      od->fill(o, i*0.035);
+    }
 
+    od = new ODispenser();
+    od->set_pos(-table_size_x/2+wall_width/2, conf_disp==0 ? disp_offset_y : -disp_offset_y, disp_offset_z, 3);
+    for( i=1; i<=2; i++ )
+    {
+      o = new OColElem();
+      o->set_color(colors[1]);
+      od->fill(o, i*0.035);
+    }
 
     //o = new OLintel(); o->set_color(colors[1]);
     //o->set_pos(0,0);
@@ -108,11 +162,14 @@ namespace rules2009
   const dReal RAtlantis::disp_offset_y = 0.250;
   const dReal RAtlantis::disp_offset_z = 0.045;
 
+  const dReal RAtlantis::wall_width  = 0.022;
+  const dReal RAtlantis::wall_height = 0.070;
+
 
   ODispenser::ODispenser():
     ObjectColor(dCreateCylinder(0, 0.040, 0.150))
   {
-    set_color((Color4)COLOR_GRAY(0.9));
+    set_color((Color4)COLOR_PLEXI);
     set_category(CAT_DISPENSER);
     set_collide(CAT_DYNAMIC);
   }
@@ -132,6 +189,12 @@ namespace rules2009
     }
     z += l/2;
     dGeomSetPosition(geom, x, y, z);
+  }
+
+  void ODispenser::fill(ObjectDynamic *o, dReal z)
+  {
+    const dReal *pos = dGeomGetPosition(geom);
+    o->set_pos(pos[0], pos[1], z);
   }
 
   void ODispenser::draw()

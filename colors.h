@@ -3,6 +3,7 @@
 
 #include <GL/gl.h>
 
+///@file
 
 typedef GLfloat Color4[4];
 
@@ -30,6 +31,8 @@ typedef GLfloat Color4[4];
 #define COLOR_BLACK  {1.0f, 1.0f, 1.0f, 0.0f}
 
 #define COLOR_GRAY(n) {(GLfloat)(n), (GLfloat)(n), (GLfloat)(n), 0.0f}
+
+#define COLOR_PLEXI {.70f, .90f, .95f, 0.5f}
 
 #define COLOR_RAL_6018  COLOR_I2F(0x4f, 0xa8, 0x33)  // yellow green
 #define COLOR_RAL_3020  COLOR_I2F(0xc7, 0x17, 0x12)  // traffic red

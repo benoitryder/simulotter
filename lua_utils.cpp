@@ -15,8 +15,6 @@ LuaManager::LuaManager()
   if( this->L == NULL )
     throw(LuaError("state creation failed (memory allocation error)"));
 
-  //XXX Set a custom panic function?
-
   // Load some standard libraries
 	lua_pushcfunction(L, luaopen_base);   lua_call(L, 0, 0);
 	lua_pushcfunction(L, luaopen_math);   lua_call(L, 0, 0);
@@ -28,7 +26,7 @@ LuaManager::LuaManager()
 
   // Register ODE functions
   // Create userdata and set a metatable
-  lua_newuserdata(L, 0);//XXX check if valid
+  lua_newuserdata(L, 0);
   lua_newtable(L);
   LUA_REG_FIELD(sphere,   ode_sphere);
   LUA_REG_FIELD(box,      ode_box);
@@ -135,7 +133,10 @@ int LuaManager::ode_ray(lua_State *L)
 
 int LuaManager::ode_destroy(lua_State *L)
 {
-  dGeomDestroy( (dGeomID)LARG_lud(1) );
+  dGeomID geom = (dGeomID)LARG_lud(1);
+  // Don't destroy used geoms.
+  if( dGeomGetSpace(geom) == 0 )
+    dGeomDestroy( geom );
   return 0;
 }
 
@@ -252,17 +253,6 @@ int LuaClassBase::index_class(lua_State *L)
     LOG->trace("  DONE: class mt/__index");
     return 1;
   }
-
-  /*XXX deprecated ?
-  // Predefined base class: get field from _ud
-  if( lua_isuserdata(L, -1) )
-  {
-    LOG->trace("  userdata base class");
-    lua_pop(L, -1);
-    LOG->trace("  t: %s", lua_typename(L, lua_type(L,1)));
-    lua_getfield(L, 1, "_ud");
-  }
-  */
 
   lua_pushvalue(L, 2);
   lua_gettable(L, -2);

@@ -8,13 +8,16 @@
 
 #include "object.h"
 
+///@file
 
-/** @brief Basic robot
+
+/** @brief Robot base class
  *
  * @note Only TEAM_NB robots can be created.
  */
 class Robot: public ObjectDynamic
 {
+  friend class LuaRobot;
 public:
 
   Robot(dGeomID geom, dBodyID body);
@@ -32,14 +35,15 @@ public:
 
   /** @brief Init robot for the match.
    *
-   * Get and cache update and asserv Lua functions, if any.
-   * This function should be called before the match starts.
+   * Get and cache update, asserv and strategy Lua functions, if any. This
+   * method should be called before the match starts.
    */
   void init();
 
   /** @brief Update asserv and strategy data
    *
-   * Call the cached update Lua function (if any) or the do_update method.
+   * Call the update Lua function (if any) or the do_update() method.
+   * Robot instance is given as first argument.
    *
    * This function is called after ODE step to update internal data using ODE
    * data (e.g. position).
@@ -48,18 +52,41 @@ public:
 
   /** @brief Asserv step
    *
-   * Call the cached asserv Lua function (if any) or the do_asserv method.
+   * Call the asserv Lua function (if any) or the do_asserv() method.
+   * Robot instance is given as first argument.
    *
    * Search for a Lua asserv function and execute it.
    */
   void asserv();
 
-  /// Default not implemented do_update function
-  virtual void do_update() { throw(Error("do_update() not implemented, use Lua.")); }
-  /// Default not implemented do_asserv function
-  virtual void do_asserv() { throw(Error("do_sserv() not implemented, use Lua.")); }
+  /** @brief Start or resume the strategy
+   *
+   * Call the strategy Lua function (if any) or the do_strategy() method.
+   *
+   * Non-Lua strategies are standard functions and explained in do_strategy().
+   *
+   * Lua strategies are coroutines, they continue their execution from the
+   * point where they yielded. When the strategy coroutine finishes, robot
+   * control stops: asserv and strategy are not called anymore.
+   * Robot instance is given as first argument.
+   *
+   * @note Strategy is called after an asserv step.
+   */
+  void strategy();
 
-  void set_ref_obj(int ref) { this->ref_obj = ref; }
+  /// Default not implemented do_update() method
+  virtual void do_update() { throw(Error("do_update() not implemented.")); }
+  /// Default not implemented do_asserv() method
+  virtual void do_asserv() { throw(Error("do_asserv() not implemented.")); }
+  /** @brief Default not implemented do_strategy() method
+   *
+   * Strategy function is called with its last return value. If it returns -1,
+   * it would not be called anymore.
+   *
+   * @param   val  last returned value, -1 at the first call
+   * @return  The next parameter value or -1 to stop the robot.
+   */
+  virtual int do_strategy(int val) { throw(Error("do_strategy() not implemented.")); }
 
   static std::vector<Robot*> &get_robots() { return robots; }
 
@@ -74,14 +101,19 @@ private:
   /// Team number (-1 if not set)
   int team;
 
+  /// Cached update function reference
+  int ref_update;
+  /// Cached asserv function reference
+  int ref_asserv;
+  /// Cached strategy function reference
+  int ref_strategy;
+  /// Strategy thread state
+  lua_State *L_strategy;
+
+protected:
   /// Lua instance reference
   int ref_obj;
 
-  /// Cached update function reference
-  int ref_update;
-
-  /// Cached asserv function reference
-  int ref_asserv;
 };
 
 
@@ -91,6 +123,7 @@ private:
  */
 class RBasic: public Robot
 {
+  friend class LuaRBasic;
 public:
 
   RBasic(dGeomID geom, dBodyID body);
@@ -108,10 +141,14 @@ public:
    */
   virtual void do_update();
 
-  /// Asserv step
+  /** @brief Turn and move forward asserv
+   *
+   * Simple asserv: first the robot turns to face the target point. Then it
+   * moves forward toward the target.
+   */
   virtual void do_asserv();
 
-  /** @name Strategy methods
+  /** @name Methods used in strategy
    */
   //@{
   dReal get_x()  const { return this->x;  }
@@ -125,6 +162,8 @@ public:
   void order_xya(dReal x, dReal y, dReal a, bool rel=false) { order_xy(x,y,rel); order_a(a,rel); }
   void order_back(dReal d);
   void order_stop() { order = ORDER_NONE; }
+
+  bool is_waiting() { return order == ORDER_NONE; }
   //@}
 
   /// Set linear acceleration

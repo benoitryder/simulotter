@@ -4,6 +4,8 @@
 #include "object.h"
 #include "robot.h"
 
+///@file
+
 
 /// Default duration time
 #define DURATION_DEFAULT 90

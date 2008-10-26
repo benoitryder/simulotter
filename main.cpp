@@ -20,7 +20,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
   int argc;
   char **argv;
 
-  //XXX bad cast from unicode ascii
   argv = (char **)CommandLineToArgvW(GetCommandLineW(), &argc);
   return main(argc, argv);
 }
@@ -69,16 +68,16 @@ int main(int argc, char **argv)
     //glutInit(&argc, argv);
     display = new Display();
 
+    LOG->trace("init rules");
+    rules = new rules2009::RAtlantis();
+    rules->check_robots();
+    rules->init(-1);
+
     LOG->trace("init robots");
     std::vector<Robot*> &robots = Robot::get_robots();
     std::vector<Robot*>::iterator itr;
     for( itr=robots.begin(); itr!=robots.end(); itr++ )
       (*itr)->init();
-
-    LOG->trace("init rules");
-    rules = new rules2009::RAtlantis();
-    rules->check_robots();
-    rules->init(1);
 
     unsigned int disp_dt = (unsigned int)(1000.0/cfg->fps);
     unsigned int step_dt = (unsigned int)(1000.0*cfg->step_dt);
@@ -95,7 +94,7 @@ int main(int argc, char **argv)
       if( time >= time_step )
       {
         physics->step();
-        time_step += step_dt;
+        time_step += (unsigned long)(step_dt * cfg->time_scale);
       }
       if( time >= time_disp )
       {
@@ -115,6 +114,11 @@ int main(int argc, char **argv)
 #endif
       }
     }
+  }
+  catch(int i)
+  {
+    LOG->trace("Exit");
+    return i;
   }
   catch(Error e)
   {

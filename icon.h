@@ -1,4 +1,3 @@
-/* GIMP RGBA C-Source image dump (icon.c) */
 
 static struct {
   unsigned int 	 width;

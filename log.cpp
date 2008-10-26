@@ -45,11 +45,10 @@ static int len_fmt(const char *fmt, va_list ap)
       len += ( n<0 ) ? -n : n;
     }
     else
-      strtoul(fmt, (char **)&fmt, 10);
+      len += strtoul(fmt, (char **)&fmt, 10);
 
     // Precision
     if( *fmt == '.' )
-    if( *fmt == '*' )
     {
       fmt++;
       if( *fmt == '*' )
@@ -59,7 +58,7 @@ static int len_fmt(const char *fmt, va_list ap)
         len += ( n<0 ) ? -n : n;
       }
       else
-        strtoul(fmt, (char **)&fmt, 10);
+        len += strtoul(fmt, (char **)&fmt, 10);
     }
 
     // Size modifier

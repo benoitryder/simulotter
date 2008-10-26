@@ -1,6 +1,8 @@
 #ifndef LUA_UTILS_H
 #define LUA_UTILS_H
 
+///@file
+
 extern "C"
 {
 #include <lualib.h>
@@ -19,6 +21,8 @@ extern "C"
 class LuaClassBase;
 
 
+/** @brief Lua state and various functions.
+ */
 class LuaManager
 {
 public:
@@ -56,7 +60,7 @@ private:
   /// Write a string line on stdout
   static int lua_trace(lua_State *L);
 
-  /** @brief ODE bindings
+  /** @name ODE bindings
    *
    * Geometries are stored as lightuserdata.
    *
@@ -80,6 +84,7 @@ private:
 };
 
 
+/// Base class for Lua classes
 class LuaClassBase
 {
 public:
@@ -108,7 +113,7 @@ public:
 
   /** @name Push functions
    *
-   * @TODO Pas à sa place
+   * @todo Pas à sa place
    */
   //@{
   static void push(lua_State *L) { lua_pushnil(L); }
@@ -118,6 +123,8 @@ public:
   static void push(lua_State *L, double n) { lua_pushnumber (L, n); }
   static void push(lua_State *L, bool   b) { lua_pushboolean(L, b); }
   static void push(lua_State *L, const char *s) { lua_pushstring(L, s); }
+  static void push(lua_State *L, unsigned int    n) { lua_pushinteger(L, n); }
+  static void push(lua_State *L, unsigned long   n) { lua_pushinteger(L, n); }
   static void push(lua_State *L, Color4 c)
   {
     lua_createtable(L, 0, 4);
@@ -182,9 +189,8 @@ private:
 };
 
 
-/** @brief Class inherited by classes which provide a Lua class.
- * @TODO destructors
- * @todo User Lunar?
+/** @brief Class inherited by classes which provides a Lua class.
+ * @todo destructors
  */
 template<class T>
 class LuaClass: public LuaClassBase

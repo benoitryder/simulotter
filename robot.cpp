@@ -26,6 +26,8 @@ void Robot::ctor_init()
   this->ref_obj = LUA_NOREF;
   this->ref_update = LUA_NOREF;
   this->ref_asserv = LUA_NOREF;
+  this->ref_strategy = LUA_NOREF;
+  this->L_strategy = NULL;
 }
 
 Robot::~Robot()
@@ -37,6 +39,8 @@ Robot::~Robot()
     luaL_unref(L, LUA_REGISTRYINDEX, ref_update);
   if( ref_asserv != LUA_NOREF )
     luaL_unref(L, LUA_REGISTRYINDEX, ref_asserv);
+  if( ref_strategy != LUA_NOREF )
+    luaL_unref(L, LUA_REGISTRYINDEX, ref_strategy);
 }
 
 void Robot::draw()
@@ -68,7 +72,7 @@ void Robot::init()
 
   lua_State *L = lm->get_L();
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
-  lua_getfield(L, -1, "asserv");
+  lua_getfield(L, -1, "update");
   if( !lua_isnil(L, -1) )
     ref_update = luaL_ref(L, LUA_REGISTRYINDEX);
   else
@@ -76,6 +80,14 @@ void Robot::init()
   lua_getfield(L, -1, "asserv");
   if( !lua_isnil(L, -1) )
     ref_asserv = luaL_ref(L, LUA_REGISTRYINDEX);
+  else
+    lua_pop(L, 1);
+  lua_getfield(L, -1, "strategy");
+  if( !lua_isnil(L, -1) )
+  {
+    ref_strategy = luaL_ref(L, LUA_REGISTRYINDEX);
+    L_strategy = lua_newthread(L);
+  }
   else
     lua_pop(L, 1);
 }
@@ -93,13 +105,40 @@ void Robot::update()
 
 void Robot::asserv()
 {
-  if( ref_update == LUA_NOREF )
+  if( ref_asserv == LUA_NOREF )
     return this->do_asserv();
 
   lua_State *L = lm->get_L();
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref_asserv);
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
   LuaManager::pcall(L, 1, 0);
+}
+
+void Robot::strategy()
+{
+  static int val = -1;
+  if( ref_strategy == LUA_NOREF )
+  {
+    val = this->do_strategy(val);
+    return;
+  }
+
+  if( L_strategy == NULL )
+    return;
+
+  int top = lua_gettop(L_strategy);
+  lua_rawgeti(L_strategy, LUA_REGISTRYINDEX, ref_strategy);
+  lua_rawgeti(L_strategy, LUA_REGISTRYINDEX, ref_obj);
+  int ret = lua_resume(L_strategy, 1);
+  if( ret == 0 )
+  {
+    lua_close(L_strategy);
+    L_strategy = NULL;
+  }
+  else if( ret == LUA_YIELD )
+    lua_settop(L_strategy, top);// Pop yield values
+  else
+    throw(LuaError(L_strategy));
 }
 
 std::vector<Robot*> Robot::robots;
@@ -173,9 +212,12 @@ void RBasic::do_asserv()
     else
     {
       // Aim target point, then move
-      //XXX don't set motors if they are already set
-      //TODO case 'x = target_x'
-      dReal da = norma(atan2(y-target_y, x-target_x)-a);
+      dReal da;
+      if( target_x == x )
+        da = ( target_y > y ) ? M_PI_2 : -M_PI_2;
+      else
+        da = atan2(target_y-y, (target_x==x)?0.0001:target_x-x);
+      da = norma(da-a);
       if( absf( da ) < threshold_a )
       {
         set_av(0);
@@ -210,6 +252,7 @@ void RBasic::do_asserv()
 
 void RBasic::order_xy(dReal x, dReal y, bool rel)
 {
+  LOG->trace("XY  %c %f,%f", rel?'+':'=', x, y);
   target_x = x;
   target_y = y;
   if( rel )
@@ -223,6 +266,7 @@ void RBasic::order_xy(dReal x, dReal y, bool rel)
 
 void RBasic::order_a(dReal a, bool rel)
 {
+  LOG->trace("A  %c %f", rel?'+':'=', a);
   target_a = a;
   if( rel )
     target_a += this->a;
@@ -233,6 +277,7 @@ void RBasic::order_a(dReal a, bool rel)
 
 void RBasic::order_back(dReal d)
 {
+  LOG->trace("BACK  %f", d);
   target_back_x = this->x - d*cos(this->a);
   target_back_y = this->y - d*sin(this->a);
 
@@ -292,7 +337,7 @@ class LuaRobot: public LuaClass<Robot>
     *ud = new Robot(geom, LARG_f(3));
 
     lua_pushvalue(L, 1);
-    (*ud)->set_ref_obj(luaL_ref(L, LUA_REGISTRYINDEX));
+    (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
     return 0;
   }
 
@@ -332,7 +377,7 @@ class LuaRBasic: public LuaClass<RBasic>
 
     LOG->trace("  set object reference");
     lua_pushvalue(L, 1);
-    (*ud)->set_ref_obj(luaL_ref(L, LUA_REGISTRYINDEX));
+    (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
 
     LOG->trace("LuaRBasic: END");
     return 0;
@@ -357,6 +402,8 @@ class LuaRBasic: public LuaClass<RBasic>
   LUA_DEFINE_SET1(order_back, LARG_f)
   LUA_DEFINE_SET0(order_stop)
 
+  LUA_DEFINE_GET(is_waiting)
+
 public:
   LuaRBasic()
   {
@@ -380,6 +427,8 @@ public:
     LUA_REGFUNC(order_xya);
     LUA_REGFUNC(order_back);
     LUA_REGFUNC(order_stop);
+
+    LUA_REGFUNC(is_waiting);
   }
 };
 
