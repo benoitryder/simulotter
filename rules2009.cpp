@@ -24,8 +24,7 @@ namespace rules2009
   void RAtlantis::init(int fconf)
   {
     int i, j;
-    ObjectDynamicColor *o;
-    ObjectColor *so;
+    ObjectColor *o;
     ODispenser *od;
 
     if( fconf == -1 )
@@ -40,53 +39,53 @@ namespace rules2009
 
     // Walls (N, E, W, small SE, small SW, plexi S)
 
-    so = new ObjectColor(dCreateBox(0, table_size_x+2*wall_width, wall_width, wall_height));
-    so->set_pos(0, +table_size_y/2+wall_width/2, wall_height/2);
-    so->set_color((Color4)COLOR_WHITE);
-    so = new ObjectColor(dCreateBox(0, wall_width, table_size_y+2*wall_width, wall_height));
-    so->set_pos(+table_size_x/2+wall_width/2, 0, wall_height/2);
-    so->set_color((Color4)COLOR_WHITE);
-    so = new ObjectColor(dCreateBox(0, wall_width, table_size_y+2*wall_width, wall_height));
-    so->set_pos(-table_size_x/2-wall_width/2, 0, wall_height/2);
-    so->set_color((Color4)COLOR_WHITE);
+    o = new ObjectColor(dCreateBox(0, table_size_x+2*wall_width, wall_width, wall_height));
+    o->set_pos(0, +table_size_y/2+wall_width/2, wall_height/2);
+    o->set_color((Color4)COLOR_WHITE);
+    o = new ObjectColor(dCreateBox(0, wall_width, table_size_y+2*wall_width, wall_height));
+    o->set_pos(+table_size_x/2+wall_width/2, 0, wall_height/2);
+    o->set_color((Color4)COLOR_WHITE);
+    o = new ObjectColor(dCreateBox(0, wall_width, table_size_y+2*wall_width, wall_height));
+    o->set_pos(-table_size_x/2-wall_width/2, 0, wall_height/2);
+    o->set_color((Color4)COLOR_WHITE);
 
-    so = new ObjectColor(dCreateBox(0, wall_width, 0.100, wall_height));
-    so->set_pos(+0.900+wall_width/2, -table_size_y/2+0.050, wall_height/2);
-    so->set_color((Color4)COLOR_WHITE);
-    so = new ObjectColor(dCreateBox(0, wall_width, 0.100, wall_height));
-    so->set_pos(-0.900-wall_width/2, -table_size_y/2+0.050, wall_height/2);
-    so->set_color((Color4)COLOR_WHITE);
+    o = new ObjectColor(dCreateBox(0, wall_width, 0.100, wall_height));
+    o->set_pos(+0.900+wall_width/2, -table_size_y/2+0.050, wall_height/2);
+    o->set_color((Color4)COLOR_WHITE);
+    o = new ObjectColor(dCreateBox(0, wall_width, 0.100, wall_height));
+    o->set_pos(-0.900-wall_width/2, -table_size_y/2+0.050, wall_height/2);
+    o->set_color((Color4)COLOR_WHITE);
 
-    so = new ObjectColor(dCreateBox(0, 1.800+wall_width, cfg->draw_epsilon, 0.250));
-    so->set_pos(0, -table_size_y/2, 0.125);
-    so->set_color((Color4)COLOR_PLEXI);
-    so = new ObjectColor(dCreateBox(0, 0.578+wall_width, cfg->draw_epsilon, wall_height));
-    so->set_pos(+1.200, -table_size_y/2, wall_height/2);
-    so->set_color((Color4)COLOR_PLEXI);
-    so = new ObjectColor(dCreateBox(0, 0.578+wall_width, cfg->draw_epsilon, wall_height));
-    so->set_pos(-1.200, -table_size_y/2, wall_height/2);
-    so->set_color((Color4)COLOR_PLEXI);
+    o = new ObjectColor(dCreateBox(0, 1.800+wall_width, cfg->draw_epsilon, 0.250));
+    o->set_pos(0, -table_size_y/2, 0.125);
+    o->set_color((Color4)COLOR_PLEXI);
+    o = new ObjectColor(dCreateBox(0, 0.578+wall_width, cfg->draw_epsilon, wall_height));
+    o->set_pos(+1.200, -table_size_y/2, wall_height/2);
+    o->set_color((Color4)COLOR_PLEXI);
+    o = new ObjectColor(dCreateBox(0, 0.578+wall_width, cfg->draw_epsilon, wall_height));
+    o->set_pos(-1.200, -table_size_y/2, wall_height/2);
+    o->set_color((Color4)COLOR_PLEXI);
 
 
     // Building areas
     
-    so = new ObjectColor(dCreateBox(0, 1.800, 0.100, 2*cfg->draw_epsilon));
-    so->set_pos(0, 0.050-table_size_y/2, cfg->draw_epsilon);
-    so->set_color((Color4)COLOR_RAL_8017);
-    so->set_category(0);
-    so->set_collide(0);
+    o = new ObjectColor(dCreateBox(0, 1.800, 0.100, 2*cfg->draw_epsilon));
+    o->set_pos(0, 0.050-table_size_y/2, cfg->draw_epsilon);
+    o->set_color((Color4)COLOR_RAL_8017);
+    o->set_category(0);
+    o->set_collide(0);
 
-    so = new ObjectColor(dCreateBox(0, 0.600, 0.100, 0.030));
-    so->set_pos(0, 0.050-table_size_y/2, 0.015);
-    so->set_color((Color4)COLOR_RAL_8017);
-    so->set_category(0);
-    so->set_collide(CAT_DYNAMIC);
+    o = new ObjectColor(dCreateBox(0, 0.600, 0.100, 0.030));
+    o->set_pos(0, 0.050-table_size_y/2, 0.015);
+    o->set_color((Color4)COLOR_RAL_8017);
+    o->set_category(0);
+    o->set_collide(CAT_DYNAMIC);
 
-    so = new ObjectColor(dCreateCylinder(0, 0.150, 0.060));
-    so->set_pos(0, 0, 0.030);
-    so->set_color((Color4)COLOR_RAL_8017);
-    so->set_category(0);
-    so->set_collide(CAT_DYNAMIC);
+    o = new ObjectColor(dCreateCylinder(0, 0.150, 0.060));
+    o->set_pos(0, 0, 0.030);
+    o->set_color((Color4)COLOR_RAL_8017);
+    o->set_category(0);
+    o->set_collide(CAT_DYNAMIC);
 
 
     // Random column elements
@@ -144,8 +143,31 @@ namespace rules2009
       od->fill(o, i*0.035);
     }
 
-    //o = new OLintel(); o->set_color(colors[1]);
-    //o->set_pos(0,0);
+
+    // Lintel and lintel storages
+
+    OLintelStorage *ols;
+    OLintel *ol;
+
+    ols = new OLintelStorage();
+    ols->set_pos(-0.200, 0);
+    ol = new OLintel(); ol->set_color(colors[0]);
+    ols->fill(ol);
+
+    ols = new OLintelStorage();
+    ols->set_pos(-0.600, 0);
+    ol = new OLintel(); ol->set_color(colors[0]);
+    ols->fill(ol);
+
+    ols = new OLintelStorage();
+    ols->set_pos(+0.200, 0);
+    ol = new OLintel(); ol->set_color(colors[1]);
+    ols->fill(ol);
+
+    ols = new OLintelStorage();
+    ols->set_pos(+0.600, 0);
+    ol = new OLintel(); ol->set_color(colors[1]);
+    ols->fill(ol);
   }
 
   const int RAtlantis::col_placements[10][3] = {
@@ -166,8 +188,11 @@ namespace rules2009
   const dReal RAtlantis::wall_height = 0.070;
 
 
+  const dReal ODispenser::radius = 0.040;
+  const dReal ODispenser::height = 0.150;
+
   ODispenser::ODispenser():
-    ObjectColor(dCreateCylinder(0, 0.040, 0.150))
+    ObjectColor(dCreateCylinder(0, radius, height))
   {
     set_color((Color4)COLOR_PLEXI);
     set_category(CAT_DISPENSER);
@@ -176,24 +201,23 @@ namespace rules2009
 
   void ODispenser::set_pos(dReal x, dReal y, dReal z, int side)
   {
-    dReal r, l;
-    dGeomCylinderGetParams(geom, &r, &l);
     switch( side )
     {
-      case 0: y -= r; break;
-      case 1: x -= r; break;
-      case 2: y += r; break;
-      case 3: x += r; break;
+      case 0: y -= radius; break;
+      case 1: x -= radius; break;
+      case 2: y += radius; break;
+      case 3: x += radius; break;
       default:
         throw(Error("invalid value for dispenser side"));
     }
-    z += l/2;
-    dGeomSetPosition(geom, x, y, z);
+    z += height/2;
+    //XXX gcc does not find the matching method by itself :(
+    ObjectColor::set_pos(x, y, z);
   }
 
-  void ODispenser::fill(ObjectDynamic *o, dReal z)
+  void ODispenser::fill(Object *o, dReal z)
   {
-    const dReal *pos = dGeomGetPosition(geom);
+    const dReal *pos = get_pos();
     o->set_pos(pos[0], pos[1], z);
   }
 
@@ -201,20 +225,59 @@ namespace rules2009
   {
     glColor3fv(color);
     glPushMatrix();
-    draw_move(geom);
-    dReal r, len;
-    dGeomCylinderGetParams(geom, &r, &len);
-    glTranslatef(0, 0, -len/2);
-    glutWireCylinder(r, len, cfg->draw_div, 10);
+    draw_move();
+    glTranslatef(0, 0, -height/2);
+    glutWireCylinder(radius, height, cfg->draw_div, 10);
     glPopMatrix();
   }
 
 
   OLintelStorage::OLintelStorage():
-    ObjectColor(dCreateCylinder(0, 0.040, 0.150))
+    ObjectColor()
   {
-    set_category(CAT_DISPENSER);
+    dGeomID geoms[4];
+
+    // Bottom
+    geoms[0] = dCreateBox(0, 0.200, RAtlantis::wall_width, 0.070);
+    dGeomSetPosition(geoms[0], 0, -(0.070-3*RAtlantis::wall_width)/2, -(0.070-RAtlantis::wall_width)/2);
+    // Back
+    geoms[1] = dCreateBox(0, 0.200, RAtlantis::wall_width, .060);
+    dGeomSetPosition(geoms[1], 0, (0.070+RAtlantis::wall_width)/2, (0.060-RAtlantis::wall_width)/2);
+    // Left
+    geoms[2] = dCreateBox(0, RAtlantis::wall_width, 0.070, RAtlantis::wall_width);
+    dGeomSetPosition(geoms[2], +(0.200-RAtlantis::wall_width)/2, 0, 0);
+    // Right
+    geoms[3] = dCreateBox(0, RAtlantis::wall_width, 0.070, RAtlantis::wall_width);
+    dGeomSetPosition(geoms[3], -(0.200-RAtlantis::wall_width)/2, 0, 0);
+
+    ctor_init(geoms, 4, (dBodyID)NULL);
+
     set_collide(CAT_DYNAMIC);
+
+    set_color((Color4)COLOR_BLACK);
+  }
+
+  void OLintelStorage::set_pos(dReal d, int side)
+  {
+    dReal x, y;
+    switch( side )
+    {
+      case 0: x = d; y =  RAtlantis::table_size_y/2+0.070/2; break;
+      case 1: y = d; x =  RAtlantis::table_size_x/2+0.070/2; break;
+      case 2: x = d; y = -RAtlantis::table_size_y/2-0.070/2; break;
+      case 3: y = d; x = -RAtlantis::table_size_x/2-0.070/2; break;
+      default:
+        throw(Error("invalid value for lintel storage side"));
+    }
+
+    //XXX gcc does not find the matching method by itself :(
+    ObjectColor::set_pos(x, y, RAtlantis::wall_height+RAtlantis::wall_width/2);
+  }
+
+  void OLintelStorage::fill(OLintel *o)
+  {
+    const dReal *pos = get_pos();
+    o->set_pos(pos[0], pos[1], pos[2]+0.030/2+RAtlantis::wall_width/2+cfg->drop_epsilon);
   }
 }
 

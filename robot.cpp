@@ -6,14 +6,26 @@
 #include "maths.h"
 
 
+Robot::Robot(dGeomID *geoms, int nb, dBodyID body):
+  Object(geoms, nb, body)
+{
+  ctor_init();
+}
+
 Robot::Robot(dGeomID geom, dBodyID body):
-  ObjectDynamic(geom, body)
+  Object(geom, body)
+{
+  ctor_init();
+}
+
+Robot::Robot(dGeomID *geoms, int nb, dReal m):
+  Object(geoms, nb, m)
 {
   ctor_init();
 }
 
 Robot::Robot(dGeomID geom, dReal m):
-  ObjectDynamic(geom, m)
+  Object(geom, m)
 {
   ctor_init();
 }
@@ -29,6 +41,19 @@ void Robot::ctor_init()
   this->ref_strategy = LUA_NOREF;
   this->L_strategy = NULL;
 }
+
+void Robot::ctor_init(dGeomID *geoms, int nb, dBodyID body)
+{
+  Object::ctor_init(geoms, nb, body);
+  ctor_init();
+}
+
+void Robot::ctor_mass(dGeomID *geoms, int nb, dReal m)
+{
+  Object::ctor_init(geoms, nb, m);
+  ctor_init();
+}
+
 
 Robot::~Robot()
 {
@@ -46,7 +71,7 @@ Robot::~Robot()
 void Robot::draw()
 {
   glColor3fv(rules->get_color(team));
-  draw_geom(geom);
+  Object::draw();
   draw_direction();
 }
 
@@ -57,8 +82,9 @@ void Robot::draw_direction()
   glPushMatrix();
 
   draw_move();
-  dGeomGetAABB(geom, a);
-  glTranslatef(0, 0, (a[5]-a[4])/2+cfg->draw_direction_r+cfg->draw_epsilon);
+  get_aabb(a);
+  const dReal *pos = get_pos();
+  glTranslatef(0, 0, a[5]-pos[2]+cfg->draw_direction_r+cfg->draw_epsilon);
   glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
   glutSolidCone(cfg->draw_direction_r, cfg->draw_direction_h, cfg->draw_div, cfg->draw_div);
 
@@ -144,8 +170,20 @@ void Robot::strategy()
 std::vector<Robot*> Robot::robots;
 
 
+RBasic::RBasic(dGeomID *geoms, int nb, dBodyID body):
+  Robot(geoms, nb, body)
+{
+  ctor_init();
+}
+
 RBasic::RBasic(dGeomID geom, dBodyID body):
   Robot(geom, body)
+{
+  ctor_init();
+}
+
+RBasic::RBasic(dGeomID *geoms, int nb, dReal m):
+  Robot(geoms, nb, m)
 {
   ctor_init();
 }
@@ -332,14 +370,35 @@ class LuaRobot: public LuaClass<Robot>
 {
   static int _ctor(lua_State *L)
   {
-    Robot **ud = get_userdata(L);
-    dGeomID geom = (dGeomID)LARG_lud(2);
-    *ud = new Robot(geom, LARG_f(3));
+    Robot **ud = new_userdata(L);
+
+    // Geoms: table or single Geom
+    dGeomID *geoms;
+    int nb = 0;
+
+    if( lua_type(L, 2) == LUA_TTABLE )
+      geoms = LuaManager::checkudtable<dGeomID>(L, 2, "Geom", &nb);
+    else
+    {
+      nb = 1;
+      // Use a temporary variable to use checkudata without memory leak
+      dGeomID *ud = (dGeomID*)luaL_checkudata(L, 2, "Geom");
+      geoms = new dGeomID[nb];
+      geoms[0] = *ud;
+    }
+
+    for( int i=0; i<nb; i++ )
+      geoms[i] = Physics::geom_duplicate(geoms[i]);
+
+    *ud = new Robot(geoms, nb, LARG_f(3));
+
+    delete[] geoms;
 
     lua_pushvalue(L, 1);
     (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
     return 0;
   }
+
 
   LUA_DEFINE_GET(get_team)
 
@@ -357,15 +416,32 @@ class LuaRBasic: public LuaClass<RBasic>
 {
   static int _ctor(lua_State *L)
   {
-    RBasic **ud = get_userdata(L);
+    RBasic **ud = new_userdata(L);
     luaL_checkany(L, 2);
     LOG->trace("LuaRBasic: BEGIN [%p]", ud);
 
-    if( lua_islightuserdata(L, 2) )
+    if( lua_type(L, 2) == LUA_TTABLE || lua_isuserdata(L, 2) )
     {
-      LOG->trace("  proto: geom");
-      dGeomID geom = (dGeomID)LARG_lud(2);
-      *ud = new RBasic(geom, LARG_f(3));
+      dGeomID *geoms;
+      int nb = 0;
+
+      if( lua_type(L, 2) == LUA_TTABLE )
+        geoms = LuaManager::checkudtable<dGeomID>(L, 2, "Geom", &nb);
+      else
+      {
+        nb = 1;
+        // Use a temporary variable to use checkudata without memory leak
+        dGeomID *ud = (dGeomID*)luaL_checkudata(L, 2, "Geom");
+        geoms = new dGeomID[nb];
+        geoms[0] = *ud;
+      }
+
+      for( int i=0; i<nb; i++ )
+        geoms[i] = Physics::geom_duplicate(geoms[i]);
+
+      *ud = new RBasic(geoms, nb, LARG_f(3));
+
+      delete[] geoms;
     }
     else if( lua_isnumber(L, 2) )
     {
@@ -373,9 +449,8 @@ class LuaRBasic: public LuaClass<RBasic>
       *ud = new RBasic(LARG_f(2), LARG_f(3), LARG_f(4), LARG_f(5));
     }
     else
-      luaL_argerror(L, 2, "expected geom or number");
+      luaL_argerror(L, 2, "expected Geom(s) or number");
 
-    LOG->trace("  set object reference");
     lua_pushvalue(L, 1);
     (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
 
@@ -433,6 +508,6 @@ public:
 };
 
 
-LUA_REGISTER_SUB_CLASS(Robot,ObjectDynamic);
+LUA_REGISTER_SUB_CLASS(Robot,Object);
 LUA_REGISTER_SUB_CLASS(RBasic,Robot);
 

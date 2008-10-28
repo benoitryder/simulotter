@@ -28,7 +28,7 @@ typedef GLfloat Color4[4];
 #define COLOR_I2F(r,g,b)  {(r)/255.f, (g)/255.f, (b)/255.f, 0.0f}
 
 #define COLOR_WHITE  {1.0f, 1.0f, 1.0f, 0.0f}
-#define COLOR_BLACK  {1.0f, 1.0f, 1.0f, 0.0f}
+#define COLOR_BLACK  {0.0f, 0.0f, 0.0f, 0.0f}
 
 #define COLOR_GRAY(n) {(GLfloat)(n), (GLfloat)(n), (GLfloat)(n), 0.0f}
 

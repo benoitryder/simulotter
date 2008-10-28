@@ -100,17 +100,8 @@ void Physics::step()
     {
       dQuaternion q;
       dQFromAxisAndAngle(q, 0, 0, 1, atan(v[1]/v[0]));
-      if( dGeomGetBody(b1) != NULL )
-        dGeomSetOffsetQuaternion(b1, q);
-      else
-      {
-        dQuaternion q1, qq;
-        dGeomGetQuaternion(b1, q1);
-        dQMultiply1(qq, q1, q);
-        dGeomSetQuaternion(b1, q);
-      }
+      dGeomSetOffsetQuaternion(b1, q);
     }
-
     
     collide_callback(this, b1, o2);
     //Note: uncomment to display hack_boxes
@@ -134,14 +125,80 @@ void Physics::step()
 }
 
 
+dGeomID Physics::geom_duplicate(dGeomID geom)
+{
+  dGeomID g;
+  switch( dGeomGetClass(geom) )
+  {
+    case dSphereClass:
+      {
+        dReal r = dGeomSphereGetRadius(geom);
+        g = dCreateSphere(0, r);
+        break;
+      }
+    case dBoxClass:
+      {
+        dVector3 size;
+        dGeomBoxGetLengths(geom, size);
+        g = dCreateBox(0, size[0], size[1], size[2]);
+        break;
+      }
+    case dPlaneClass:
+      {
+        dVector4 p;
+        dGeomPlaneGetParams(geom, p);
+        g = dCreatePlane(0, p[0], p[1], p[2], p[3]);
+        break;
+      }
+    case dCapsuleClass:
+      {
+        dReal r, len;
+        dGeomCapsuleGetParams(geom, &r, &len);
+        g = dCreateCapsule(0, r, len);
+        break;
+      }
+    case dCylinderClass:
+      {
+        dReal r, len;
+        dGeomCylinderGetParams(geom, &r, &len);
+        g = dCreateCylinder(0, r, len);
+        break;
+      }
+    case dRayClass:
+      {
+        g = dCreateRay(0, dGeomRayGetLength(geom));
+        break;
+      }
+    default:
+      {
+        throw(Error("geom class not supported in geom_duplicate"));
+        break;
+      }
+  }
+
+  const dReal *pos = dGeomGetPosition(geom);
+  const dReal *rot = dGeomGetRotation(geom);
+  dGeomSetPosition(g, pos[0], pos[1], pos[2]);
+  dGeomSetRotation(g, rot);
+  return g;
+}
+
+
 void Physics::collide_callback(void *data, dGeomID o1, dGeomID o2)
 {
   int i, n;
   unsigned long cat1, cat2;
+  dBodyID b1, b2;
   dSurfaceParameters sp;
 
   cat1 = dGeomGetCategoryBits(o1);
   cat2 = dGeomGetCategoryBits(o2);
+
+  b1 = ((cat1 & CAT_DYNAMIC)==0) ? 0 : dGeomGetBody(o1);
+  b2 = ((cat2 & CAT_DYNAMIC)==0) ? 0 : dGeomGetBody(o2);
+
+  if( b1 == b2 )
+    return; // Geoms of the same object do not collide
 
   // Ignore elements in dispensers
   //TODO only ignore if completely inside
@@ -149,7 +206,7 @@ void Physics::collide_callback(void *data, dGeomID o1, dGeomID o2)
       (cat2==CAT_DISPENSER) && (cat1==CAT_ELEMENT) )
   {
     dJointID c = dJointCreateSlider(physics->get_world(), physics->get_joints());
-    dJointAttach(c, dGeomGetBody(o1), dGeomGetBody(o2));
+    dJointAttach(c, b1, b2);
     dJointSetSliderAxis(c, 0.0, 0.0, 1.0);
     return;
   }
@@ -175,9 +232,8 @@ void Physics::collide_callback(void *data, dGeomID o1, dGeomID o2)
 
   for( i=0; i<n; i++ )
   {
-    dBodyID b1, b2;
-
     /*
+    dBodyID b1, b2;
     // Robots are not affected by elements
     if( (cat1&CAT_ROBOT)==CAT_ROBOT && (cat2&CAT_ELEMENT)==CAT_ELEMENT )
       b1 = 0;
@@ -188,11 +244,137 @@ void Physics::collide_callback(void *data, dGeomID o1, dGeomID o2)
     else
       b2 = dGeomGetBody(contacts[i].geom.g2);
       */
-    b1 = dGeomGetBody(contacts[i].geom.g1);
-    b2 = dGeomGetBody(contacts[i].geom.g2);
+    b1 = ((cat1 & CAT_DYNAMIC)==0) ? 0 : dGeomGetBody(contacts[i].geom.g1);
+    b2 = ((cat2 & CAT_DYNAMIC)==0) ? 0 : dGeomGetBody(contacts[i].geom.g2);
 
     memcpy(&contacts[i].surface, &sp, sizeof(sp));;
     dJointID c = dJointCreateContact(physics->get_world(), physics->get_joints(), &contacts[i]);
     dJointAttach(c, b1, b2);
   }
 }
+
+
+/** @name Lua geoms
+ *
+ * Lua geoms are not standard class: instances are created using a specific
+ * method for each geom each.
+ * Instances are not tables with an \e _ud fields be userdata.
+ * new_userdata() and get_ptr() are redefined for this purpose.
+ *
+ * Geoms are duplicated, and thus can be reused and properly collected
+ * properly.
+ */
+//@{
+
+class LuaGeom: public LuaClass<dGeomID>
+{
+  static dGeomID *new_userdata(lua_State *L)
+  {
+    // check that we use Class:method and not Class.method
+    luaL_checktype(L, 1, LUA_TUSERDATA);
+    dGeomID *ud = (dGeomID *)lua_newuserdata(L, sizeof(dGeomID));
+    lua_getfield(L, LUA_REGISTRYINDEX, name);
+    lua_setmetatable(L, -2);
+    return ud;
+  }
+
+  static dGeomID get_ptr(lua_State *L)
+  {
+    return *(dGeomID*)luaL_checkudata(L, 1, name);
+  }
+
+  static int _ctor(lua_State *L)
+  {
+    return luaL_error(L, "no Geom constructor, use creation methods");
+  }
+
+  static int sphere(lua_State *L)
+  {
+    dGeomID *ud = new_userdata(L);
+    *ud = dCreateSphere(0, LARG_f(2));
+    return 1;
+  }
+
+  static int box(lua_State *L)
+  {
+    dGeomID *ud = new_userdata(L);
+    *ud = dCreateBox(0, LARG_f(2), LARG_f(3), LARG_f(4));
+    return 1;
+  }
+
+  static int plane(lua_State *L)
+  {
+    dGeomID *ud = new_userdata(L);
+    *ud = dCreatePlane(0, LARG_f(2), LARG_f(3), LARG_f(4), LARG_f(5));
+    return 1;
+  }
+
+  static int capsule(lua_State *L)
+  {
+    dGeomID *ud = new_userdata(L);
+    *ud = dCreateCapsule(0, LARG_f(2), LARG_f(3));
+    return 1;
+  }
+
+  static int cylinder(lua_State *L)
+  {
+    dGeomID *ud = new_userdata(L);
+    *ud = dCreateCylinder(0, LARG_f(2), LARG_f(3));
+    return 1;
+  }
+
+  static int ray(lua_State *L)
+  {
+    dGeomID *ud = new_userdata(L);
+    *ud = dCreateCapsule(0, LARG_f(2), LARG_f(3));
+    return 1;
+  }
+
+
+  static int set_pos(lua_State *L)
+  {
+    dGeomID geom = get_ptr(L);
+    dGeomSetPosition(geom, LARG_f(2), LARG_f(3), LARG_f(4));
+    return 0;
+  }
+
+  static int set_rot(lua_State *L)
+  {
+    dGeomID geom = get_ptr(L);
+    const dQuaternion q = { LARG_f(2), LARG_f(3), LARG_f(4), LARG_f(5) };
+    dGeomSetQuaternion(geom, q);
+    return 0;
+  }
+
+  // Garbage collector
+  static int gc(lua_State *L)
+  {
+    dGeomID geom = get_ptr(L);
+    // Don't destroy used geoms (should not happened, just in case)
+    if( dGeomGetSpace(geom) == 0 )
+      dGeomDestroy( geom );
+    return 0;
+  }
+
+public:
+  LuaGeom()
+  {
+    LUA_REGFUNC(_ctor);
+    LUA_REGFUNC(sphere);
+    LUA_REGFUNC(box);
+    LUA_REGFUNC(plane);
+    LUA_REGFUNC(capsule);
+    LUA_REGFUNC(cylinder);
+    LUA_REGFUNC(ray);
+    LUA_REGFUNC(set_pos);
+    LUA_REGFUNC(set_rot);
+    functions.push_back((LuaRegFunc){"__gc", gc});
+  }
+};
+
+template<> const char *LuaClass<dGeomID>::name = "Geom";
+static LuaGeom register_LuaGeom;
+template<> const char *LuaClass<dGeomID>::base_name = NULL;
+
+//@}
+

@@ -37,7 +37,7 @@ Config::Config()
 }
 
 
-const char *Config::registry_name = LUA_REGISTRY_PREFIX "config";
+const char *Config::registry_name = "Config";
 
 
 void Config::lua_init(lua_State *L)

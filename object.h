@@ -11,102 +11,135 @@
 ///@file
 
 
+/// Convenient macro to go execute instructions on all body's geoms.
+#define OBJECT_FOREACH_GEOM(body,g,instructions) \
+  for( dGeomID g=dBodyGetFirstGeom(body); g!=NULL; g=dBodyGetNextGeom(g) ) \
+    {instructions;}
+
+
 /** @brief Basic object
  *
- * A basic object collides but does not move (it is not simulated).
  * New objects are automatically added to the simulation objects and geoms are
  * put in the global space.
  *
- * @todo Allow multi-geom objects.
- * @todo Automatically push created geoms or create a dummy space for new
- * objects.
+ * There a two object types: static and dynamic. Static objects are dynamic
+ * objects without a physical body, they collide but are not simulated.
+ *
+ * Static object bodies are put in the dummy worl \e world_void.
  */
 class Object
 {
 protected:
+  /** @brief Empty constructor
+   *
+   * Only for subclasses which have to initialize complexe geom structures
+   * before calling the parent constructor. They can use ctor_init() or
+   * ctor_mass() instead.
+   */
   Object();
 
+  /// Common constructor initializations
+  void ctor_init(dGeomID *geoms, int nb, dBodyID body);
+
+  /// Common mass initializations
+  void ctor_init(dGeomID *geoms, int nb, dReal m);
+
 public:
-  Object(dGeomID geom);
+  /** @brief Create an object with multiple geoms
+   *
+   * If \e body is null, a static object is created.
+   *
+   * Each geom offset is set to its position (before begin attached to the body).
+   */
+  Object(dGeomID *geoms, int nb, dBodyID body=NULL);
+  /// Single geom constructor
+  Object(dGeomID geom, dBodyID body=NULL);
+  /** @brief Mass constructor
+   *
+   * Create an object with given geoms and mass.
+   * For single geom object, the body shape is determined from the geom shape.
+   * Otherwise the bounding box is used.
+   *
+   * @warning For single geom objects, if the geom has an offset the mass will
+   * not be set correctly.
+   */
+  Object(dGeomID *geoms, int nb, dReal m);
+  /// Mass constructor, single geom version
+  Object(dGeomID geom, dReal m);
+
+
   virtual ~Object();
 
-  unsigned long get_category() const { return dGeomGetCategoryBits(geom); }
-  unsigned long get_collide()  const { return dGeomGetCollideBits(geom);  }
-  void set_category(unsigned long cat) { dGeomSetCategoryBits(geom, cat); }
-  void set_collide (unsigned long col) { dGeomSetCollideBits(geom, col);  }
+  /// Get bouding box
+  void get_aabb(dReal aabb[6]);
+
+  /** @name Category and collide bitfields operations
+   *
+   * All geoms in a same objects should have the same category and collide
+   * bits. All operations set the same bitfield on each geoms.
+   */
+  //@{
+  unsigned long get_category() const;
+  unsigned long get_collide()  const;
+  void set_category(unsigned long cat);
+  void set_collide (unsigned long col);
   void add_category(unsigned long cat) { set_category(get_category()|cat); }
   void add_collide (unsigned long col) { set_collide(get_collide()|col);   }
   void sub_category(unsigned long cat) { set_category(get_category()&~cat); }
   void sub_collide (unsigned long col) { set_collide(get_collide()&~col);   }
+  //@}
 
   bool is_visible() const { return this->visible; }
 
-  const dReal *get_pos() { return dGeomGetPosition(geom); }
-  void set_pos(dReal x, dReal y, dReal z) { dGeomSetPosition(geom, x, y, z); }
-  /// Place above (not on or in) the ground
+  const dReal *get_pos() const { return dBodyGetPosition(body); }
+  void set_pos(dReal x, dReal y, dReal z) { dBodySetPosition(body, x, y, z); }
+  /** @brief Place above (not on or in) the ground
+   * @sa Config::drop_epsilon
+   */
   void set_pos(dReal x, dReal y);
 
-  void set_rot(const dQuaternion q) { dGeomSetQuaternion(geom, q); }
+  void set_rot(const dQuaternion q) { dBodySetQuaternion(body, q); }
 
   void set_visible(bool b) { this->visible = b; }
 
   /// Draw the whole object
-  virtual void draw() { draw_geom(geom); }
+  virtual void draw();
 
 
 protected:
-  dGeomID geom;
+  dBodyID body;
+
+  /// Another world where nothing happens, for static object bodies
+  static dWorldID world_void;
 
   /// Object is not drawn if not visible
   bool visible;
 
-  /** @brief Change the GL matrix according to position and rotation
-   */
+  /// Change the GL matrix according to position and rotation
   static void draw_move(dGeomID geom);
-  void draw_move() { draw_move(this->geom); }
+  /// Change the GL matrix according to position and rotation, body version
+  void draw_move();
 
   /// Draw a given geometry
   static void draw_geom(dGeomID geom);
-
 };
 
 
-/** @brief Moving object
- */
-class ObjectDynamic: public Object
-{
-protected:
-  ObjectDynamic();
-
-public:
-  /// Generic constructor
-  ObjectDynamic(dGeomID geom, dBodyID body);
-
-  /** @brief Convenient constructor
-   *
-   * Create an object with given geometry and mass attributes.
-   * The body shape is determined from geometry shape. If it is
-   * not a basic solid, the bounding box is used.
-   */
-  ObjectDynamic(dGeomID geom, dReal m);
-
-  ~ObjectDynamic();
-
-protected:
-
-  dBodyID body;
-
-  //TODO dGeomSetOffsetPosition
-};
-
-
-
-/// Colored static object
+/// Colored object
 class ObjectColor: public Object
 {
+protected:
+  ObjectColor(): Object() {}
+
 public:
-  ObjectColor(dGeomID geom):
-    Object(geom) {}
+  ObjectColor(dGeomID *geoms, int nb=1, dBodyID body=NULL):
+    Object(geoms, nb, body) {}
+  ObjectColor(dGeomID geom, dBodyID body=NULL):
+    Object(geom, body) {}
+  ObjectColor(dGeomID *geoms, int nb, dReal m):
+    Object(geoms, nb, m) {}
+  ObjectColor(dGeomID geom, dReal m):
+    Object(geom, m) {}
 
   void set_color(Color4 color) { COLOR_COPY(this->color, color); }
   virtual void draw() { glColor3fv(color); Object::draw(); }
@@ -115,24 +148,6 @@ protected:
   /// Object main color
   Color4 color;
 };
-
-/// Colored dynamic object
-class ObjectDynamicColor: public ObjectDynamic
-{
-public:
-  ObjectDynamicColor(dGeomID geom, dBodyID body):
-    ObjectDynamic(geom, body) {};
-  ObjectDynamicColor(dGeomID geom, dReal m):
-    ObjectDynamic(geom, m) {};
-
-  void set_color(Color4 color) { COLOR_COPY(this->color, color); }
-  virtual void draw() { glColor3fv(color); Object::draw(); }
-
-private:
-  /// Object main color
-  Color4 color;
-};
-
 
 
 /** @brief Table ground
@@ -164,6 +179,9 @@ protected:
 
   /// Starting zone size
   static const dReal size_start = 0.5;
+
+  /// Main box geom
+  dGeomID geom_box;
 
   Color4 color;
   Color4 color_t1;

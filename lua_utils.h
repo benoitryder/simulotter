@@ -14,10 +14,6 @@ extern "C"
 #include "log.h"
 
 
-/// Prefix for registry keys
-#define LUA_REGISTRY_PREFIX  "simulotter_"
-
-
 class LuaClassBase;
 
 
@@ -32,11 +28,62 @@ public:
   /// Run a Lua script
   void do_file(const char *filename);
 
-  /** @brief Checks whether a given argument is a color and get it
+  /** @brief Check whether a given argument is a color and get it
    *
    * Valid colors are tables of 3 or 4 elements, ordered.
    */
   static void checkcolor(lua_State *L, int narg, Color4 c);
+
+  /** @brief Check whether a given argument is a table of userdata
+   *
+   * @param  L       Lua state
+   * @param  narg    checked argument
+   * @param  type    type of table elements
+   * @param  len_ptr if not null, pointed value is set to the actual table size
+   * @param  len     size of table (0: any size, negative: minimum size)
+   *
+   * @return An array of objects which should be deleted after use.
+   *
+   * @note If the function fails, the value pointed by \e len_ptr is not *
+   * modified.
+   */
+  template<typename T> static T *checkudtable(lua_State *L, int narg, const char *tname, int *len_ptr=NULL, int len=0)
+  {
+    T *a;
+    luaL_checktype(L, narg, LUA_TTABLE);
+
+    int nb = lua_objlen(L, narg);
+    if( len > 0 )
+      luaL_argcheck(L, nb==len, narg, "invalid table size");
+    else if( len < 0 )
+      luaL_argcheck(L, nb>=len, narg, "invalid table size");
+
+    luaL_getmetatable(L, tname);
+    int mt = lua_gettop(L);
+    a = new T[nb];
+
+    lua_pushnil(L);
+    for( int i=0; i<nb; i++ )
+    {
+      lua_next(L, narg);
+      if( lua_type(L, -1) != LUA_TUSERDATA ||
+          lua_getmetatable(L, -1) == 0 ||
+          lua_equal(L, mt, -1) == 0 )
+      {
+        delete[] a;
+        luaL_argerror(L, narg, "invalid type in table");
+      }
+      a[i] = *(T*)lua_touserdata(L, -2);
+      lua_pop(L, 2);
+    }
+    lua_pop(L, 2);
+
+    if( len_ptr != NULL )
+      *len_ptr = nb;
+
+    return a;
+  }
+
 
   lua_State *get_L() { return this->L; }
 
@@ -59,32 +106,23 @@ private:
 
   /// Write a string line on stdout
   static int lua_trace(lua_State *L);
-
-  /** @name ODE bindings
-   *
-   * Geometries are stored as lightuserdata.
-   *
-   * @note Unused geoms are not collected. It is not a big problem since they
-   * are not in the common space. But it is good practice to destroy them.
-   */
-  //@{
-
-  static int ode_sphere(lua_State *L);
-  static int ode_box(lua_State *L);
-  static int ode_plane(lua_State *L);
-  static int ode_capsule(lua_State *L);
-  static int ode_cylinder(lua_State *L);
-  static int ode_ray(lua_State *L);
-  //static int ode_convex(lua_State *L);
-  //static int ode_trimesh(lua_State *L);
-
-  static int ode_destroy(lua_State *L);
-
-  //@}
 };
 
 
-/// Base class for Lua classes
+/** @brief Base class for Lua classes
+ *
+ * Classes are built using the global \e class function.
+ *
+ * Instances are tables.
+ * Instances of (or which inherit from) predefined classes store their
+ * userdata in the \e _ud field. If it is modified, results are unexpected.
+ *
+ * Predefined classes may store Lua objects (e.g. instances) using references
+ * in the registry. Thus, they can be associated to C++ instances.
+ * 
+ * As a convention, field names starting with an underscore are reserved for
+ * intern mechanics.
+ */
 class LuaClassBase
 {
 public:
@@ -112,8 +150,7 @@ public:
   virtual const char *get_base_name() = 0;
 
   /** @name Push functions
-   *
-   * @todo Pas à sa place
+   * @todo Should not be here
    */
   //@{
   static void push(lua_State *L) { lua_pushnil(L); }
@@ -148,22 +185,6 @@ private:
   /// Array of registered class.
   static std::vector<LuaClassBase*> classes;
 
-  /** @name Class stuff
-   *
-   * Classes are built using the global \e class function.
-   *
-   * Instances are tables.
-   * Instances of (or which inherit from) predefined classes store their
-   * userdata in the \e _ud field. If it is modified, results are unexpected.
-   *
-   * Predefined classes may store Lua objects (e.g. instances) using references
-   * in the registry. Thus, they can be associated to C++ instances.
-   * 
-   * As a convention, field names starting with an underscore are reserved for
-   * intern mechanics.
-   */
-  //@{
-
   /** @brief Constructor for lua classes
    *
    * Two parameters: base class (or \e nil) and an optional constructor for the
@@ -184,13 +205,12 @@ private:
    */
   static int index_class(lua_State *L);
 
-  /// Class object metatable name in registry
+  /// Class metatable key in registry
   static const char *registry_class_mt_name;
 };
 
 
-/** @brief Class inherited by classes which provides a Lua class.
- * @todo destructors
+/** @brief Class inherited by classes which provide a Lua class.
  */
 template<class T>
 class LuaClass: public LuaClassBase
@@ -205,8 +225,8 @@ protected:
    * Get the C++ instance pointer from an instance table.
    * Replace the instance table by the userdata.
    *
-   * @todo Cannot check using checkudata since derived classes does not hava
-   * the correct type. Find an other way to check (metatable+inheritance, ...).
+   * @todo Cannot check using checkudata since derived classes does not have
+   * the correct type. Find another way to check (metatable+inheritance, ...).
    */
   static T *get_ptr(lua_State *L)
   {
@@ -229,7 +249,6 @@ protected:
     lua_setfield(L, LUA_GLOBALSINDEX, get_name());
 
     // Create the metatable
-    //TODO add the prefix
     luaL_newmetatable(L, get_name());
 
     lua_getfield(L, LUA_REGISTRYINDEX, registry_class_mt_name);
@@ -247,7 +266,6 @@ protected:
     }
 
     // Add class in registry
-    //TODO add the prefix
     lua_setfield(L, LUA_REGISTRYINDEX, get_name());
   }
 
@@ -260,11 +278,11 @@ protected:
    *
    * @note This function should be called by any constructor.
    */
-  static T **get_userdata(lua_State *L)
+  static T **new_userdata(lua_State *L)
   {
     push(L, "_ud");
     T **ud = (T **)lua_newuserdata(L, sizeof(T *));
-    lua_getfield(L, LUA_REGISTRYINDEX, name);//XXX add the prefix
+    lua_getfield(L, LUA_REGISTRYINDEX, name);
     lua_setmetatable(L, -2);
     lua_rawset(L, 1);
     return ud;

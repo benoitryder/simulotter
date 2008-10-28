@@ -5,7 +5,7 @@ CFLAGS = -g -Wall `ode-config --cflags` -I/usr/local/include/lua5.1 -I/usr/inclu
 ifeq ($(OS),Windows_NT)
 LDFLAGS = -mconsole -lfreeglut -mwindows -lSDL -lm -lode -lopengl32 -lglu32 -lwinmm -llua
 else
-LDFLAGS = `sdl-config --libs` -lm -lode -lGL -llua
+LDFLAGS = `sdl-config --libs` -lm -lode -lGL -llua5.1 -lglut
 endif
 
 OBJS = main.o config.o physics.o display.o object.o robot.o rules.o maths.o log.o lua_utils.o

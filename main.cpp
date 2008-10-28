@@ -7,6 +7,7 @@
 #include "object.h"
 #include "robot.h"
 #include "global.h"
+#include "maths.h"
 
 #include "rules2009.h"
 
@@ -65,7 +66,7 @@ int main(int argc, char **argv)
     }
 
     LOG->trace("init display");
-    //glutInit(&argc, argv);
+    glutInit(&argc, argv);
     display = new Display();
 
     LOG->trace("init rules");
@@ -103,7 +104,7 @@ int main(int argc, char **argv)
         time_disp += disp_dt;
       }
 
-      time_wait = (time_step < time_disp) ? time_step : time_disp;
+      time_wait = MIN(time_step,time_disp);
       time_wait -= time;
       if( time_wait > 0 )
       {
@@ -117,7 +118,7 @@ int main(int argc, char **argv)
   }
   catch(int i)
   {
-    LOG->trace("Exit");
+    LOG->trace("EXIT");
     return i;
   }
   catch(Error e)

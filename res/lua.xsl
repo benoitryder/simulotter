@@ -66,7 +66,7 @@
           }
           .class.desc, .object.desc {
             border: 1px solid #f0f0f0;
-            padding: 0.5ex 0 0.5ex 0.5em;
+            padding: 0.5ex 0.5em 0.5ex 0.5em;
             margin-left: 0;
           }
 

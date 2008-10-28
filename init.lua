@@ -4,11 +4,11 @@
 config.gravity_z = -0.5
 config.cfm = config.cfm; -- CFM depends on ODE precision
 config.step_dt = 0.002
-config.time_scale =  1
+config.time_scale =  2
 config.contacts_nb = 5
 config.drop_epsilon = 0.001
 
-config.draw_epsilon = 0.0001
+config.draw_epsilon = 0.0005
 config.draw_div = 20
 config.draw_direction_r = 0.05
 config.draw_direction_h = 0.10
@@ -69,23 +69,25 @@ r1:set_threshold_a(0.10)
 
 
 -- Building
-oc1 = ObjectDynamicColor(ode.cylinder(0.035, 0.030), 0.100)
-oc2 = ObjectDynamicColor(ode.cylinder(0.035, 0.030), 0.100)
-oc3 = ObjectDynamicColor(ode.cylinder(0.035, 0.030), 0.100)
-oc4 = ObjectDynamicColor(ode.cylinder(0.035, 0.030), 0.100)
-ol1 = ObjectDynamicColor(ode.box(0.200, 0.070, 0.030), 0.300)
+if false then
+  oc1 = ObjectColor(Geom:cylinder(0.035, 0.030), 0.100)
+  oc2 = ObjectColor(Geom:cylinder(0.035, 0.030), 0.100)
+  oc3 = ObjectColor(Geom:cylinder(0.035, 0.030), 0.100)
+  oc4 = ObjectColor(Geom:cylinder(0.035, 0.030), 0.100)
+  ol1 = ObjectColor(Geom:box(0.200, 0.070, 0.030), 0.300)
 
-oc1:set_color( { 1,0,0 } )
-oc2:set_color( { 0,1,0 } )
-oc3:set_color( { 1,0,0 } )
-oc4:set_color( { 0,1,0 } )
-ol1:set_color( { 1,1,0 } )
+  oc1:set_color( { 1,0,0 } )
+  oc2:set_color( { 0,1,0 } )
+  oc3:set_color( { 1,0,0 } )
+  oc4:set_color( { 0,1,0 } )
+  ol1:set_color( { 1,1,0 } )
 
-oc1:set_pos( -0.050, 0, 0.070 )
-oc2:set_pos( -0.050, 0, 0.105 )
-oc3:set_pos(  0.050, 0, 0.070 )
-oc4:set_pos(  0.050, 0, 0.105 )
-ol1:set_pos( 0, 0, 0.140 )
+  oc1:set_pos( -0.050, 0, 0.070 )
+  oc2:set_pos( -0.050, 0, 0.105 )
+  oc3:set_pos(  0.050, 0, 0.070 )
+  oc4:set_pos(  0.050, 0, 0.105 )
+  ol1:set_pos( 0, 0, 0.140 )
+end
 
 
 function r1:strategy()

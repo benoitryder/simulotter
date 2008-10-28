@@ -7,6 +7,8 @@
 ///@file
 
 
+/** @brief Display and interface events
+ */
 class Display
 {
 public:
@@ -19,9 +21,7 @@ public:
   /// Update display
   void update();
 
-  /** @brief Process SDL events
-   * @todo It's not display... Rename? Put it in another module?
-   */
+  /// Process SDL events
   void handle_events();
 
   /** @brief Camera modes

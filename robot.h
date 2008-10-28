@@ -15,12 +15,22 @@
  *
  * @note Only TEAM_NB robots can be created.
  */
-class Robot: public ObjectDynamic
+class Robot: public Object
 {
+protected:
+  Robot() {}
+  void ctor_init(dGeomID *geoms, int nb, dBodyID body);
+  void ctor_mass(dGeomID *geoms, int nb, dReal m);
+
+  /// Common constructor initializations
+  void ctor_init();
+
   friend class LuaRobot;
 public:
 
+  Robot(dGeomID *geoms, int nb, dBodyID body);
   Robot(dGeomID geom, dBodyID body);
+  Robot(dGeomID *geoms, int nb, dReal m);
   Robot(dGeomID geom, dReal m);
 
   ~Robot();
@@ -95,9 +105,6 @@ private:
   /// Robot array
   static std::vector<Robot*> robots;
 
-  /// Common constructor initializations
-  void ctor_init();
-
   /// Team number (-1 if not set)
   int team;
 
@@ -126,7 +133,9 @@ class RBasic: public Robot
   friend class LuaRBasic;
 public:
 
+  RBasic(dGeomID *geoms, int nb, dBodyID body);
   RBasic(dGeomID geom, dBodyID body);
+  RBasic(dGeomID *geoms, int nb, dReal m);
   RBasic(dGeomID geom, dReal m);
 
   /** @brief Convenient constructor

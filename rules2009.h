@@ -49,35 +49,36 @@ namespace rules2009
     static const dReal disp_offset_y;
     static const dReal disp_offset_z;
 
+  public:
     static const dReal wall_width;
     static const dReal wall_height;
   };
 
 
-  /// Column elements
-  class OColElem: public ObjectDynamicColor
+  /// Column element
+  class OColElem: public ObjectColor
   {
   public:
     OColElem():
-      ObjectDynamicColor(dCreateCylinder(0, 0.035, 0.030), 0.100)
+      ObjectColor(dCreateCylinder(0, 0.035, 0.030), 0.100)
     {
       set_category(CAT_ELEMENT);
     }
   };
 
   /// Lintels
-  class OLintel: public ObjectDynamicColor
+  class OLintel: public ObjectColor
   {
   public:
     OLintel():
-      ObjectDynamicColor(dCreateBox(0, 0.200, 0.070, 0.030), 0.300)
+      ObjectColor(dCreateBox(0, 0.200, 0.070, 0.030), 0.300)
     {
       set_category(CAT_ELEMENT);
     }
   };
 
 
-  /// Column dispenser
+  /// Column dispense
   class ODispenser: public ObjectColor
   {
   public:
@@ -86,7 +87,7 @@ namespace rules2009
     /** @brief Set dispenser position from its attach point
      *
      * @param  x  attach x position
-     * @param  y  attach x position
+     * @param  y  attach y position
      * @param  z  space between the dispenser and the ground
      * @param  side dispenser attach side (0 top, 1 right, 2 bottom, 3 left)
      */
@@ -97,9 +98,13 @@ namespace rules2009
      * @param  o  Object to move in the dispenser
      * @param  z  Z position, in the global coordinates
      */
-    void fill(ObjectDynamic *o, dReal z);
+    void fill(Object *o, dReal z);
 
     void draw();
+
+  protected:
+    static const dReal radius;
+    static const dReal height;
   };
 
   /// Lintel storage
@@ -107,6 +112,19 @@ namespace rules2009
   {
   public:
     OLintelStorage();
+
+    /** @brief Set position from attach point
+     *
+     * Attach point is the lintel storage corner in contact with table wall.
+     *
+     * @param  d    attach position on the given wall
+     * @param  side attach side (0 top, 1 right, 2 bottom, 3 left)
+     */
+    void set_pos(dReal d, int side);
+
+    /// Put a lintel in the storage
+    void fill(OLintel *o);
+
   };
 }
 

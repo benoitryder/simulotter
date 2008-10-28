@@ -60,8 +60,10 @@ void Display::update()
 
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
-  glEnable(GL_RESCALE_NORMAL);
+  //glEnable(GL_RESCALE_NORMAL);
+  glEnable(GL_NORMALIZE);
   glEnable(GL_COLOR_MATERIAL);
+  glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
   glMatrixMode(GL_PROJECTION); 
   glLoadIdentity();
@@ -70,6 +72,9 @@ void Display::update()
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
+
+  const GLfloat light_pos[4] = {0,.3,.8,0};
+  glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
   // Camera position
   float *spherical, *eye, *target;
@@ -125,24 +130,6 @@ void Display::update()
       pos[0], pos[1], pos[2],  1.0f
     };
     glMultMatrixf(m);
-
-    // Offset
-
-    // XXX Set rotation offset should only change geom rotation, but body
-    // rotation is modified too. Whe use offset to rotate a cylinder around its
-    // axis, thus it's not a problem.
-    pos = dGeomGetOffsetPosition(geom);
-    glTranslatef(pos[0], pos[1], pos[2]);
-    /*
-    rot = dGeomGetOffsetRotation(geom);
-    GLfloat m2[16] = {
-      rot[0], rot[4], rot[8],  0.0f,
-      rot[1], rot[5], rot[9],  0.0f,
-      rot[2], rot[6], rot[10], 0.0f,
-      pos[0], pos[1], pos[2],  1.0f
-    };
-    glMultMatrixf(m2);
-    */
 
     dVector3 size;
     dGeomBoxGetLengths(geom, size);
@@ -221,7 +208,7 @@ void Display::scene_init()
   glEnable(GL_LIGHT0);
 
   glEnable(GL_DEPTH_TEST); 
-  glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
   //glEnable(GL_BLEND);
   //glBlendFunc(GL_ONE,GL_ONE_MINUS_SRC_ALPHA);

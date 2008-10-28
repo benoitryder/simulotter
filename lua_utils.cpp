@@ -24,22 +24,6 @@ LuaManager::LuaManager()
   // Register global functions
   LUA_REG_GLOBAL(trace, lua_trace);
 
-  // Register ODE functions
-  // Create userdata and set a metatable
-  lua_newuserdata(L, 0);
-  lua_newtable(L);
-  LUA_REG_FIELD(sphere,   ode_sphere);
-  LUA_REG_FIELD(box,      ode_box);
-  LUA_REG_FIELD(plane,    ode_plane);
-  LUA_REG_FIELD(capsule,  ode_capsule);
-  LUA_REG_FIELD(cylinder, ode_cylinder);
-  LUA_REG_FIELD(ray,      ode_ray);
-  LUA_REG_FIELD(destroy,  ode_destroy);
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-  lua_setmetatable(L, -2);
-  lua_setfield(L, LUA_GLOBALSINDEX, "ode");
-
   // Init Lua stuff of other classes
   cfg->lua_init(L);
   LuaClassBase::init(L);
@@ -95,54 +79,8 @@ int LuaManager::lua_trace(lua_State *L)
 }
 
 
-int LuaManager::ode_sphere(lua_State *L)
-{
-  lua_pushlightuserdata(L, dCreateSphere(0, LARG_f(1)));
-  return 1;
-}
-
-int LuaManager::ode_box(lua_State *L)
-{
-  lua_pushlightuserdata(L, dCreateBox(0, LARG_f(1), LARG_f(2), LARG_f(3)));
-  return 1;
-}
-
-int LuaManager::ode_plane(lua_State *L)
-{
-  lua_pushlightuserdata(L, dCreatePlane(0, LARG_f(1), LARG_f(2), LARG_f(3), LARG_f(3)));
-  return 1;
-}
-
-int LuaManager::ode_capsule(lua_State *L)
-{
-  lua_pushlightuserdata(L, dCreateCapsule(0, LARG_f(1), LARG_f(2)));
-  return 1;
-}
-
-int LuaManager::ode_cylinder(lua_State *L)
-{
-  lua_pushlightuserdata(L, dCreateCylinder(0, LARG_f(1), LARG_f(2)));
-  return 1;
-}
-
-int LuaManager::ode_ray(lua_State *L)
-{
-  lua_pushlightuserdata(L, dCreateCapsule(0, LARG_f(1), LARG_f(2)));
-  return 1;
-}
-
-int LuaManager::ode_destroy(lua_State *L)
-{
-  dGeomID geom = (dGeomID)LARG_lud(1);
-  // Don't destroy used geoms.
-  if( dGeomGetSpace(geom) == 0 )
-    dGeomDestroy( geom );
-  return 0;
-}
-
-
 std::vector<LuaClassBase*> LuaClassBase::classes;
-const char *LuaClassBase::registry_class_mt_name = LUA_REGISTRY_PREFIX "class_mt";
+const char *LuaClassBase::registry_class_mt_name = "simulotter_class";
 
 
 int LuaClassBase::new_class(lua_State *L)
@@ -292,5 +230,4 @@ void LuaClassBase::init(lua_State *L)
     lua_pop(L, 1);
   }
 }
-
 

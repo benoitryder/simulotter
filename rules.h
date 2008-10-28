@@ -42,8 +42,6 @@ public:
    * @param  fconf  field fconfuration, -1 for random
    *
    * @note Random seed is intialized in constructor.
-   *
-   * @todo Check robot number, start position, etc.
    */
   virtual void init(int fconf) = 0;
 

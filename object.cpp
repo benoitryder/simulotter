@@ -3,39 +3,159 @@
 
 #include "global.h"
 #include "object.h"
+#include "maths.h"
 
 
 Object::Object()
 {
   LOG->trace("Object: NEW (empty)");
-  this->geom = NULL;
-  this->visible = true;
 }
 
-Object::Object(dGeomID geom)
+Object::Object(dGeomID *geoms, int nb, dBodyID body)
 {
-  LOG->trace("Object: NEW (geom)");
-  this->geom = geom;
+  LOG->trace("Object: NEW (multi)");
+  ctor_init(geoms, nb, body);
+}
+
+Object::Object(dGeomID geom, dBodyID body)
+{
+  LOG->trace("Object: NEW (single)");
+  ctor_init(&geom, 1, body);
+}
+
+Object::Object(dGeomID *geoms, int nb, dReal m)
+{
+  LOG->trace("Object: NEW (multi, mass)");
+  ctor_init(geoms, nb, m);
+}
+
+Object::Object(dGeomID geom, dReal m)
+{
+  LOG->trace("Object: NEW (single, mass)");
+  ctor_init(&geom, 1, m);
+}
+
+void Object::ctor_init(dGeomID *geoms, int nb, dBodyID body)
+{
+  if( world_void == NULL )
+    world_void = dWorldCreate();
+
+  if( body == NULL )
+    this->body = dBodyCreate(world_void);
+  else
+    this->body = body;
+
+  for( int i=0; i<nb; i++ )
+  {
+    // Position changed after setting body
+    // We have to copy position
+    const dReal *volatile posv = dGeomGetPosition(geoms[i]);
+    dReal pos[3] = { posv[0], posv[1], posv[2] };
+
+    dQuaternion q;
+    dGeomGetQuaternion(geoms[i], q);
+
+    dSpaceAdd(physics->get_space(), geoms[i]);
+    dGeomSetBody(geoms[i], this->body);
+    dGeomSetOffsetPosition(geoms[i], pos[0], pos[1], pos[2]);
+    dGeomSetOffsetQuaternion(geoms[i], q);
+  }
+
   this->visible = true;
-  set_category(0);
-  dSpaceAdd(physics->get_space(), this->geom);
+
+  this->set_category( body==NULL ? 0 : CAT_DYNAMIC );
   physics->get_objs().push_back(this);
 }
 
+void Object::ctor_init(dGeomID *geoms, int nb, dReal m)
+{
+  ctor_init(geoms, nb, dBodyCreate(physics->get_world()));
+
+  dMass mass;
+  if( nb == 1 )
+    switch( dGeomGetClass(*geoms) )
+    {
+      case dSphereClass:
+        {
+          dReal r = dGeomSphereGetRadius(*geoms);
+          dMassSetSphereTotal(&mass, m, r);
+          break;
+        }
+      case dBoxClass:
+        {
+          dVector3 size;
+          dGeomBoxGetLengths(*geoms, size);
+          dMassSetBoxTotal(&mass, m, size[0], size[1], size[2]);
+          break;
+        }
+      case dCapsuleClass:
+        {
+          dReal r, len;
+          dGeomCapsuleGetParams(*geoms, &r, &len);
+          dMassSetCapsuleTotal(&mass, m, 3, r, len);
+          break;
+        }
+      case dCylinderClass:
+        {
+          dReal r, len;
+          dGeomCylinderGetParams(*geoms, &r, &len);
+          dMassSetCylinderTotal(&mass, m, 3, r, len);
+          break;
+        }
+      default:
+        {
+          dReal a[6];
+          this->get_aabb(a);
+          dMassSetBoxTotal(&mass, m, a[1]-a[0], a[3]-a[2], a[5]-a[4]);
+          break;
+        }
+    }
+  else
+  {
+    dReal a[6];
+    this->get_aabb(a);
+    dMassSetBoxTotal(&mass, m, a[1]-a[0], a[3]-a[2], a[5]-a[4]);
+  }
+
+  dBodySetMass(this->body, &mass);
+}
+ 
+
 Object::~Object()
 {
-  if( geom == NULL )
-    return;
-  dGeomDestroy(geom);
-  geom = NULL;
+  OBJECT_FOREACH_GEOM(body,g,dGeomDestroy(g));
+  dBodyDestroy(body);
 }
 
+dWorldID Object::world_void;
+
+
+void Object::get_aabb(dReal aabb[6])
+{
+  dReal a[6];
+  dGeomID g = dBodyGetFirstGeom(body);
+  dGeomGetAABB(g, aabb);
+  for( g=dBodyGetNextGeom(g); g!=NULL; g=dBodyGetNextGeom(g) )
+  {
+    aabb[0] = MIN(aabb[0],a[0]);
+    aabb[1] = MAX(aabb[1],a[1]);
+    aabb[2] = MIN(aabb[2],a[2]);
+    aabb[3] = MAX(aabb[3],a[3]);
+    aabb[4] = MIN(aabb[4],a[4]);
+    aabb[5] = MAX(aabb[5],a[5]);
+  }
+}
 
 void Object::set_pos(dReal x, dReal y)
 {
   dReal a[6];
-  dGeomGetAABB(geom, a);
+  get_aabb(a);
   set_pos(x, y, a[5]-a[4] + cfg->drop_epsilon);
+}
+
+void Object::draw()
+{
+  OBJECT_FOREACH_GEOM(body,g,draw_geom(g));
 }
 
 void Object::draw_geom(dGeomID geom)
@@ -97,93 +217,42 @@ void Object::draw_move(dGeomID geom)
     pos[0], pos[1], pos[2],  1.0f
   };
   glMultMatrixf(m);
+}
 
-  // Offset
-  pos = dGeomGetOffsetPosition(geom);
-  rot = dGeomGetOffsetRotation(geom);
+void Object::draw_move()
+{
+  const dReal *pos = dBodyGetPosition(body);
+  const dReal *rot = dBodyGetRotation(body);
 
-  GLfloat m2[16] = {
+  GLfloat m[16] = {
     rot[0], rot[4], rot[8],  0.0f,
     rot[1], rot[5], rot[9],  0.0f,
     rot[2], rot[6], rot[10], 0.0f,
     pos[0], pos[1], pos[2],  1.0f
   };
-  glMultMatrixf(m2);
+  glMultMatrixf(m);
 }
 
-
-ObjectDynamic::ObjectDynamic(): Object()
+unsigned long Object::get_category() const
 {
-  LOG->trace("ObjectDynamic: NEW (empty)");
-  body = NULL;
+  unsigned long cat = 0;
+  OBJECT_FOREACH_GEOM(body,g,cat|=dGeomGetCategoryBits(g));
+  return cat;
+}
+unsigned long Object::get_collide() const
+{
+  unsigned long col = 0;
+  OBJECT_FOREACH_GEOM(body,g,col|=dGeomGetCollideBits(g));
+  return col;
 }
 
-ObjectDynamic::ObjectDynamic(dGeomID geom, dBodyID body):
-  Object(geom)
+void Object::set_category(unsigned long cat)
 {
-  LOG->trace("ObjectDynamic: NEW (geom, body)");
-  this->body = body;
-  dGeomSetBody(this->geom, this->body);
-
-  set_category(CAT_DYNAMIC);
+  OBJECT_FOREACH_GEOM(body,g,dGeomSetCategoryBits(g,cat));
 }
-
-ObjectDynamic::ObjectDynamic(dGeomID geom, dReal m):
-  Object(geom)
+void Object::set_collide(unsigned long col)
 {
-  LOG->trace("ObjectDynamic: NEW (geom, m=%f)", m);
-  this->body = dBodyCreate(physics->get_world());
-  dMass mass;
-  switch( dGeomGetClass(geom) )
-  {
-    case dSphereClass:
-      {
-        dReal r = dGeomSphereGetRadius(geom);
-        dMassSetSphereTotal(&mass, m, r);
-        break;
-      }
-    case dBoxClass:
-      {
-        dVector3 size;
-        dGeomBoxGetLengths(geom, size);
-        dMassSetBoxTotal(&mass, m, size[0], size[1], size[2]);
-        break;
-      }
-    case dCapsuleClass:
-      {
-        dReal r, len;
-        dGeomCapsuleGetParams(geom, &r, &len);
-        dMassSetCapsuleTotal(&mass, m, 3, r, len);
-        break;
-      }
-    case dCylinderClass:
-      {
-        dReal r, len;
-        dGeomCylinderGetParams(geom, &r, &len);
-        dMassSetCylinderTotal(&mass, m, 3, r, len);
-        break;
-      }
-    default:
-      {
-        dReal a[6];
-        dGeomGetAABB(geom, a);
-        dMassSetBoxTotal(&mass, m, a[1]-a[0], a[3]-a[2], a[5]-a[4]);
-        break;
-      }
-  }
-  dBodySetMass(this->body, &mass);
-  dGeomSetBody(this->geom, this->body);
-
-  add_category(CAT_DYNAMIC);
-}
-
-
-ObjectDynamic::~ObjectDynamic()
-{
-  if( body == NULL )
-    return;
-  dBodyDestroy(body);
-  body = NULL;
+  OBJECT_FOREACH_GEOM(body,g,dGeomSetCollideBits(g,col));
 }
 
 
@@ -194,7 +263,8 @@ const dReal OGround::size_start;
 OGround::OGround(const Color4 color, const Color4 color_t1, const Color4 color_t2):
   Object(dCreateBox(0, Rules::table_size_x, Rules::table_size_y, size_z))
 {
-  dGeomSetPosition(this->geom, 0, 0, -size_z/2);
+  this->geom_box = dBodyGetFirstGeom(this->body);
+  dBodySetPosition(this->body, 0, 0, -size_z/2);
 
   this->color[0] = color[0];
   this->color[1] = color[1];
@@ -227,7 +297,7 @@ void OGround::draw()
 
   glColor3fv(color);
   dReal size[3];
-  dGeomBoxGetLengths(geom, size);
+  dGeomBoxGetLengths(geom_box, size);
   glScalef(size[0], size[1], size[2]);
   glutSolidCube(1.0f);
 
@@ -265,9 +335,32 @@ class LuaObject: public LuaClass<Object>
 
   static int _ctor(lua_State *L)
   {
-    Object **ud = get_userdata(L);
-    dGeomID geom = (dGeomID)LARG_lud(2);
-    *ud = new Object(geom);
+    Object **ud = new_userdata(L);
+
+    // Geoms: table or single Geom
+    dGeomID *geoms;
+    int nb = 0;
+
+    if( lua_type(L, 2) == LUA_TTABLE )
+      geoms = LuaManager::checkudtable<dGeomID>(L, 2, "Geom", &nb);
+    else
+    {
+      nb = 1;
+      // Use a temporary variable to use checkudata without memory leak
+      dGeomID *ud = (dGeomID*)luaL_checkudata(L, 2, "Geom");
+      geoms = new dGeomID[nb];
+      geoms[0] = *ud;
+    }
+
+    for( int i=0; i<nb; i++ )
+      geoms[i] = Physics::geom_duplicate(geoms[i]);
+
+    if( lua_isnoneornil(L, 3) )
+      *ud = new Object(geoms, nb);
+    else
+      *ud = new Object(geoms, nb, LARG_f(3));
+
+    delete[] geoms;
     return 0;
   }
 
@@ -312,31 +405,36 @@ public:
 };
 
 
-class LuaObjectDynamic: public LuaClass<ObjectDynamic>
-{
-  static int _ctor(lua_State *L)
-  {
-    ObjectDynamic **ud = get_userdata(L);
-    dGeomID geom = (dGeomID)LARG_lud(2);
-    *ud = new ObjectDynamic(geom, LARG_f(3));
-    return 0;
-  }
-
-public:
-  LuaObjectDynamic()
-  {
-    LUA_REGFUNC(_ctor);
-  }
-};
-
-
 class LuaObjectColor: public LuaClass<ObjectColor>
 {
   static int _ctor(lua_State *L)
   {
-    ObjectColor **ud = get_userdata(L);
-    dGeomID geom = (dGeomID)LARG_lud(2);
-    *ud = new ObjectColor(geom);
+    ObjectColor **ud = new_userdata(L);
+
+    // Geoms: table or single Geom
+    dGeomID *geoms;
+    int nb = 0;
+
+    if( lua_type(L, 2) == LUA_TTABLE )
+      geoms = LuaManager::checkudtable<dGeomID>(L, 2, "Geom", &nb);
+    else
+    {
+      nb = 1;
+      // Use a temporary variable to use checkudata without memory leak
+      dGeomID *ud = (dGeomID*)luaL_checkudata(L, 2, "Geom");
+      geoms = new dGeomID[nb];
+      geoms[0] = *ud;
+    }
+
+    for( int i=0; i<nb; i++ )
+      geoms[i] = Physics::geom_duplicate(geoms[i]);
+
+    if( lua_isnoneornil(L, 3) )
+      *ud = new ObjectColor(geoms, nb);
+    else
+      *ud = new ObjectColor(geoms, nb, LARG_f(3));
+
+    delete[] geoms;
     return 0;
   }
 
@@ -356,38 +454,12 @@ public:
   }
 };
 
-class LuaObjectDynamicColor: public LuaClass<ObjectDynamicColor>
-{
-  static int _ctor(lua_State *L)
-  {
-    ObjectDynamicColor **ud = get_userdata(L);
-    dGeomID geom = (dGeomID)LARG_lud(2);
-    *ud = new ObjectDynamicColor(geom, LARG_f(3));
-    return 0;
-  }
-
-  static int set_color(lua_State *L)
-  {
-    Color4 color;
-    LuaManager::checkcolor(L, 2, color);
-    get_ptr(L)->set_color( color );
-    return 0;
-  }
-
-public:
-  LuaObjectDynamicColor()
-  {
-    LUA_REGFUNC(_ctor);
-    LUA_REGFUNC(set_color);
-  }
-};
-
 
 class LuaOGround: public LuaClass<OGround>
 {
   static int _ctor(lua_State *L)
   {
-    OGround **ud = get_userdata(L);
+    OGround **ud = new_userdata(L);
 
     Color4 color, color_t1, color_t2;
     LuaManager::checkcolor(L, 2, color);
@@ -406,8 +478,6 @@ public:
 
 
 LUA_REGISTER_BASE_CLASS(Object);
-LUA_REGISTER_SUB_CLASS(ObjectDynamic,Object);
 LUA_REGISTER_SUB_CLASS(ObjectColor,Object);
-LUA_REGISTER_SUB_CLASS(ObjectDynamicColor,ObjectDynamic);
 LUA_REGISTER_SUB_CLASS(OGround,Object);
 

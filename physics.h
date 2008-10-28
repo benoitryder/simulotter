@@ -27,6 +27,15 @@ public:
   dWorldID get_world() const { return this->world; }
   dJointGroupID get_joints() const { return this->joints; }
 
+  /** @brief Utility function to duplicate a geom
+   *
+   * Only geom parameters are copied: class and specific parameters, position
+   * and rotation.
+   * The returned geom is not attached to a body (thus has no offset) and is
+   * not in any space.
+   */
+  static dGeomID geom_duplicate(dGeomID geom);
+
   std::vector<Object*> &get_objs() { return this->objs; }
 
 private:
@@ -72,4 +81,3 @@ enum
 
 
 #endif
-
