@@ -8,135 +8,164 @@
 
 Object::Object()
 {
-  LOG->trace("Object: NEW (empty)");
+  LOG->trace("Object: NEW");
+  body = NULL;
+  init_mass = 0;
+  initialized = false;
+  visible = true;
 }
 
-Object::Object(dGeomID *geoms, int nb, dBodyID body)
+void Object::add_geom(dGeomID geom)
 {
-  LOG->trace("Object: NEW (multi)");
-  ctor_init(geoms, nb, body);
+  if( is_initialized() )
+    throw Error("add_geom(): attempt to modify an initialized object");
+  this->geoms.push_back(geom);
 }
 
-Object::Object(dGeomID geom, dBodyID body)
+void Object::set_body(dBodyID body)
 {
-  LOG->trace("Object: NEW (single)");
-  ctor_init(&geom, 1, body);
+  if( body == NULL )
+    return;
+  if( this->init_mass != 0 )
+    throw Error("set_body(): cannot set both mass and body");
+  if( is_initialized() )
+    throw Error("set_body(): attempt to modify an initialized object");
+  this->body = body;
 }
 
-Object::Object(dGeomID *geoms, int nb, dReal m)
+void Object::set_mass(dReal m)
 {
-  LOG->trace("Object: NEW (multi, mass)");
-  ctor_init(geoms, nb, m);
+  if( m <= 0 )
+    return;
+  if( this->body != NULL )
+    throw Error("set_mass(): cannot set both body and mass");
+  if( is_initialized() )
+    throw Error("set_mass(): attempt to modify an initialized object");
+  this->init_mass = m;
 }
 
-Object::Object(dGeomID geom, dReal m)
+void Object::init()
 {
-  LOG->trace("Object: NEW (single, mass)");
-  ctor_init(&geom, 1, m);
-}
+  if( is_initialized() )
+    throw Error("object is already initialized");
 
-void Object::ctor_init(dGeomID *geoms, int nb, dBodyID body)
-{
-  if( world_void == NULL )
-    world_void = dWorldCreate();
+  bool is_static = ( body == NULL && init_mass == 0 );
+
+  std::vector<dGeomID>::iterator it;
 
   if( body == NULL )
-    this->body = dBodyCreate(world_void);
-  else
-    this->body = body;
+    this->body = dBodyCreate(physics->get_world());
 
-  for( int i=0; i<nb; i++ )
+  // Set mass from geoms.
+  // Masses are created for each geom, with the same density, and added.
+  // Then, total mass is adjusted.
+  if( init_mass != 0 )
+  {
+    dMass body_mass, geom_mass;
+    dMassSetZero(&body_mass);
+
+    for( it=geoms.begin(); it!=geoms.end(); ++it )
+    {
+      switch( dGeomGetClass(*it) )
+      {
+        case dSphereClass:
+          {
+            dReal r = dGeomSphereGetRadius(*it);
+            dMassSetSphere(&geom_mass, 1.0, r);
+            break;
+          }
+        case dBoxClass:
+          {
+            dVector3 size;
+            dGeomBoxGetLengths(*it, size);
+            dMassSetBox(&geom_mass, 1.0, size[0], size[1], size[2]);
+            break;
+          }
+        case dCapsuleClass:
+          {
+            dReal r, len;
+            dGeomCapsuleGetParams(*it, &r, &len);
+            dMassSetCapsule(&geom_mass, 1.0, 3, r, len);
+            break;
+          }
+        case dCylinderClass:
+          {
+            dReal r, len;
+            dGeomCylinderGetParams(*it, &r, &len);
+            dMassSetCylinder(&geom_mass, 1.0, 3, r, len);
+            break;
+          }
+        default:
+          throw Error("geom class not supported for object mass");
+      }
+
+      const dReal *pos = dGeomGetPosition(*it);
+      const dReal *rot = dGeomGetRotation(*it);
+      dMassTranslate(&geom_mass, pos[0], pos[1], pos[2]);
+      dMassRotate(&geom_mass, rot);
+
+      dMassAdd(&body_mass, &geom_mass);
+    }
+
+    dMassAdjust(&body_mass, this->init_mass);
+    dBodySetMass(this->body, &body_mass);
+  }
+
+  // Geoms
+  for( it=geoms.begin(); it!=geoms.end(); ++it )
   {
     // Position changed after setting body
     // We have to copy position
-    const dReal *volatile posv = dGeomGetPosition(geoms[i]);
+    const dReal *volatile posv = dGeomGetPosition(*it);
     dReal pos[3] = { posv[0], posv[1], posv[2] };
 
     dQuaternion q;
-    dGeomGetQuaternion(geoms[i], q);
+    dGeomGetQuaternion(*it, q);
 
-    dSpaceAdd(physics->get_space(), geoms[i]);
-    dGeomSetBody(geoms[i], this->body);
-    dGeomSetOffsetPosition(geoms[i], pos[0], pos[1], pos[2]);
-    dGeomSetOffsetQuaternion(geoms[i], q);
+    dSpaceAdd(physics->get_space(), *it);
+    dGeomSetBody(*it, this->body);
+    dGeomSetOffsetPosition(*it, pos[0], pos[1], pos[2]);
+    dGeomSetOffsetQuaternion(*it, q);
   }
 
-  this->visible = true;
-
-  this->set_category( body==NULL ? 0 : CAT_DYNAMIC );
-  physics->get_objs().push_back(this);
-}
-
-void Object::ctor_init(dGeomID *geoms, int nb, dReal m)
-{
-  ctor_init(geoms, nb, dBodyCreate(physics->get_world()));
-
-  dMass mass;
-  if( nb == 1 )
-    switch( dGeomGetClass(*geoms) )
-    {
-      case dSphereClass:
-        {
-          dReal r = dGeomSphereGetRadius(*geoms);
-          dMassSetSphereTotal(&mass, m, r);
-          break;
-        }
-      case dBoxClass:
-        {
-          dVector3 size;
-          dGeomBoxGetLengths(*geoms, size);
-          dMassSetBoxTotal(&mass, m, size[0], size[1], size[2]);
-          break;
-        }
-      case dCapsuleClass:
-        {
-          dReal r, len;
-          dGeomCapsuleGetParams(*geoms, &r, &len);
-          dMassSetCapsuleTotal(&mass, m, 3, r, len);
-          break;
-        }
-      case dCylinderClass:
-        {
-          dReal r, len;
-          dGeomCylinderGetParams(*geoms, &r, &len);
-          dMassSetCylinderTotal(&mass, m, 3, r, len);
-          break;
-        }
-      default:
-        {
-          dReal a[6];
-          this->get_aabb(a);
-          dMassSetBoxTotal(&mass, m, a[1]-a[0], a[3]-a[2], a[5]-a[4]);
-          break;
-        }
-    }
+  if( is_static )
+  {
+    dBodyDisable(this->body);
+    dBodySetGravityMode(this->body, 0);
+    set_category(CAT_NONE);
+    set_collide(CAT_DYNAMIC);
+  }
   else
   {
-    dReal a[6];
-    this->get_aabb(a);
-    dMassSetBoxTotal(&mass, m, a[1]-a[0], a[3]-a[2], a[5]-a[4]);
+    set_category(CAT_DYNAMIC);
+    set_collide(CAT_ALL);
   }
 
-  dBodySetMass(this->body, &mass);
+  physics->get_objs().push_back(this);
+
+  this->initialized = true;
 }
- 
+
+
 
 Object::~Object()
 {
-  OBJECT_FOREACH_GEOM(body,g,dGeomDestroy(g));
+  std::vector<dGeomID>::iterator it;
+  for( it=geoms.begin(); it!=geoms.end(); ++it )
+    dGeomDestroy(*it);
   dBodyDestroy(body);
 }
-
-dWorldID Object::world_void;
 
 
 void Object::get_aabb(dReal aabb[6])
 {
   dReal a[6];
-  dGeomID g = dBodyGetFirstGeom(body);
-  dGeomGetAABB(g, aabb);
-  for( g=dBodyGetNextGeom(g); g!=NULL; g=dBodyGetNextGeom(g) )
+
+  std::vector<dGeomID>::iterator it = geoms.begin();
+  dGeomGetAABB(*it, aabb);
+  for( ++it; it!=geoms.end(); ++it )
   {
+    dGeomGetAABB(*it, a);
     aabb[0] = MIN(aabb[0],a[0]);
     aabb[1] = MAX(aabb[1],a[1]);
     aabb[2] = MIN(aabb[2],a[2]);
@@ -146,16 +175,34 @@ void Object::get_aabb(dReal aabb[6])
   }
 }
 
+void Object::set_pos(dReal x, dReal y, dReal z)
+{
+  if( !is_initialized() )
+    throw Error("set_pos(): object is not initialized");
+  dBodySetPosition(body, x, y, z);
+}
+
 void Object::set_pos(dReal x, dReal y)
 {
+  if( !is_initialized() )
+    throw Error("set_pos(): object is not initialized");
   dReal a[6];
   get_aabb(a);
   set_pos(x, y, a[5]-a[4] + cfg->drop_epsilon);
 }
 
+void Object::set_rot(const dQuaternion q)
+{
+  if( !is_initialized() )
+    throw Error("set_rot(): object is not initialized");
+  dBodySetQuaternion(body, q);
+}
+
 void Object::draw()
 {
-  OBJECT_FOREACH_GEOM(body,g,draw_geom(g));
+  std::vector<dGeomID>::iterator it;
+  for( it=geoms.begin(); it!=geoms.end(); ++it )
+    draw_geom(*it);
 }
 
 void Object::draw_geom(dGeomID geom)
@@ -233,26 +280,34 @@ void Object::draw_move()
   glMultMatrixf(m);
 }
 
-unsigned long Object::get_category() const
+unsigned long Object::get_category()
 {
   unsigned long cat = 0;
-  OBJECT_FOREACH_GEOM(body,g,cat|=dGeomGetCategoryBits(g));
+  std::vector<dGeomID>::iterator it;
+  for( it=geoms.begin(); it!=geoms.end(); ++it )
+    cat |= dGeomGetCategoryBits(*it);
   return cat;
 }
-unsigned long Object::get_collide() const
+unsigned long Object::get_collide()
 {
   unsigned long col = 0;
-  OBJECT_FOREACH_GEOM(body,g,col|=dGeomGetCollideBits(g));
+  std::vector<dGeomID>::iterator it;
+  for( it=geoms.begin(); it!=geoms.end(); ++it )
+    col |= dGeomGetCollideBits(*it);
   return col;
 }
 
 void Object::set_category(unsigned long cat)
 {
-  OBJECT_FOREACH_GEOM(body,g,dGeomSetCategoryBits(g,cat));
+  std::vector<dGeomID>::iterator it;
+  for( it=geoms.begin(); it!=geoms.end(); ++it )
+    dGeomSetCategoryBits(*it, cat);
 }
 void Object::set_collide(unsigned long col)
 {
-  OBJECT_FOREACH_GEOM(body,g,dGeomSetCollideBits(g,col));
+  std::vector<dGeomID>::iterator it;
+  for( it=geoms.begin(); it!=geoms.end(); ++it )
+    dGeomSetCollideBits(*it, col);
 }
 
 
@@ -260,11 +315,14 @@ void Object::set_collide(unsigned long col)
 const dReal OGround::size_z;
 const dReal OGround::size_start;
 
-OGround::OGround(const Color4 color, const Color4 color_t1, const Color4 color_t2):
-  Object(dCreateBox(0, Rules::table_size_x, Rules::table_size_y, size_z))
+OGround::OGround(const Color4 color, const Color4 color_t1, const Color4 color_t2)
 {
-  this->geom_box = dBodyGetFirstGeom(this->body);
-  dBodySetPosition(this->body, 0, 0, -size_z/2);
+  this->geom_box = dCreateBox(0, Rules::table_size_x, Rules::table_size_y, size_z);
+  add_geom(this->geom_box);
+  init();
+
+  set_category(CAT_GROUND);
+  set_pos(0, 0, -size_z/2);
 
   this->color[0] = color[0];
   this->color[1] = color[1];
@@ -280,9 +338,6 @@ OGround::OGround(const Color4 color, const Color4 color_t1, const Color4 color_t
   this->color_t2[1] = color_t2[1];
   this->color_t2[2] = color_t2[2];
   this->color_t2[3] = 0.0;
-
-  set_category(CAT_GROUND);
-  set_collide(CAT_DYNAMIC);
 }
 
 void OGround::draw()
@@ -292,7 +347,7 @@ void OGround::draw()
   draw_move();
 
   // Ground
-  
+
   glPushMatrix();
 
   glColor3fv(color);
@@ -305,7 +360,7 @@ void OGround::draw()
 
 
   // Starting areas
-  
+
   glPushMatrix();
 
   glColor3fv(color_t1);
@@ -336,33 +391,20 @@ class LuaObject: public LuaClass<Object>
   static int _ctor(lua_State *L)
   {
     Object **ud = new_userdata(L);
-
-    // Geoms: table or single Geom
-    dGeomID *geoms;
-    int nb = 0;
-
-    if( lua_type(L, 2) == LUA_TTABLE )
-      geoms = LuaManager::checkudtable<dGeomID>(L, 2, "Geom", &nb);
-    else
-    {
-      nb = 1;
-      // Use a temporary variable to use checkudata without memory leak
-      dGeomID *ud = (dGeomID*)luaL_checkudata(L, 2, "Geom");
-      geoms = new dGeomID[nb];
-      geoms[0] = *ud;
-    }
-
-    for( int i=0; i<nb; i++ )
-      geoms[i] = Physics::geom_duplicate(geoms[i]);
-
-    if( lua_isnoneornil(L, 3) )
-      *ud = new Object(geoms, nb);
-    else
-      *ud = new Object(geoms, nb, LARG_f(3));
-
-    delete[] geoms;
+    *ud = new Object();
     return 0;
   }
+
+  static int add_geom(lua_State *L)
+  {
+    dGeomID geom = *(dGeomID*)luaL_checkudata(L, 2, "Geom");
+    get_ptr(L)->add_geom( Physics::geom_duplicate(geom) );
+    return 0;
+  }
+
+  LUA_DEFINE_SET1(set_mass, LARG_f);
+  LUA_DEFINE_SET0(init);
+  LUA_DEFINE_GET(is_initialized);
 
   static int get_pos(lua_State *L)
   {
@@ -397,6 +439,10 @@ public:
   LuaObject()
   {
     LUA_REGFUNC(_ctor);
+    LUA_REGFUNC(add_geom);
+    LUA_REGFUNC(set_mass);
+    LUA_REGFUNC(init);
+    LUA_REGFUNC(is_initialized);
     LUA_REGFUNC(get_pos);
     LUA_REGFUNC(set_pos);
     LUA_REGFUNC(set_rot);
@@ -410,31 +456,7 @@ class LuaObjectColor: public LuaClass<ObjectColor>
   static int _ctor(lua_State *L)
   {
     ObjectColor **ud = new_userdata(L);
-
-    // Geoms: table or single Geom
-    dGeomID *geoms;
-    int nb = 0;
-
-    if( lua_type(L, 2) == LUA_TTABLE )
-      geoms = LuaManager::checkudtable<dGeomID>(L, 2, "Geom", &nb);
-    else
-    {
-      nb = 1;
-      // Use a temporary variable to use checkudata without memory leak
-      dGeomID *ud = (dGeomID*)luaL_checkudata(L, 2, "Geom");
-      geoms = new dGeomID[nb];
-      geoms[0] = *ud;
-    }
-
-    for( int i=0; i<nb; i++ )
-      geoms[i] = Physics::geom_duplicate(geoms[i]);
-
-    if( lua_isnoneornil(L, 3) )
-      *ud = new ObjectColor(geoms, nb);
-    else
-      *ud = new ObjectColor(geoms, nb, LARG_f(3));
-
-    delete[] geoms;
+    *ud = new ObjectColor();
     return 0;
   }
 

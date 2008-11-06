@@ -21,7 +21,7 @@ namespace rules2009
   }
 
 
-  void RAtlantis::init(int fconf)
+  void RAtlantis::match_init(int fconf)
   {
     int i, j;
     ObjectColor *o;
@@ -35,75 +35,102 @@ namespace rules2009
     LOG->trace("init Atlantis rules, columns: %d, dispensers: %d", conf_col, conf_disp);
 
     // Ground
+    LOG->trace("  ground");
     new OGround((Color4)COLOR_RAL_5015, colors[0], colors[1]);
 
     // Walls (N, E, W, small SE, small SW, plexi S)
+    LOG->trace("  walls");
 
-    o = new ObjectColor(dCreateBox(0, table_size_x+2*wall_width, wall_width, wall_height));
+    o = new ObjectColor();
+    o->add_geom(dCreateBox(0, table_size_x+2*wall_width, wall_width, wall_height));
+    o->init();
     o->set_pos(0, +table_size_y/2+wall_width/2, wall_height/2);
     o->set_color((Color4)COLOR_WHITE);
-    o = new ObjectColor(dCreateBox(0, wall_width, table_size_y+2*wall_width, wall_height));
+    o = new ObjectColor();
+    o->add_geom(dCreateBox(0, wall_width, table_size_y+2*wall_width, wall_height));
+    o->init();
     o->set_pos(+table_size_x/2+wall_width/2, 0, wall_height/2);
     o->set_color((Color4)COLOR_WHITE);
-    o = new ObjectColor(dCreateBox(0, wall_width, table_size_y+2*wall_width, wall_height));
+    o = new ObjectColor();
+    o->add_geom(dCreateBox(0, wall_width, table_size_y+2*wall_width, wall_height));
+    o->init();
     o->set_pos(-table_size_x/2-wall_width/2, 0, wall_height/2);
     o->set_color((Color4)COLOR_WHITE);
 
-    o = new ObjectColor(dCreateBox(0, wall_width, 0.100, wall_height));
+    o = new ObjectColor();
+    o->add_geom(dCreateBox(0, wall_width, 0.100, wall_height));
+    o->init();
     o->set_pos(+0.900+wall_width/2, -table_size_y/2+0.050, wall_height/2);
     o->set_color((Color4)COLOR_WHITE);
-    o = new ObjectColor(dCreateBox(0, wall_width, 0.100, wall_height));
+    o = new ObjectColor();
+    o->add_geom(dCreateBox(0, wall_width, 0.100, wall_height));
+    o->init();
     o->set_pos(-0.900-wall_width/2, -table_size_y/2+0.050, wall_height/2);
     o->set_color((Color4)COLOR_WHITE);
 
-    o = new ObjectColor(dCreateBox(0, 1.800+wall_width, cfg->draw_epsilon, 0.250));
+    o = new ObjectColor();
+    o->add_geom(dCreateBox(0, 1.800+wall_width, cfg->draw_epsilon, 0.250));
+    o->init();
     o->set_pos(0, -table_size_y/2, 0.125);
     o->set_color((Color4)COLOR_PLEXI);
-    o = new ObjectColor(dCreateBox(0, 0.578+wall_width, cfg->draw_epsilon, wall_height));
+    o = new ObjectColor();
+    o->add_geom(dCreateBox(0, 0.578+wall_width, cfg->draw_epsilon, wall_height));
+    o->init();
     o->set_pos(+1.200, -table_size_y/2, wall_height/2);
     o->set_color((Color4)COLOR_PLEXI);
-    o = new ObjectColor(dCreateBox(0, 0.578+wall_width, cfg->draw_epsilon, wall_height));
+    o = new ObjectColor();
+    o->add_geom(dCreateBox(0, 0.578+wall_width, cfg->draw_epsilon, wall_height));
+    o->init();
     o->set_pos(-1.200, -table_size_y/2, wall_height/2);
     o->set_color((Color4)COLOR_PLEXI);
 
 
     // Building areas
-    
-    o = new ObjectColor(dCreateBox(0, 1.800, 0.100, 2*cfg->draw_epsilon));
+    LOG->trace("  building areas");
+
+    o = new ObjectColor();
+    o->add_geom(dCreateBox(0, 1.800, 0.100, 2*cfg->draw_epsilon));
+    o->init();
     o->set_pos(0, 0.050-table_size_y/2, cfg->draw_epsilon);
     o->set_color((Color4)COLOR_RAL_8017);
-    o->set_category(0);
-    o->set_collide(0);
 
-    o = new ObjectColor(dCreateBox(0, 0.600, 0.100, 0.030));
+    o = new ObjectColor();
+    o->add_geom(dCreateBox(0, 0.600, 0.100, 0.030));
+    o->init();
     o->set_pos(0, 0.050-table_size_y/2, 0.015);
     o->set_color((Color4)COLOR_RAL_8017);
-    o->set_category(0);
-    o->set_collide(CAT_DYNAMIC);
 
-    o = new ObjectColor(dCreateCylinder(0, 0.150, 0.060));
+    o = new ObjectColor();
+    o->add_geom(dCreateCylinder(0, 0.150, 0.060));
+    o->init();
     o->set_pos(0, 0, 0.030);
     o->set_color((Color4)COLOR_RAL_8017);
-    o->set_category(0);
-    o->set_collide(CAT_DYNAMIC);
 
 
     // Random column elements
+    LOG->trace("  random column elements");
     for( i=0; i<3; i++ )
     {
       j = col_placements[conf_col][i];
 
       // First team
-      o = new OColElem(); o->set_color(colors[0]);
+      o = new OColElem();
+      o->set_color(colors[0]);
       o->set_pos(-col_offset_x-(2-(int)(j%3))*col_space_x, -col_offset_y+(3-(int)(j/3))*col_space_y);
-      o = new OColElem(); o->set_color(colors[0]);
+      o = new OColElem();
+      o->set_color(colors[0]);
       o->set_pos(-col_offset_x-(2-(int)(j%3))*col_space_x, -col_offset_y+((int)(j/3))*col_space_y);
       // Second team
-      o = new OColElem(); o->set_color(colors[1]);
+      o = new OColElem();
+      o->set_color(colors[1]);
       o->set_pos(+col_offset_x+(2-(int)(j%3))*col_space_x, -col_offset_y+(3-(int)(j/3))*col_space_y);
-      o = new OColElem(); o->set_color(colors[1]);
+      o = new OColElem();
+      o->set_color(colors[1]);
       o->set_pos(+col_offset_x+(2-(int)(j%3))*col_space_x, -col_offset_y+((int)(j/3))*col_space_y);
     }
+
+
+    LOG->trace("  dispensers");
 
     // Fixed dispensers
     od = new ODispenser();
@@ -144,29 +171,34 @@ namespace rules2009
     }
 
 
-    // Lintel and lintel storages
+    // Lintels and lintel storages
+    LOG->trace("  lintels and lintel storages");
 
     OLintelStorage *ols;
     OLintel *ol;
 
     ols = new OLintelStorage();
     ols->set_pos(-0.200, 0);
-    ol = new OLintel(); ol->set_color(colors[0]);
+    ol = new OLintel();
+    ol->set_color(colors[0]);
     ols->fill(ol);
 
     ols = new OLintelStorage();
     ols->set_pos(-0.600, 0);
-    ol = new OLintel(); ol->set_color(colors[0]);
+    ol = new OLintel();
+    ol->set_color(colors[0]);
     ols->fill(ol);
 
     ols = new OLintelStorage();
     ols->set_pos(+0.200, 0);
-    ol = new OLintel(); ol->set_color(colors[1]);
+    ol = new OLintel();
+    ol->set_color(colors[1]);
     ols->fill(ol);
 
     ols = new OLintelStorage();
     ols->set_pos(+0.600, 0);
-    ol = new OLintel(); ol->set_color(colors[1]);
+    ol = new OLintel();
+    ol->set_color(colors[1]);
     ols->fill(ol);
   }
 
@@ -191,9 +223,10 @@ namespace rules2009
   const dReal ODispenser::radius = 0.040;
   const dReal ODispenser::height = 0.150;
 
-  ODispenser::ODispenser():
-    ObjectColor(dCreateCylinder(0, radius, height))
+  ODispenser::ODispenser()
   {
+    add_geom(dCreateCylinder(0, radius, height));
+    init();
     set_color((Color4)COLOR_PLEXI);
     set_category(CAT_DISPENSER);
     set_collide(CAT_DYNAMIC);
@@ -223,7 +256,7 @@ namespace rules2009
 
   void ODispenser::draw()
   {
-    glColor3fv(color);
+    glColor4fv(color);
     glPushMatrix();
     draw_move();
     glTranslatef(0, 0, -height/2);
@@ -232,27 +265,28 @@ namespace rules2009
   }
 
 
-  OLintelStorage::OLintelStorage():
-    ObjectColor()
+  OLintelStorage::OLintelStorage()
   {
-    dGeomID geoms[4];
+    dGeomID geom;
 
     // Bottom
-    geoms[0] = dCreateBox(0, 0.200, RAtlantis::wall_width, 0.070);
-    dGeomSetPosition(geoms[0], 0, -(0.070-3*RAtlantis::wall_width)/2, -(0.070-RAtlantis::wall_width)/2);
+    geom = dCreateBox(0, 0.200, RAtlantis::wall_width, 0.070);
+    dGeomSetPosition(geom, 0, -(0.070-3*RAtlantis::wall_width)/2, -(0.070-RAtlantis::wall_width)/2);
+    add_geom(geom);
     // Back
-    geoms[1] = dCreateBox(0, 0.200, RAtlantis::wall_width, .060);
-    dGeomSetPosition(geoms[1], 0, (0.070+RAtlantis::wall_width)/2, (0.060-RAtlantis::wall_width)/2);
+    geom = dCreateBox(0, 0.200, RAtlantis::wall_width, .060);
+    dGeomSetPosition(geom, 0, (0.070+RAtlantis::wall_width)/2, (0.060-RAtlantis::wall_width)/2);
+    add_geom(geom);
     // Left
-    geoms[2] = dCreateBox(0, RAtlantis::wall_width, 0.070, RAtlantis::wall_width);
-    dGeomSetPosition(geoms[2], +(0.200-RAtlantis::wall_width)/2, 0, 0);
+    geom = dCreateBox(0, RAtlantis::wall_width, 0.070, RAtlantis::wall_width);
+    dGeomSetPosition(geom, +(0.200-RAtlantis::wall_width)/2, 0, 0);
+    add_geom(geom);
     // Right
-    geoms[3] = dCreateBox(0, RAtlantis::wall_width, 0.070, RAtlantis::wall_width);
-    dGeomSetPosition(geoms[3], -(0.200-RAtlantis::wall_width)/2, 0, 0);
+    geom = dCreateBox(0, RAtlantis::wall_width, 0.070, RAtlantis::wall_width);
+    dGeomSetPosition(geom, -(0.200-RAtlantis::wall_width)/2, 0, 0);
+    add_geom(geom);
 
-    ctor_init(geoms, 4, (dBodyID)NULL);
-
-    set_collide(CAT_DYNAMIC);
+    init();
 
     set_color((Color4)COLOR_BLACK);
   }

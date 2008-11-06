@@ -215,11 +215,11 @@ void LuaClassBase::init(lua_State *L)
 
   // Add subclasses
   std::vector<LuaClassBase*>::iterator it;
-  for( it=classes.begin(); it!=classes.end(); it++ )
+  for( it=classes.begin(); it!=classes.end(); ++it )
     (*it)->create(L);
 
   // Now, all classes are registered, set _base field
-  for( it=classes.begin(); it!=classes.end(); it++ )
+  for( it=classes.begin(); it!=classes.end(); ++it )
   {
     const char *base = (*it)->get_base_name();
     if( base == NULL )

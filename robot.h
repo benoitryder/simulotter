@@ -17,21 +17,17 @@
  */
 class Robot: public Object
 {
-protected:
-  Robot() {}
-  void ctor_init(dGeomID *geoms, int nb, dBodyID body);
-  void ctor_mass(dGeomID *geoms, int nb, dReal m);
-
-  /// Common constructor initializations
-  void ctor_init();
-
   friend class LuaRobot;
 public:
 
-  Robot(dGeomID *geoms, int nb, dBodyID body);
-  Robot(dGeomID geom, dBodyID body);
-  Robot(dGeomID *geoms, int nb, dReal m);
-  Robot(dGeomID geom, dReal m);
+  Robot();
+
+  /** @brief Initialize the robot
+   *
+   * Call parent initialization function, set category, push the
+   * robot to the robots vector.
+   */
+  virtual void init();
 
   ~Robot();
 
@@ -48,7 +44,7 @@ public:
    * Get and cache update, asserv and strategy Lua functions, if any. This
    * method should be called before the match starts.
    */
-  void init();
+  void match_init();
 
   /** @brief Update asserv and strategy data
    *
@@ -132,17 +128,20 @@ class RBasic: public Robot
 {
   friend class LuaRBasic;
 public:
-
-  RBasic(dGeomID *geoms, int nb, dBodyID body);
-  RBasic(dGeomID geom, dBodyID body);
-  RBasic(dGeomID *geoms, int nb, dReal m);
-  RBasic(dGeomID geom, dReal m);
+  RBasic();
 
   /** @brief Convenient constructor
    *
    * Create a default box robot with given size and mass.
    */
   RBasic(dReal lx, dReal ly, dReal lz, dReal m);
+
+  /** @brief Initialize the robot
+   *
+   * Call parent initialization function, add motors, reset
+   * orders.
+   */
+  virtual void init();
 
   ~RBasic();
 
@@ -187,9 +186,6 @@ public:
   void set_threshold_a(dReal t)  { this->threshold_a  = t; }
 
 private:
-
-  /// Common constructor initializations
-  void ctor_init();
 
   /// Plane joint and angle motor
   dJointID j2D;

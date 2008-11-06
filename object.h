@@ -4,17 +4,11 @@
 #include <SDL/SDL.h>
 #include <GL/freeglut.h>
 #include <ode/ode.h>
+#include <vector>
 #include "lua_utils.h"
-
 #include "colors.h"
 
 ///@file
-
-
-/// Convenient macro to go execute instructions on all body's geoms.
-#define OBJECT_FOREACH_GEOM(body,g,instructions) \
-  for( dGeomID g=dBodyGetFirstGeom(body); g!=NULL; g=dBodyGetNextGeom(g) ) \
-    {instructions;}
 
 
 /** @brief Basic object
@@ -22,51 +16,59 @@
  * New objects are automatically added to the simulation objects and geoms are
  * put in the global space.
  *
- * There a two object types: static and dynamic. Static objects are dynamic
- * objects without a physical body, they collide but are not simulated.
- *
- * Static object bodies are put in the dummy worl \e world_void.
+ * There a two object types: static and dynamic. Static objects are disabled and 
+ * not updated during a simulation step.
  */
 class Object
 {
-protected:
-  /** @brief Empty constructor
-   *
-   * Only for subclasses which have to initialize complexe geom structures
-   * before calling the parent constructor. They can use ctor_init() or
-   * ctor_mass() instead.
-   */
+public:
   Object();
 
-  /// Common constructor initializations
-  void ctor_init(dGeomID *geoms, int nb, dBodyID body);
+  /// Add a geom to the object
+  void add_geom(dGeomID geom);
 
-  /// Common mass initializations
-  void ctor_init(dGeomID *geoms, int nb, dReal m);
-
-public:
-  /** @brief Create an object with multiple geoms
+  /** @brief Set object body
    *
-   * If \e body is null, a static object is created.
+   * If \e body is null, this method has no effect.
+   * Body cannot be set if mass has been set.
    *
-   * Each geom offset is set to its position (before begin attached to the body).
+   * @sa init()
    */
-  Object(dGeomID *geoms, int nb, dBodyID body=NULL);
-  /// Single geom constructor
-  Object(dGeomID geom, dBodyID body=NULL);
-  /** @brief Mass constructor
-   *
-   * Create an object with given geoms and mass.
-   * For single geom object, the body shape is determined from the geom shape.
-   * Otherwise the bounding box is used.
-   *
-   * @warning For single geom objects, if the geom has an offset the mass will
-   * not be set correctly.
-   */
-  Object(dGeomID *geoms, int nb, dReal m);
-  /// Mass constructor, single geom version
-  Object(dGeomID geom, dReal m);
+  void set_body(dBodyID body);
 
+  /** @brief Set object mass
+   *
+   * If \e m is negative (or null), this method has no effect.
+   * Mass cannot be set if body has been set.
+   *
+   * @sa init()
+   */
+  void set_mass(dReal m);
+
+  /** @brief Initialize the object
+   *
+   * This function must be called for each object when all object
+   * elements have been set. Geoms and body of an initialized object
+   * cannot be modified.
+   *
+   * Geoms are put in the global space and attached to the body.
+   * Each geom offset is set to its position (before begin attached).
+   * Object is put to the physics object vector.
+   *
+   * If a mass has been set, a body is created with mass attributes
+   * determined from geoms.
+   *
+   * Category bits are cleared, collide bits are set to CAT_ALL.
+   * If a body or a mass has been set, object is dynamic (CAT_DYNAMIC
+   * category, does not collide static objects).
+   *
+   * @note A non initialized object cannot be moved or rotated.
+   *
+   * @note Subclasses may initialize the object in their constructor.
+   */
+  virtual void init();
+
+  bool is_initialized() { return this->initialized; }
 
   virtual ~Object();
 
@@ -79,8 +81,8 @@ public:
    * bits. All operations set the same bitfield on each geoms.
    */
   //@{
-  unsigned long get_category() const;
-  unsigned long get_collide()  const;
+  unsigned long get_category();
+  unsigned long get_collide();
   void set_category(unsigned long cat);
   void set_collide (unsigned long col);
   void add_category(unsigned long cat) { set_category(get_category()|cat); }
@@ -92,13 +94,13 @@ public:
   bool is_visible() const { return this->visible; }
 
   const dReal *get_pos() const { return dBodyGetPosition(body); }
-  void set_pos(dReal x, dReal y, dReal z) { dBodySetPosition(body, x, y, z); }
+  void set_pos(dReal x, dReal y, dReal z);
   /** @brief Place above (not on or in) the ground
    * @sa Config::drop_epsilon
    */
   void set_pos(dReal x, dReal y);
 
-  void set_rot(const dQuaternion q) { dBodySetQuaternion(body, q); }
+  void set_rot(const dQuaternion q);
 
   void set_visible(bool b) { this->visible = b; }
 
@@ -108,12 +110,7 @@ public:
 
 protected:
   dBodyID body;
-
-  /// Another world where nothing happens, for static object bodies
-  static dWorldID world_void;
-
-  /// Object is not drawn if not visible
-  bool visible;
+  std::vector<dGeomID> geoms;
 
   /// Change the GL matrix according to position and rotation
   static void draw_move(dGeomID geom);
@@ -122,27 +119,29 @@ protected:
 
   /// Draw a given geometry
   static void draw_geom(dGeomID geom);
+
+private:
+  /** @brief Indicate whether the object is initialized
+   * @sa init()
+   */
+  bool initialized;
+
+  /// Mass used for initialization
+  dReal init_mass;
+
+  /// Object is not drawn if not visible
+  bool visible;
 };
 
 
 /// Colored object
 class ObjectColor: public Object
 {
-protected:
-  ObjectColor(): Object() {}
-
 public:
-  ObjectColor(dGeomID *geoms, int nb=1, dBodyID body=NULL):
-    Object(geoms, nb, body) {}
-  ObjectColor(dGeomID geom, dBodyID body=NULL):
-    Object(geom, body) {}
-  ObjectColor(dGeomID *geoms, int nb, dReal m):
-    Object(geoms, nb, m) {}
-  ObjectColor(dGeomID geom, dReal m):
-    Object(geom, m) {}
+  ObjectColor() {}
 
   void set_color(Color4 color) { COLOR_COPY(this->color, color); }
-  virtual void draw() { glColor3fv(color); Object::draw(); }
+  virtual void draw() { glColor4fv(color); Object::draw(); }
 
 protected:
   /// Object main color

@@ -29,7 +29,7 @@ public:
 
   /** @brief Utility function to duplicate a geom
    *
-   * Only geom parameters are copied: class and specific parameters, position
+   * Only geom parameters are copied: class and associated parameters, position
    * and rotation.
    * The returned geom is not attached to a body (thus has no offset) and is
    * not in any space.
@@ -43,6 +43,7 @@ private:
   dSpaceID space;
   dJointGroupID joints;
 
+  /// All match objects
   std::vector<Object*> objs;
 
   /// Simulation pause state
@@ -68,15 +69,25 @@ public:
 /** @brief Collision categories
  *
  * Categories are bitfields used to determine which objects may collide.
+ *
+ * @note Category and collide bits used by ODE are <tt>long</tt>s. We use
+ * <tt>int</tt>s but it is not a problem.
  */
 enum
 {
-  CAT_DYNAMIC   =   0x1,  ///< Dynamic object
-  CAT_GROUND    =   0x2,  ///< Table ground
-  CAT_ROBOT     =   0x5,  ///< Robot (dynamic)
-  CAT_ELEMENT   =   0x9,  ///< Playing element (dynamic)
-  CAT_DISPENSER =  0x10,  ///< Vertical dispenser in which elements fall (static)
+  CAT_NONE      =   0x0,
+  /// Dynamic object
+  CAT_DYNAMIC   =   0x1,
+  /// Table ground
+  CAT_GROUND    =   0x2,
+  /// Robot (dynamic)
+  CAT_ROBOT     =   0x4|CAT_DYNAMIC,
+  /// Playing element (dynamic)
+  CAT_ELEMENT   =   0x8|CAT_DYNAMIC,
+  /// Vertical dispenser in which elements fall (static)
+  CAT_DISPENSER =  0x10,
 
+  CAT_ALL       = -1
 };
 
 

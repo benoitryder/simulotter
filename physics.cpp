@@ -23,7 +23,7 @@ Physics::Physics()
 Physics::~Physics()
 {
   std::vector<Object*>::iterator it;
-  for( it = objs.begin(); it != objs.end(); it++ )
+  for( it = objs.begin(); it != objs.end(); ++it )
     delete *it;
   objs.clear();
 
@@ -40,7 +40,7 @@ void Physics::step()
     return;
 
   std::vector<dGeomID>::iterator it2;
-  for( it2=hack_boxes.begin(); it2!=hack_boxes.end(); it2++ )
+  for( it2=hack_boxes.begin(); it2!=hack_boxes.end(); ++it2 )
     dGeomDestroy(*it2);
   hack_boxes.clear();
   hack_cylinders.clear();
@@ -52,7 +52,7 @@ void Physics::step()
   // Fine with small cylinders (h < r)
   // XXX use two capsules if there are no contact on bases?
   std::vector<GeomPair>::iterator it;
-  for( it=hack_cylinders.begin(); it!=hack_cylinders.end(); it++ )
+  for( it=hack_cylinders.begin(); it!=hack_cylinders.end(); ++it )
   {
     dGeomID o1 = (*it).o1;
     dGeomID o2 = (*it).o2;
@@ -102,7 +102,7 @@ void Physics::step()
       dQFromAxisAndAngle(q, 0, 0, 1, atan(v[1]/v[0]));
       dGeomSetOffsetQuaternion(b1, q);
     }
-    
+
     collide_callback(this, b1, o2);
     //Note: uncomment to display hack_boxes
     // AND comment dGeomDestroy();
@@ -116,7 +116,7 @@ void Physics::step()
   // Update robot values, do asserv and strategy
   std::vector<Robot*> &robots = Robot::get_robots();
   std::vector<Robot*>::iterator itr;
-  for( itr=robots.begin(); itr!=robots.end(); itr++ )
+  for( itr=robots.begin(); itr!=robots.end(); ++itr )
   {
     (*itr)->update();
     (*itr)->asserv();

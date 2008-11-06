@@ -129,4 +129,4 @@ int Config::lua_newindex(lua_State *L)
 
   return luaL_error(L, "invalid configuration value: %s", name);
 }
- 
+

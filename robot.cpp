@@ -6,35 +6,8 @@
 #include "maths.h"
 
 
-Robot::Robot(dGeomID *geoms, int nb, dBodyID body):
-  Object(geoms, nb, body)
+Robot::Robot()
 {
-  ctor_init();
-}
-
-Robot::Robot(dGeomID geom, dBodyID body):
-  Object(geom, body)
-{
-  ctor_init();
-}
-
-Robot::Robot(dGeomID *geoms, int nb, dReal m):
-  Object(geoms, nb, m)
-{
-  ctor_init();
-}
-
-Robot::Robot(dGeomID geom, dReal m):
-  Object(geom, m)
-{
-  ctor_init();
-}
-
-void Robot::ctor_init()
-{
-  LOG->trace("Robot: NEW (init)");
-  set_category(CAT_ROBOT);
-  robots.push_back(this);
   this->ref_obj = LUA_NOREF;
   this->ref_update = LUA_NOREF;
   this->ref_asserv = LUA_NOREF;
@@ -42,16 +15,11 @@ void Robot::ctor_init()
   this->L_strategy = NULL;
 }
 
-void Robot::ctor_init(dGeomID *geoms, int nb, dBodyID body)
+void Robot::init()
 {
-  Object::ctor_init(geoms, nb, body);
-  ctor_init();
-}
-
-void Robot::ctor_mass(dGeomID *geoms, int nb, dReal m)
-{
-  Object::ctor_init(geoms, nb, m);
-  ctor_init();
+  Object::init();
+  set_category(CAT_ROBOT);
+  robots.push_back(this);
 }
 
 
@@ -70,7 +38,7 @@ Robot::~Robot()
 
 void Robot::draw()
 {
-  glColor3fv(rules->get_color(team));
+  glColor4fv(rules->get_color(team));
   Object::draw();
   draw_direction();
 }
@@ -91,7 +59,7 @@ void Robot::draw_direction()
   glPopMatrix();
 }
 
-void Robot::init()
+void Robot::match_init()
 {
   if( ref_obj == LUA_NOREF )
     return;
@@ -170,39 +138,18 @@ void Robot::strategy()
 std::vector<Robot*> Robot::robots;
 
 
-RBasic::RBasic(dGeomID *geoms, int nb, dBodyID body):
-  Robot(geoms, nb, body)
+RBasic::RBasic() {}
+
+RBasic::RBasic(dReal lx, dReal ly, dReal lz, dReal m)
 {
-  ctor_init();
+  add_geom( dCreateBox(0, lx, ly, lz) );
+  set_mass(m);
 }
 
-RBasic::RBasic(dGeomID geom, dBodyID body):
-  Robot(geom, body)
+void RBasic::init()
 {
-  ctor_init();
-}
+  Robot::init();
 
-RBasic::RBasic(dGeomID *geoms, int nb, dReal m):
-  Robot(geoms, nb, m)
-{
-  ctor_init();
-}
-
-RBasic::RBasic(dGeomID geom, dReal m):
-  Robot(geom, m)
-{
-  ctor_init();
-}
-
-RBasic::RBasic(dReal lx, dReal ly, dReal lz, dReal m):
-  Robot(dCreateBox(0, lx, ly, lz), m)
-{
-  ctor_init();
-}
-
-void RBasic::ctor_init()
-{
-  LOG->trace("Rbasic: NEW (init)");
   this->order = ORDER_NONE;
 
   this->j2D = dJointCreatePlane2D(physics->get_world(), 0);
@@ -211,7 +158,7 @@ void RBasic::ctor_init()
   dJointAttach(this->jLMotor, this->body, 0);
   dJointSetLMotorNumAxes(this->jLMotor, 1);
   // Axis is given in global coordinates
-  // It assumes that robot has not been rotated yet
+  // Assumes that robot has not been rotated yet
   dJointSetLMotorAxis(this->jLMotor, 0, 1, 1.0,0.0,0.0);
 }
 
@@ -371,34 +318,9 @@ class LuaRobot: public LuaClass<Robot>
   static int _ctor(lua_State *L)
   {
     Robot **ud = new_userdata(L);
-
-    // Geoms: table or single Geom
-    dGeomID *geoms;
-    int nb = 0;
-
-    if( lua_type(L, 2) == LUA_TTABLE )
-      geoms = LuaManager::checkudtable<dGeomID>(L, 2, "Geom", &nb);
-    else
-    {
-      nb = 1;
-      // Use a temporary variable to use checkudata without memory leak
-      dGeomID *ud = (dGeomID*)luaL_checkudata(L, 2, "Geom");
-      geoms = new dGeomID[nb];
-      geoms[0] = *ud;
-    }
-
-    for( int i=0; i<nb; i++ )
-      geoms[i] = Physics::geom_duplicate(geoms[i]);
-
-    *ud = new Robot(geoms, nb, LARG_f(3));
-
-    delete[] geoms;
-
-    lua_pushvalue(L, 1);
-    (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
+    *ud = new Robot();
     return 0;
   }
-
 
   LUA_DEFINE_GET(get_team)
 
@@ -417,39 +339,20 @@ class LuaRBasic: public LuaClass<RBasic>
   static int _ctor(lua_State *L)
   {
     RBasic **ud = new_userdata(L);
-    luaL_checkany(L, 2);
     LOG->trace("LuaRBasic: BEGIN [%p]", ud);
 
-    if( lua_type(L, 2) == LUA_TTABLE || lua_isuserdata(L, 2) )
+    // Empty constructor
+    if( lua_type(L, 2) == LUA_TNONE )
     {
-      dGeomID *geoms;
-      int nb = 0;
-
-      if( lua_type(L, 2) == LUA_TTABLE )
-        geoms = LuaManager::checkudtable<dGeomID>(L, 2, "Geom", &nb);
-      else
-      {
-        nb = 1;
-        // Use a temporary variable to use checkudata without memory leak
-        dGeomID *ud = (dGeomID*)luaL_checkudata(L, 2, "Geom");
-        geoms = new dGeomID[nb];
-        geoms[0] = *ud;
-      }
-
-      for( int i=0; i<nb; i++ )
-        geoms[i] = Physics::geom_duplicate(geoms[i]);
-
-      *ud = new RBasic(geoms, nb, LARG_f(3));
-
-      delete[] geoms;
+      LOG->trace("  proto: empty");
+      *ud = new RBasic();
     }
-    else if( lua_isnumber(L, 2) )
+    // Box constructor
+    else
     {
       LOG->trace("  proto: box");
       *ud = new RBasic(LARG_f(2), LARG_f(3), LARG_f(4), LARG_f(5));
     }
-    else
-      luaL_argerror(L, 2, "expected Geom(s) or number");
 
     lua_pushvalue(L, 1);
     (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);

@@ -8,7 +8,7 @@ else
 LDFLAGS = `sdl-config --libs` -lm -lode -lGL -llua5.1 -lglut
 endif
 
-OBJS = main.o config.o physics.o display.o object.o robot.o rules.o maths.o log.o lua_utils.o
+OBJS = main.o config.o physics.o display.o object.o robot.o rules.o maths.o log.o lua_utils.o sensor.o
 OBJS += rules2009.o
 
 TARGET := simulotter

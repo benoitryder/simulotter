@@ -22,7 +22,7 @@ namespace rules2009
     virtual int get_score(int team);
 
     /// Initialize the match
-    virtual void init(int fconf);
+    virtual void match_init(int fconf);
 
     /** @brief Build a field configuration value
      *
@@ -59,9 +59,11 @@ namespace rules2009
   class OColElem: public ObjectColor
   {
   public:
-    OColElem():
-      ObjectColor(dCreateCylinder(0, 0.035, 0.030), 0.100)
+    OColElem()
     {
+      add_geom( dCreateCylinder(0, 0.035, 0.030) );
+      set_mass( 0.100 );
+      init();
       set_category(CAT_ELEMENT);
     }
   };
@@ -70,9 +72,11 @@ namespace rules2009
   class OLintel: public ObjectColor
   {
   public:
-    OLintel():
-      ObjectColor(dCreateBox(0, 0.200, 0.070, 0.030), 0.300)
+    OLintel()
     {
+      add_geom( dCreateBox(0, 0.200, 0.070, 0.030) );
+      set_mass( 0.300 );
+      init();
       set_category(CAT_ELEMENT);
     }
   };

@@ -72,13 +72,20 @@ int main(int argc, char **argv)
     LOG->trace("init rules");
     rules = new rules2009::RAtlantis();
     rules->check_robots();
-    rules->init(-1);
+    rules->match_init(-1);
 
     LOG->trace("init robots");
     std::vector<Robot*> &robots = Robot::get_robots();
     std::vector<Robot*>::iterator itr;
-    for( itr=robots.begin(); itr!=robots.end(); itr++ )
-      (*itr)->init();
+    for( itr=robots.begin(); itr!=robots.end(); ++itr )
+      (*itr)->match_init();
+
+    LOG->trace("check objects");
+    std::vector<Object*> &objs = physics->get_objs();
+    std::vector<Object*>::iterator ito;
+    for( ito=objs.begin(); ito!=objs.end(); ++ito )
+      if( !(*ito)->is_initialized() )
+        throw Error("check failed: object is not initialized");
 
     unsigned int disp_dt = (unsigned int)(1000.0/cfg->fps);
     unsigned int step_dt = (unsigned int)(1000.0*cfg->step_dt);

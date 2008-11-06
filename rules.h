@@ -43,7 +43,7 @@ public:
    *
    * @note Random seed is intialized in constructor.
    */
-  virtual void init(int fconf) = 0;
+  virtual void match_init(int fconf) = 0;
 
 
   static const dReal table_size_x = 3.0;

@@ -80,18 +80,25 @@
   <class name="Object">
     Basic object.
 
-    <constructor>
-      Single geom constuctor.<br/>
-      If mass is not provided, the created object is static.
-      <arg name="geom" type="Geom"/>
-      <arg name="mass" type="float" required="0"/>
-    </constructor>
-    <constructor>
-      Multi geom constructor.<br/>
-      If mass is not provided, the created object is static.
-      <arg name="geoms" type="{Geom}"/>
-      <arg name="mass" type="float" required="0"/>
-    </constructor>
+    <constructor></constructor>
+
+    <function name="set_mass">
+      Set object total mass.<br/>
+      If <code>m</code> is negative (or null) this method has no effect.
+      Mass cannot be set if body has been set.
+      <arg name="m" type="float"/>
+    </function>
+
+    <function name="init">
+      This function must be called when all objects elements
+      have been set.<br/>
+      Geoms and body of an initialized object cannot be modified.<br/>
+      A non initialized object cannot be moved or rotated.
+    </function>
+
+    <function name="is_initialized">
+      <return type="bool"/>
+    </function>
 
     <function name="get_pos">
       Return x, y and z position.
@@ -125,18 +132,7 @@
   <class name="ObjectColor" base="Object">
     Colored object.
 
-    <constructor>
-      Single geom constuctor.<br/>
-      If mass is not provided, the created object is static.
-      <arg name="geom" type="Geom"/>
-      <arg name="mass" type="float" required="0"/>
-    </constructor>
-    <constructor>
-      Multi geom constructor.<br/>
-      If mass is not provided, the created object is static.
-      <arg name="geoms" type="{Geom}"/>
-      <arg name="mass" type="float" required="0"/>
-    </constructor>
+    <constructor></constructor>
 
     <function name="set_color">
       <arg type="Color"/>
@@ -155,18 +151,7 @@
   <class name="Robot" base="ObjectDynamic">
     Robot base class without asserv and strategy implementation.
 
-    <constructor>
-      Single geom constuctor.<br/>
-      If mass is not provided, the created object is static.
-      <arg name="geom" type="Geom"/>
-      <arg name="mass" type="float" required="0"/>
-    </constructor>
-    <constructor>
-      Multi geom constructor.<br/>
-      If mass is not provided, the created object is static.
-      <arg name="geoms" type="{Geom}"/>
-      <arg name="mass" type="float" required="0"/>
-    </constructor>
+    <constructor></constructor>
 
     <function name="get_team">
       Return robot's team, or -1 if not set. (Teams numbers are set at match start.)
@@ -179,18 +164,7 @@
     Default values are null, including maximum velocities and accelerations.
     They should be set, otherwise the robot will not move.
 
-    <constructor>
-      Single geom constuctor.<br/>
-      If mass is not provided, the created object is static.
-      <arg name="geom" type="Geom"/>
-      <arg name="mass" type="float" required="0"/>
-    </constructor>
-    <constructor>
-      Multi geom constructor.<br/>
-      If mass is not provided, the created object is static.
-      <arg name="geoms" type="{Geom}"/>
-      <arg name="mass" type="float" required="0"/>
-    </constructor>
+    <constructor></constructor>
     <constructor>
       Create a default box robot with given size and mass.
       <arg name="lx" type="float"/>

@@ -55,6 +55,7 @@ end
 trace("------ SCRIPT START ------")
 
 r1 = RBasic(.4, .4, .2, 10)
+r1:init()
 r1:set_pos(-(3.0-.5)/2, (2.1-.5)/2)
 
 x,y,z = r1:get_pos()
@@ -70,23 +71,32 @@ r1:set_threshold_a(0.10)
 
 -- Building
 if false then
-  oc1 = ObjectColor(Geom:cylinder(0.035, 0.030), 0.100)
-  oc2 = ObjectColor(Geom:cylinder(0.035, 0.030), 0.100)
-  oc3 = ObjectColor(Geom:cylinder(0.035, 0.030), 0.100)
-  oc4 = ObjectColor(Geom:cylinder(0.035, 0.030), 0.100)
-  ol1 = ObjectColor(Geom:box(0.200, 0.070, 0.030), 0.300)
+  gcol = Geom:cylinder(0.035, 0.030)
+  col = {}
+  for i = 1,4 do
+    col[i] = ObjectColor()
+    col[i]:add_geom(gcol)
+    col[i]:set_mass(0.100)
+    col[i]:init()
+  end
 
-  oc1:set_color( { 1,0,0 } )
-  oc2:set_color( { 0,1,0 } )
-  oc3:set_color( { 1,0,0 } )
-  oc4:set_color( { 0,1,0 } )
-  ol1:set_color( { 1,1,0 } )
+  glin = Geom:box(0.200, 0.070, 0.030)
+  lin = ObjectColor()
+  lin:add_geom(glin)
+  lin:set_mass(0.300)
+  lin:init()
 
-  oc1:set_pos( -0.050, 0, 0.070 )
-  oc2:set_pos( -0.050, 0, 0.105 )
-  oc3:set_pos(  0.050, 0, 0.070 )
-  oc4:set_pos(  0.050, 0, 0.105 )
-  ol1:set_pos( 0, 0, 0.140 )
+  col[1]:set_color( { 1,0,0 } )
+  col[2]:set_color( { 0,1,0 } )
+  col[3]:set_color( { 1,0,0 } )
+  col[4]:set_color( { 0,1,0 } )
+  lin:set_color( { 1,1,0 } )
+
+  col[1]:set_pos( -0.050, 0, 0.070 )
+  col[2]:set_pos( -0.050, 0, 0.105 )
+  col[3]:set_pos(  0.050, 0, 0.070 )
+  col[4]:set_pos(  0.050, 0, 0.105 )
+  lin:set_pos( 0, 0, 0.140 )
 end
 
 

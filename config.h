@@ -79,7 +79,7 @@ public:
 
   //@}
 
-  /** @brief Display settings
+  /** @brief Display and SDL settings
    */
   //@{
 
@@ -94,8 +94,6 @@ public:
   float fps;
 
   Color4 bg_color;
-
-  //@}
 
   /// Flush logs after each write
   bool log_flush;

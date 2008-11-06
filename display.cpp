@@ -106,7 +106,7 @@ void Display::update()
   // Draw objects
   std::vector<Object*> &objs = physics->get_objs();
   std::vector<Object*>::iterator it;
-  for( it = objs.begin(); it != objs.end(); it++ )
+  for( it = objs.begin(); it != objs.end(); ++it )
   {
     if( (*it)->is_visible() )
       (*it)->draw();
@@ -114,7 +114,7 @@ void Display::update()
 
   //XXX-hackboxes Display cylinder-hack boxes
   std::vector<dGeomID>::iterator it2;
-  for( it2=physics->hack_boxes.begin(); it2!=physics->hack_boxes.end(); it2++ )
+  for( it2=physics->hack_boxes.begin(); it2!=physics->hack_boxes.end(); ++it2 )
   {
     dGeomID geom = *it2;
     glPushMatrix();
@@ -181,8 +181,7 @@ void Display::window_init()
     this->sdl_flags = SDL_OPENGL | SDL_RESIZABLE;
 
   SDL_WM_SetCaption("SimulOtter", NULL);
-  
-  LOG->trace("ICON");
+
   SDL_WM_SetIcon( SDL_CreateRGBSurfaceFrom(
         icon.data, icon.width, icon.height, 8*icon.bpp, icon.bpp*icon.width,
         0xff, 0xff<<8, 0xff<<16, 0xff<<24),
@@ -211,7 +210,7 @@ void Display::scene_init()
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
   //glEnable(GL_BLEND);
-  //glBlendFunc(GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glDepthMask(GL_TRUE);
   glDepthFunc(GL_LESS);
@@ -249,6 +248,7 @@ void Display::handle_events()
               set_camera_mode(CAM_FIXED);
             break;
           default:
+            LOG->trace("Keydown %d (%c) \"%s\"", event.key.keysym.scancode, event.key.keysym.sym, SDL_GetKeyName(event.key.keysym.sym));
             break;
         }
         break;
@@ -281,32 +281,32 @@ void Display::handle_events()
   //XXX-config
   if( camera.mode == CAM_FIXED )
   {
-    if( keys[SDLK_LEFT] || keys[SDLK_a] )
+    if( keys[SDLK_a] )
       camera.eye[2] -= 0.1;
-    if( keys[SDLK_RIGHT] || keys[SDLK_d] )
+    if( keys[SDLK_d] )
       camera.eye[2] += 0.1;
     if( keys[SDLK_e] )
       camera.eye[1] -= 0.1;
     if( keys[SDLK_q] )
       camera.eye[1] += 0.1;
-    if( keys[SDLK_UP] || keys[SDLK_w] )
+    if( keys[SDLK_w] )
       camera.eye[0] -= 0.1;
-    if( keys[SDLK_DOWN] || keys[SDLK_s] )
+    if( keys[SDLK_s] )
       camera.eye[0] += 0.1;
   }
   else if( camera.mode == CAM_FREE )
   {
-    if( keys[SDLK_LEFT] || keys[SDLK_a] )
+    if( keys[SDLK_a] )
       spheric2cart_add(camera.eye, 0.1, M_PI_2, camera.target[2]+M_PI_2);
-    if( keys[SDLK_RIGHT] || keys[SDLK_d] )
+    if( keys[SDLK_d] )
       spheric2cart_add(camera.eye, -0.1, M_PI_2, camera.target[2]+M_PI_2);
     if( keys[SDLK_e] )
       spheric2cart_add(camera.eye, 0.1, camera.target[1]-M_PI_2, camera.target[2]);
     if( keys[SDLK_q] )
       spheric2cart_add(camera.eye, -0.1, camera.target[1]-M_PI_2, camera.target[2]);
-    if( keys[SDLK_UP] || keys[SDLK_w] )
+    if( keys[SDLK_w] )
       spheric2cart_add(camera.eye, 0.1, camera.target[1], camera.target[2]);
-    if( keys[SDLK_DOWN] || keys[SDLK_s] )
+    if( keys[SDLK_s] )
       spheric2cart_add(camera.eye, -0.1, camera.target[1], camera.target[2]);
   }
 }
