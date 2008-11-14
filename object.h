@@ -93,7 +93,9 @@ public:
 
   bool is_visible() const { return this->visible; }
 
-  const dReal *get_pos() const { return dBodyGetPosition(body); }
+  const dReal *get_pos() const { return dBodyGetPosition(body);   }
+  const dReal *get_rot() const { return dBodyGetQuaternion(body); }
+
   void set_pos(dReal x, dReal y, dReal z);
   /** @brief Place above (not on or in) the ground
    * @sa Config::drop_epsilon

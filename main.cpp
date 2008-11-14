@@ -53,6 +53,9 @@ int main(int argc, char **argv)
 
   try
   {
+    LOG->trace("create display");
+    display = new Display();
+
     LOG->trace("init physics");
     physics = new Physics();
 
@@ -67,7 +70,7 @@ int main(int argc, char **argv)
 
     LOG->trace("init display");
     glutInit(&argc, argv);
-    display = new Display();
+    display->init();
 
     LOG->trace("init rules");
     rules = new rules2009::RAtlantis();

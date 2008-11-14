@@ -30,6 +30,9 @@ Config::Config()
   screen_y = 600;
   fullscreen = false;
   fps = 60;
+  camera_step_angle  = 0.1;
+  camera_step_linear = 0.1;
+  camera_mouse_coef  = 0.1;
 
   COLOR_COPY(bg_color, (Color4)COLOR_GRAY(0.8));
 

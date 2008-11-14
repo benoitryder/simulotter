@@ -17,9 +17,6 @@ Display::Display()
   this->sdl_bpp   = 0;
   this->sdl_flags = 0;
 
-  window_init();
-  scene_init();
-
   camera.mode = CAM_FIXED;
   camera.eye[0] = 4;
   camera.eye[1] = M_PI/6;
@@ -27,6 +24,55 @@ Display::Display()
   camera.target[0] = 0;
   camera.target[1] = 0;
   camera.target[2] = 0;
+
+
+  // Default handlers
+
+  SDL_Event event;
+  
+  // Window events
+  event.type = SDL_QUIT;
+  set_handler(event, handler_quit);
+  event.type = SDL_VIDEORESIZE;
+  set_handler(event, handler_resize);
+
+  // Mouse motion
+  event.type = SDL_MOUSEMOTION;
+  event.motion.state = SDL_BUTTON(1);
+  set_handler(event, handler_cam_mouse);
+
+  // Keyboard
+
+  event.key.keysym.sym = SDLK_ESCAPE;
+  event.type = SDL_KEYDOWN;
+  set_handler(event, handler_quit);
+
+  event.key.keysym.sym = SDLK_SPACE;
+  event.type = SDL_KEYDOWN;
+  set_handler(event, handler_pause);
+  event.type = SDL_KEYUP;
+  set_handler(event, handler_pause);
+
+  event.key.keysym.sym = SDLK_c;
+  event.type = SDL_KEYDOWN;
+  set_handler(event, handler_cam_mode);
+  event.type = SDL_KEYUP;
+  set_handler(event, handler_cam_mode);
+
+  // Camera moves
+  event.type = SDL_KEYDOWN;
+  event.key.keysym.sym = SDLK_w;
+  set_handler(event, handler_cam_ahead);
+  event.key.keysym.sym = SDLK_s;
+  set_handler(event, handler_cam_back);
+  event.key.keysym.sym = SDLK_a;
+  set_handler(event, handler_cam_left);
+  event.key.keysym.sym = SDLK_d;
+  set_handler(event, handler_cam_right);
+  event.key.keysym.sym = SDLK_q;
+  set_handler(event, handler_cam_up);
+  event.key.keysym.sym = SDLK_e;
+  set_handler(event, handler_cam_down);
 }
 
 Display::~Display()
@@ -54,8 +100,6 @@ void Display::resize(int width, int height)
 
 void Display::update()
 {
-  int i;
-
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glEnable(GL_LIGHTING);
@@ -77,31 +121,18 @@ void Display::update()
   glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
   // Camera position
-  float *spherical, *eye, *target;
-  float xyz[3];
-  if( camera.mode == CAM_FIXED )
-  {
-    spherical = camera.eye;
-    eye = xyz;
-    target = camera.target;
-    for( i=0; i<3; i++ )
-      xyz[i] = target[i];
-  }
-  else
-  {
-    spherical = camera.target;
-    eye = camera.eye;
-    target = xyz;
-    for( i=0; i<3; i++ )
-      xyz[i] = eye[i];
-  }
+  float eye_pos[3], target_pos[3];
+  get_camera_pos(eye_pos, target_pos);
 
-  spheric2cart_add(xyz, spherical[0], spherical[1], spherical[2]);
+  float up = (
+      ( (camera.mode & CAM_EYE_REL) && ((int)ceil(camera.eye[1]/M_PI))%2==0 ) ||
+      ( (camera.mode & CAM_TARGET_REL) && ((int)ceil(camera.target[1]/M_PI))%2==0 )
+      ) ? -1.0 : 1.0;
 
   gluLookAt(
-      eye[0], eye[1], eye[2],
-      target[0], target[1], target[2],
-      0.0, 0.0, (((int)ceil(spherical[1]/M_PI))%2 == 0) ? -1.0 : 1.0);
+      eye_pos[0], eye_pos[1], eye_pos[2],
+      target_pos[0], target_pos[1], target_pos[2],
+      0.0, 0.0, up);
 
   // Draw objects
   std::vector<Object*> &objs = physics->get_objs();
@@ -157,7 +188,7 @@ void Display::window_init()
   if(SDL_Init(SDL_INIT_VIDEO) < 0)
   {
     window_destroy();
-    throw(Error("SDL: initialization failed"));
+    throw(Error("SDL: initialization failed: %s", SDL_GetError()));
   }
 
   // Get the best available bpp value
@@ -186,6 +217,9 @@ void Display::window_init()
         icon.data, icon.width, icon.height, 8*icon.bpp, icon.bpp*icon.width,
         0xff, 0xff<<8, 0xff<<16, 0xff<<24),
       NULL);
+
+  //SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+  SDL_EnableKeyRepeat(10, 5);
 
   resize(cfg->screen_x, cfg->screen_y);
 }
@@ -223,122 +257,326 @@ void Display::scene_destroy() {}
 void Display::handle_events()
 {
   SDL_Event event;
+  std::map<SDL_Event, event_handler, EventCmp>::iterator ithandler;
+
   while(SDL_PollEvent(&event))
   {
-    switch(event.type)
-    {
-      case SDL_QUIT:
-        throw(0);
-        break;
-      case SDL_VIDEORESIZE:
-        resize(event.resize.w, event.resize.h);
-        break;
-
-      case SDL_KEYDOWN:
-        switch( event.key.keysym.sym )
-        {
-          case SDLK_SPACE:
-            physics->toggle_pause();
-            break;
-          case SDLK_c:
-            LOG->trace("change camera mode");
-            if( camera.mode == CAM_FIXED )
-              set_camera_mode(CAM_FREE);
-            else
-              set_camera_mode(CAM_FIXED);
-            break;
-          default:
-            LOG->trace("Keydown %d (%c) \"%s\"", event.key.keysym.scancode, event.key.keysym.sym, SDL_GetKeyName(event.key.keysym.sym));
-            break;
-        }
-        break;
-
-      case SDL_MOUSEMOTION:
-        if( (event.motion.state & SDL_BUTTON(1)) == 0 )
-          break;
-        //XXX-config
-        if( camera.mode == CAM_FIXED )
-        {
-          camera.eye[1] += event.motion.yrel * 0.01;
-          camera.eye[2] -= event.motion.xrel * 0.01;
-        }
-        else
-        {
-          camera.target[1] += event.motion.yrel * 0.01;
-          camera.target[2] -= event.motion.xrel * 0.01;
-        }
-        break;
-    }
-  }
-
-  // Pressed keys
-
-  Uint8 *keys;
-  keys = SDL_GetKeyState(NULL);
-
-  if( keys[SDLK_ESCAPE] )
-    throw(0);
-  //XXX-config
-  if( camera.mode == CAM_FIXED )
-  {
-    if( keys[SDLK_a] )
-      camera.eye[2] -= 0.1;
-    if( keys[SDLK_d] )
-      camera.eye[2] += 0.1;
-    if( keys[SDLK_e] )
-      camera.eye[1] -= 0.1;
-    if( keys[SDLK_q] )
-      camera.eye[1] += 0.1;
-    if( keys[SDLK_w] )
-      camera.eye[0] -= 0.1;
-    if( keys[SDLK_s] )
-      camera.eye[0] += 0.1;
-  }
-  else if( camera.mode == CAM_FREE )
-  {
-    if( keys[SDLK_a] )
-      spheric2cart_add(camera.eye, 0.1, M_PI_2, camera.target[2]+M_PI_2);
-    if( keys[SDLK_d] )
-      spheric2cart_add(camera.eye, -0.1, M_PI_2, camera.target[2]+M_PI_2);
-    if( keys[SDLK_e] )
-      spheric2cart_add(camera.eye, 0.1, camera.target[1]-M_PI_2, camera.target[2]);
-    if( keys[SDLK_q] )
-      spheric2cart_add(camera.eye, -0.1, camera.target[1]-M_PI_2, camera.target[2]);
-    if( keys[SDLK_w] )
-      spheric2cart_add(camera.eye, 0.1, camera.target[1], camera.target[2]);
-    if( keys[SDLK_s] )
-      spheric2cart_add(camera.eye, -0.1, camera.target[1], camera.target[2]);
+    ithandler = handlers.find(event);
+    if( ithandler != handlers.end() )
+      (*ithandler).second(this, event);
   }
 }
 
 
-void Display::set_camera_mode(CameraMode mode)
+
+void Display::get_camera_pos(float eye_pos[3], float target_pos[3])
+{
+  // ref positions depends on the other point.
+  // Thus, fixed and mobile positions are retrieved first.
+
+  if( camera.mode & CAM_EYE_FIXED )
+  {
+    for( int i=0; i<3; i++ )
+      eye_pos[i] = camera.eye[i];
+  }
+  else if( camera.mode & CAM_EYE_OBJECT )
+  {
+    const dReal *pos = camera.eye_obj->get_pos();
+    const dReal *rot = camera.eye_obj->get_rot();
+
+    // Convert offset in global coordinates
+    // (Apply object rotation using quaternions.)
+    dQuaternion q1, q2;
+
+    q1[0] = 0;
+    for( int i=0; i<3; i++ )
+      q1[i+1] = camera.eye[i];
+    dQMultiply0(q2, rot, q1);
+    dQMultiply2(q1, q2, rot);
+
+    for( int i=0; i<3; i++ )
+      eye_pos[i] = pos[i] + q1[i+1];
+  }
+
+  if( camera.mode & CAM_TARGET_FIXED )
+  {
+    for( int i=0; i<3; i++ )
+      target_pos[i] = camera.target[i];
+  }
+  else if( camera.mode & CAM_TARGET_OBJECT )
+  {
+    const dReal *pos = camera.target_obj->get_pos();
+    const dReal *rot = camera.target_obj->get_rot();
+
+    // Convert offset in global coordinates
+    // (Apply object rotation using quaternions.)
+    dQuaternion q1, q2;
+
+    q1[0] = 0;
+    for( int i=0; i<3; i++ )
+      q1[i+1] = camera.target[i];
+    dQMultiply0(q2, rot, q1);
+    dQMultiply2(q1, q2, rot);
+
+    for( int i=0; i<3; i++ )
+      target_pos[i] = pos[i] + q1[i+1];
+  }
+
+  if( camera.mode & CAM_EYE_REL )
+  {
+    spheric2cart(eye_pos, camera.eye[0], camera.eye[1], camera.eye[2]);
+
+    // Object relative coordinates are in object coordinates
+    // Convert them to global coordinates
+    if( camera.mode & CAM_TARGET_OBJECT )
+    {
+      const dReal *rot = camera.target_obj->get_rot();
+      dQuaternion q1, q2;
+      q1[0] = 0;
+      for( int i=0; i<3; i++ )
+        q1[i+1] = eye_pos[i];
+      dQMultiply0(q2, rot, q1);
+      dQMultiply2(q1, q2, rot);
+      for( int i=0; i<3; i++ )
+        eye_pos[i] = q1[i+1];
+    }
+
+    for( int i=0; i<3; i++ )
+      eye_pos[i] += target_pos[i];
+  }
+  else if( camera.mode & CAM_TARGET_REL )
+  {
+    spheric2cart(target_pos, camera.target[0], camera.target[1], camera.target[2]);
+
+    // Object relative coordinates are in object coordinates
+    // Convert them to global coordinates
+    if( camera.mode & CAM_EYE_OBJECT )
+    {
+      const dReal *rot = camera.eye_obj->get_rot();
+      dQuaternion q1, q2;
+      q1[0] = 0;
+      for( int i=0; i<3; i++ )
+        q1[i+1] = target_pos[i];
+      dQMultiply0(q2, rot, q1);
+      dQMultiply2(q1, q2, rot);
+      for( int i=0; i<3; i++ )
+        target_pos[i] = q1[i+1];
+    }
+
+    for( int i=0; i<3; i++ )
+      target_pos[i] += eye_pos[i];
+  }
+}
+
+
+void Display::set_camera_mode(int mode)
 {
   if( camera.mode == mode )
     return;
 
-  if( camera.mode == CAM_FIXED && mode == CAM_FREE )
+  if( (mode & CAM_EYE_OBJECT) && (mode & CAM_TARGET_OBJECT) )
+    throw(Error("invalid camera mode"));
+
+  // Set new coordinates
+  // Try to keep the same (global) positions
+
+  float eye_pos[3];
+  float target_pos[3];
+
+  get_camera_pos(eye_pos, target_pos);
+
+  switch( mode & CAM_EYE_MASK )
   {
-    float eye[3];
-    eye[0] = camera.target[0];
-    eye[1] = camera.target[1];
-    eye[2] = camera.target[2];
-    spheric2cart_add(eye, camera.eye[0], camera.eye[1], camera.eye[2]);
-    camera.eye[0] = eye[0];
-    camera.eye[1] = eye[1];
-    camera.eye[2] = eye[2];
-    cart2spheric(camera.target, camera.target[0]-camera.eye[0], camera.target[1]-camera.eye[1], camera.target[2]-camera.eye[2]);
+    case CAM_EYE_FIXED:
+      for( int i=0; i<3; i++ )
+        camera.eye[i] = eye_pos[i];
+      break;
+    case CAM_EYE_REL:
+      cart2spheric(camera.eye, eye_pos[0]-target_pos[0], eye_pos[1]-target_pos[1], eye_pos[2]-target_pos[2]);
+      break;
+    case CAM_EYE_OBJECT:
+      if( camera.eye_obj == NULL )
+        throw(Error("object must be set before setting an object camera mode"));
+      for( int i=0; i<3; i++ )
+        camera.eye[i] = 0;
+      break;
   }
-  else if( camera.mode == CAM_FREE && mode == CAM_FIXED )
+
+  switch( mode & CAM_TARGET_MASK )
   {
-    //XXX fix on a given object/position
-    cart2spheric(camera.eye, camera.eye[0], camera.eye[1], camera.eye[2]);
-    camera.target[0] = 0;
-    camera.target[1] = 0;
-    camera.target[2] = 0;
+    case CAM_TARGET_FIXED:
+      for( int i=0; i<3; i++ )
+        camera.target[i] = target_pos[i];
+      break;
+    case CAM_TARGET_REL:
+      cart2spheric(camera.target, target_pos[0]-eye_pos[0], target_pos[1]-eye_pos[1], target_pos[2]-eye_pos[2]);
+      break;
+    case CAM_TARGET_OBJECT:
+      if( camera.target_obj == NULL )
+        throw(Error("object must be set before setting an object camera mode."));
+      for( int i=0; i<3; i++ )
+        camera.target[i] = 0;
+      break;
   }
 
   camera.mode = mode;
+  LOG->trace("camera mode: %x < %x", mode&CAM_EYE_MASK, (mode&CAM_TARGET_MASK)>>8);
 }
 
+
+bool Display::EventCmp::operator()(const SDL_Event &a, const SDL_Event &b)
+{
+  if( a.type == b.type )
+  {
+    switch( a.type )
+    {
+      case SDL_KEYDOWN:
+      case SDL_KEYUP:
+        return a.key.keysym.sym < b.key.keysym.sym;
+      case SDL_MOUSEMOTION:
+        return a.motion.state < b.motion.state;
+      case SDL_MOUSEBUTTONDOWN:
+      case SDL_MOUSEBUTTONUP:
+        return a.button.button < b.button.button;
+      case SDL_USEREVENT:
+        return a.user.code < b.user.code;
+      default: // events are equal
+        return false;
+    }
+  }
+
+  return a.type < b.type;
+}
+
+
+void Display::handler_resize(Display *d, const SDL_Event &event)
+{
+  d->resize(event.resize.w, event.resize.h);
+}
+
+void Display::handler_pause(Display *d, const SDL_Event &event)
+{
+  static Uint8 last_state = SDL_RELEASED;
+  if( event.key.state == last_state )
+    return;
+  last_state = event.key.state;
+
+  if( event.key.state == SDL_PRESSED )
+    physics->toggle_pause();
+}
+
+void Display::handler_cam_mode(Display *d, const SDL_Event &event)
+{
+  static Uint8 last_state = SDL_RELEASED;
+  if( event.key.state == last_state )
+    return;
+  last_state = event.key.state;
+
+  if( event.key.state == SDL_PRESSED )
+  {
+    switch( d->get_camera_mode() )
+    {
+      case CAM_FIXED:
+        d->set_camera_mode(CAM_FREE);
+        break;
+      case CAM_FREE:
+        {
+          std::vector<Robot*> &robots = Robot::get_robots();
+          if( !robots.empty() )
+          {
+            d->set_camera_target_obj(robots[0]);
+            d->set_camera_mode(CAM_LOOK);
+            break;
+          }
+        }
+      case CAM_LOOK:
+        {
+          std::vector<Robot*> &robots = Robot::get_robots();
+          if( !robots.empty() )
+          {
+            d->set_camera_eye_obj(robots[0]);
+            d->set_camera_mode(CAM_ONBOARD);
+            d->set_camera_target(1.0, 3*M_PI/4, 0.0);//XXX
+            d->set_camera_eye(0.0, 0.0, 0.3);//XXX
+            break;
+          }
+        }
+      case CAM_ONBOARD:
+      default:
+        d->set_camera_mode(CAM_FIXED);
+        break;
+    }
+  }
+}
+
+void Display::handler_cam_mouse(Display *d, const SDL_Event &event)
+{
+  float dx = event.motion.xrel * cfg->camera_mouse_coef;
+  float dy = event.motion.yrel * cfg->camera_mouse_coef;
+  if( d->camera.mode & CAM_EYE_REL )
+    d->move_camera_eye( 0, dy*cfg->camera_step_angle, -dx*cfg->camera_step_angle );
+  else if( d->camera.mode & CAM_TARGET_REL )
+    d->move_camera_target( 0, dy*cfg->camera_step_angle, dx*cfg->camera_step_angle );
+}
+
+
+void Display::handler_cam_ahead(Display *d, const SDL_Event &event)
+{
+  if( d->camera.mode == CAM_FREE )
+    spheric2cart_add(d->camera.eye, cfg->camera_step_linear, d->camera.target[1], d->camera.target[2]);
+  else if( d->camera.mode & CAM_EYE_REL )
+    d->camera.eye[0] -= cfg->camera_step_linear;
+  else if( d->camera.mode & CAM_TARGET_REL )
+    d->camera.target[0] -= cfg->camera_step_linear;
+}
+
+void Display::handler_cam_back(Display *d, const SDL_Event &event)
+{
+  if( d->camera.mode == CAM_FREE )
+    spheric2cart_add(d->camera.eye, -cfg->camera_step_linear, d->camera.target[1], d->camera.target[2]);
+  else if( d->camera.mode & CAM_EYE_REL )
+    d->camera.eye[0] += cfg->camera_step_linear;
+  else if( d->camera.mode & CAM_TARGET_REL )
+    d->camera.target[0] += cfg->camera_step_linear;
+}
+
+void Display::handler_cam_left(Display *d, const SDL_Event &event)
+{
+  if( d->camera.mode == CAM_FREE )
+    spheric2cart_add(d->camera.eye, cfg->camera_step_linear, M_PI_2, d->camera.target[2]+M_PI_2);
+  else if( d->camera.mode & CAM_EYE_REL )
+    d->camera.eye[2] -= cfg->camera_step_linear;
+  else if( d->camera.mode & CAM_TARGET_REL )
+    d->camera.target[2] -= cfg->camera_step_linear;
+}
+
+void Display::handler_cam_right(Display *d, const SDL_Event &event)
+{
+  if( d->camera.mode == CAM_FREE )
+    spheric2cart_add(d->camera.eye, -cfg->camera_step_linear, M_PI_2, d->camera.target[2]+M_PI_2);
+  else if( d->camera.mode & CAM_EYE_REL )
+    d->camera.eye[2] += cfg->camera_step_linear;
+  else if( d->camera.mode & CAM_TARGET_REL )
+    d->camera.target[2] += cfg->camera_step_linear;
+}
+
+void Display::handler_cam_up(Display *d, const SDL_Event &event)
+{
+  if( d->camera.mode == CAM_FREE )
+    spheric2cart_add(d->camera.eye, -cfg->camera_step_linear, d->camera.target[1]-M_PI_2, d->camera.target[2]);
+  else if( d->camera.mode & CAM_EYE_REL )
+    d->camera.eye[1] -= cfg->camera_step_linear;
+  else if( d->camera.mode & CAM_TARGET_REL )
+    d->camera.target[1] -= cfg->camera_step_linear;
+}
+
+void Display::handler_cam_down(Display *d, const SDL_Event &event)
+{
+  if( d->camera.mode == CAM_FREE )
+    spheric2cart_add(d->camera.eye, cfg->camera_step_linear, d->camera.target[1]-M_PI_2, d->camera.target[2]);
+  else if( d->camera.mode & CAM_EYE_REL )
+    d->camera.eye[1] += cfg->camera_step_linear;
+  else if( d->camera.mode & CAM_TARGET_REL )
+    d->camera.target[1] += cfg->camera_step_linear;
+}
 

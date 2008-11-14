@@ -79,7 +79,7 @@ public:
 
   //@}
 
-  /** @brief Display and SDL settings
+  /** @name Display and SDL settings
    */
   //@{
 
@@ -89,11 +89,22 @@ public:
 
   /** @brief Refresh rate (frames per second)
    *
-   * @note It also defines SDL event handling rate.
+   * @note It also defines event handling rate.
    */
   float fps;
 
   Color4 bg_color;
+
+  /// Step for camera angle moves
+  float camera_step_angle;
+
+  /// Step for camera linear moves
+  float camera_step_linear;
+
+  /// Coefficient for mouse camera moves
+  float camera_mouse_coef;
+
+  //@}
 
   /// Flush logs after each write
   bool log_flush;
