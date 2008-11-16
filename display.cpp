@@ -48,28 +48,37 @@ Display::Display()
   set_handler(event, handler_quit);
 
   event.key.keysym.sym = SDLK_SPACE;
-  event.type = SDL_KEYDOWN;
-  set_handler(event, handler_pause);
   event.type = SDL_KEYUP;
   set_handler(event, handler_pause);
 
   event.key.keysym.sym = SDLK_c;
-  event.type = SDL_KEYDOWN;
-  set_handler(event, handler_cam_mode);
   event.type = SDL_KEYUP;
   set_handler(event, handler_cam_mode);
 
   // Camera moves
+  // TODO correct AZERTY/QWERTY handling
   event.type = SDL_KEYDOWN;
+#ifdef WIN32
   event.key.keysym.sym = SDLK_w;
+#else
+  event.key.keysym.sym = SDLK_z;
+#endif
   set_handler(event, handler_cam_ahead);
   event.key.keysym.sym = SDLK_s;
   set_handler(event, handler_cam_back);
+#ifdef WIN32
   event.key.keysym.sym = SDLK_a;
+#else
+  event.key.keysym.sym = SDLK_q;
+#endif
   set_handler(event, handler_cam_left);
   event.key.keysym.sym = SDLK_d;
   set_handler(event, handler_cam_right);
+#ifdef WIN32
   event.key.keysym.sym = SDLK_q;
+#else
+  event.key.keysym.sym = SDLK_a;
+#endif
   set_handler(event, handler_cam_up);
   event.key.keysym.sym = SDLK_e;
   set_handler(event, handler_cam_down);
@@ -456,56 +465,42 @@ void Display::handler_resize(Display *d, const SDL_Event &event)
 
 void Display::handler_pause(Display *d, const SDL_Event &event)
 {
-  static Uint8 last_state = SDL_RELEASED;
-  if( event.key.state == last_state )
-    return;
-  last_state = event.key.state;
-
-  if( event.key.state == SDL_PRESSED )
-    physics->toggle_pause();
+  physics->toggle_pause();
 }
 
 void Display::handler_cam_mode(Display *d, const SDL_Event &event)
 {
-  static Uint8 last_state = SDL_RELEASED;
-  if( event.key.state == last_state )
-    return;
-  last_state = event.key.state;
-
-  if( event.key.state == SDL_PRESSED )
+  switch( d->get_camera_mode() )
   {
-    switch( d->get_camera_mode() )
-    {
-      case CAM_FIXED:
-        d->set_camera_mode(CAM_FREE);
-        break;
-      case CAM_FREE:
+    case CAM_FIXED:
+      d->set_camera_mode(CAM_FREE);
+      break;
+    case CAM_FREE:
+      {
+        std::vector<Robot*> &robots = Robot::get_robots();
+        if( !robots.empty() )
         {
-          std::vector<Robot*> &robots = Robot::get_robots();
-          if( !robots.empty() )
-          {
-            d->set_camera_target_obj(robots[0]);
-            d->set_camera_mode(CAM_LOOK);
-            break;
-          }
+          d->set_camera_target_obj(robots[0]);
+          d->set_camera_mode(CAM_LOOK);
+          break;
         }
-      case CAM_LOOK:
+      }
+    case CAM_LOOK:
+      {
+        std::vector<Robot*> &robots = Robot::get_robots();
+        if( !robots.empty() )
         {
-          std::vector<Robot*> &robots = Robot::get_robots();
-          if( !robots.empty() )
-          {
-            d->set_camera_eye_obj(robots[0]);
-            d->set_camera_mode(CAM_ONBOARD);
-            d->set_camera_target(1.0, 3*M_PI/4, 0.0);//XXX
-            d->set_camera_eye(0.0, 0.0, 0.3);//XXX
-            break;
-          }
+          d->set_camera_eye_obj(robots[0]);
+          d->set_camera_mode(CAM_ONBOARD);
+          d->set_camera_target(1.0, 3*M_PI/4, 0.0);//XXX
+          d->set_camera_eye(0.0, 0.0, 0.3);//XXX
+          break;
         }
-      case CAM_ONBOARD:
-      default:
-        d->set_camera_mode(CAM_FIXED);
-        break;
-    }
+      }
+    case CAM_ONBOARD:
+    default:
+      d->set_camera_mode(CAM_FIXED);
+      break;
   }
 }
 

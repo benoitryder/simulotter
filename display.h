@@ -120,8 +120,7 @@ private:
    * made (e.g. \e keysym for keyboard events).
    * Some fields are not compared (e.g. mouse coordinates for motion events).
    *
-   * @note Key repeat is enabled. Static variables and common keydown/up
-   * handler may be used to detect the first press.
+   * @note Key repeat is enabled.
    */
   //@{
 public:
