@@ -48,26 +48,67 @@ void LuaManager::do_file(const char *filename)
     throw(LuaError(L, ret));
 }
 
-void LuaManager::checkcolor(lua_State *L, int narg, Color4 c)
+
+int LuaManager::tocolor(lua_State *L, int index, Color4 c)
 {
-  luaL_checktype(L, narg, LUA_TTABLE);
+  // If index is relative to the top, get the absolute position
+  if( index < 0 )
+    index = lua_gettop(L) + 1 + index;
 
-  int n = lua_objlen(L, narg);
-  luaL_argcheck(L, n==4 || n==3, narg, // alpha is optional
-      "invalid component count, 3 or 4 expected");
+  if( !lua_istable(L, index) )
+  {
+    lua_pushstring(L, "table expected");
+    return 1;
+  }
 
-  lua_pushnil(L);
+  int n = lua_objlen(L, index);
+  if( n != 4 && n != 3 ) // alpha is optional
+  {
+    lua_pushstring(L, "invalid component count, 3 or 4 expected");
+    return 1;
+  }
+
   int i;
   float f;
-  for( i=0; i<4 && lua_next(L, narg); i++ )
+  for( i=0; i<n; i++ )
   {
-    luaL_argcheck(L, lua_isnumber(L, -1), narg,
-        "invalid color component, number expected");
+    lua_rawgeti(L, index, i+1);
+    if( lua_isnone(L, -1) )
+    {
+      lua_pop(L, 1);
+      lua_pushstring(L, "color component is missing");
+      return 1;
+    }
+    if( !lua_isnumber(L, -1) )
+    {
+      lua_pop(L, 1);
+      lua_pushstring(L, "invalid color component, number expected");
+      return 1;
+    }
     f = lua_tonumber(L, -1);
-    luaL_argcheck(L, f>=0.0 && f<=1.0, narg,
-        "invalid color component value");
+    if( f < 0.0 || f > 1.0 )
+    {
+      lua_pop(L, 1);
+      lua_pushstring(L, "invalid color component value");
+      return 1;
+    }
     c[i] = f;
     lua_pop(L, 1);
+  }
+  if( n < 4 )
+    c[3] = 1.0f;
+
+  return 0;
+}
+
+void LuaManager::checkcolor(lua_State *L, int narg, Color4 c)
+{
+  int ret = tocolor(L, narg, c);
+  if( ret != 0 )
+  {
+    const char *msg = lua_tostring(L, -1);
+    lua_pop(L, 1);
+    luaL_argerror(L, narg, msg);
   }
 }
 

@@ -25,7 +25,7 @@ Rules::~Rules()
 void Rules::check_robots()
 {
   // Check robots
-  std::vector<Robot*> robots = Robot::get_robots();
+  std::vector<Robot*> &robots = Robot::get_robots();
   if( robots.size() > TEAM_NB )
     throw(Error("Too many robots (max %d, got %d)", TEAM_NB, robots.size()));
 

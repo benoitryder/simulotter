@@ -13,13 +13,14 @@ Robot::Robot()
   this->ref_asserv = LUA_NOREF;
   this->ref_strategy = LUA_NOREF;
   this->L_strategy = NULL;
+
+  this->team = TEAM_INVALID;
 }
 
 void Robot::init()
 {
   Object::init();
   set_category(CAT_ROBOT);
-  robots.push_back(this);
 }
 
 
@@ -36,9 +37,21 @@ Robot::~Robot()
     luaL_unref(L, LUA_REGISTRYINDEX, ref_strategy);
 }
 
+void Robot::match_register(unsigned int team)
+{
+  if( get_team() != TEAM_INVALID )
+    throw(Error("robot is already registered"));
+
+  if( match == NULL )
+    throw(Error("no match to register the robot in"));
+
+  this->team = match->register_robot(this, team);
+}
+
+
 void Robot::draw()
 {
-  glColor4fv(rules->get_color(team));
+  glColor4fv(match->get_color(team));
   Object::draw();
   draw_direction();
 }
@@ -134,8 +147,6 @@ void Robot::strategy()
   else
     throw(LuaError(L_strategy));
 }
-
-std::vector<Robot*> Robot::robots;
 
 
 RBasic::RBasic() {}
@@ -319,16 +330,31 @@ class LuaRobot: public LuaClass<Robot>
   {
     Robot **ud = new_userdata(L);
     *ud = new Robot();
+
+    lua_pushvalue(L, 1);
+    (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
     return 0;
   }
 
   LUA_DEFINE_GET(get_team)
+
+  static int match_register(lua_State *L)
+  {
+    // Default team
+    if( lua_isnone(L, 2) )
+      get_ptr(L)->match_register();
+    else
+      get_ptr(L)->match_register(LARG_i(2));
+
+    return 0;
+  }
 
 public:
   LuaRobot()
   {
     LUA_REGFUNC(_ctor);
     LUA_REGFUNC(get_team);
+    LUA_REGFUNC(match_register);
   }
 
 };
@@ -342,7 +368,7 @@ class LuaRBasic: public LuaClass<RBasic>
     LOG->trace("LuaRBasic: BEGIN [%p]", ud);
 
     // Empty constructor
-    if( lua_type(L, 2) == LUA_TNONE )
+    if( lua_isnone(L, 2) )
     {
       LOG->trace("  proto: empty");
       *ud = new RBasic();

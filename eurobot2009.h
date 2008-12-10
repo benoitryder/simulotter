@@ -1,7 +1,6 @@
 #ifndef RULES2009_H
 #define RULES2009_H
 
-#include "rules.h"
 #include "physics.h"
 #include "object.h"
 
@@ -10,51 +9,8 @@
  */
 
 
-namespace rules2009
+namespace eurobot2009
 {
-  class RAtlantis: public Rules
-  {
-  public:
-    RAtlantis();
-    virtual ~RAtlantis();
-
-    /// Get the score of the given team
-    virtual int get_score(int team);
-
-    /// Initialize the match
-    virtual void match_init(int fconf);
-
-    /** @brief Build a field configuration value
-     *
-     * @param col   Column placement (1 to 10)
-     * @param disp  Dispensers placement (1 to 2)
-     */
-    static int create_conf(int col, int disp) { return col | (disp<<4); }
-
-
-  private:
-
-    /** @brief Column placements
-     *
-     * Each placement gives column position.
-     */
-    static const int col_placements[10][3];
-
-    static const dReal col_space_x;
-    static const dReal col_space_y;
-    static const dReal col_offset_x;
-    static const dReal col_offset_y;
-
-    static const dReal disp_offset_x;
-    static const dReal disp_offset_y;
-    static const dReal disp_offset_z;
-
-  public:
-    static const dReal wall_width;
-    static const dReal wall_height;
-  };
-
-
   /// Column element
   class OColElem: public ObjectColor
   {
@@ -100,7 +56,7 @@ namespace rules2009
     /** @brief Put an object in the dispenser
      *
      * @param  o  Object to move in the dispenser
-     * @param  z  Z position, in the global coordinates
+     * @param  z  Z position, in global coordinates
      */
     void fill(Object *o, dReal z);
 

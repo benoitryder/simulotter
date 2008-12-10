@@ -6,14 +6,16 @@
 #include <math.h>
 #include <vector>
 
+class Robot;
+
 #include "object.h"
+#include "match.h"
+
 
 ///@file
 
 
 /** @brief Robot base class
- *
- * @note Only TEAM_NB robots can be created.
  */
 class Robot: public Object
 {
@@ -24,15 +26,18 @@ public:
 
   /** @brief Initialize the robot
    *
-   * Call parent initialization function, set category, push the
-   * robot to the robots vector.
+   * Call parent initialization function, set category.
    */
   virtual void init();
 
   ~Robot();
 
-  int get_team() { return this->team; }
-  void set_team(int i) { this->team = i; }
+  unsigned int get_team() const { return this->team; }
+
+  /** @brief Register the robot in the match and set its team
+   * @sa Match::register_robot()
+   */
+  void match_register(unsigned int team=TEAM_INVALID);
 
   virtual void draw();
 
@@ -80,10 +85,11 @@ public:
    */
   void strategy();
 
+protected:
   /// Default not implemented do_update() method
-  virtual void do_update() { throw(Error("do_update() not implemented.")); }
+  virtual void do_update() { throw(Error("do_update() not implemented")); }
   /// Default not implemented do_asserv() method
-  virtual void do_asserv() { throw(Error("do_asserv() not implemented.")); }
+  virtual void do_asserv() { throw(Error("do_asserv() not implemented")); }
   /** @brief Default not implemented do_strategy() method
    *
    * Strategy function is called with its last return value. If it returns -1,
@@ -92,17 +98,12 @@ public:
    * @param   val  last returned value, -1 at the first call
    * @return  The next parameter value or -1 to stop the robot.
    */
-  virtual int do_strategy(int val) { throw(Error("do_strategy() not implemented.")); }
-
-  static std::vector<Robot*> &get_robots() { return robots; }
+  virtual int do_strategy(int val) { throw(Error("do_strategy() not implemented")); }
 
 private:
 
-  /// Robot array
-  static std::vector<Robot*> robots;
-
-  /// Team number (-1 if not set)
-  int team;
+  /// Team number (TEAM_INVALID if not set)
+  unsigned int team;
 
   /// Cached update function reference
   int ref_update;

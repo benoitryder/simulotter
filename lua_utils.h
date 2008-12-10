@@ -28,9 +28,17 @@ public:
   /// Run a Lua script
   void do_file(const char *filename);
 
-  /** @brief Check whether a given argument is a color and get it
+  /** @brief Convert a given value to a color
    *
-   * Valid colors are tables of 3 or 4 elements, ordered.
+   * Valid colors are tables of 3 or 4 elements, indexed by integers.
+   *
+   * @retval  0  color is valid
+   * @retval  1  invalid color, error message has been pushed on the stack
+   */
+  static int tocolor(lua_State *L, int index, Color4 c);
+
+  /** @brief Check whether a given argument is a color and get it
+   * @sa tocolor
    */
   static void checkcolor(lua_State *L, int narg, Color4 c);
 
@@ -162,17 +170,14 @@ public:
   static void push(lua_State *L, const char *s) { lua_pushstring(L, s); }
   static void push(lua_State *L, unsigned int    n) { lua_pushinteger(L, n); }
   static void push(lua_State *L, unsigned long   n) { lua_pushinteger(L, n); }
-  static void push(lua_State *L, Color4 c)
+  static void push(lua_State *L, const GLfloat *c)
   {
     lua_createtable(L, 0, 4);
-    LuaClassBase::push(L, c[0]);
-    lua_setfield(L, -2, "r");
-    LuaClassBase::push(L, c[1]);
-    lua_setfield(L, -2, "g");
-    LuaClassBase::push(L, c[2]);
-    lua_setfield(L, -2, "b");
-    LuaClassBase::push(L, c[3]);
-    lua_setfield(L, -2, "a");
+    for( int i=0; i<4; i++ )
+    {
+      LuaClassBase::push(L, c[i]);
+      lua_rawseti(L, -2, i+1);
+    }
   }
   //@}
 
@@ -349,12 +354,12 @@ protected:
 class LuaError: public Error
 {
 public:
-  LuaError() { this->err=0; }
-  LuaError(const char *msg): Error("LUA: %s", msg) { this->err=0; }
+  LuaError(): err(0) {}
+  LuaError(const char *msg): Error("LUA: %s", msg), err(0) {}
   LuaError(lua_State *L, int err=0):
-    Error("LUA: %s", lua_tostring(L,-1)) { lua_pop(L,-1); this->err=err; }
+    Error("LUA: %s", lua_tostring(L,-1)), err(err) { lua_pop(L,-1); }
   LuaError(lua_State *L, const char *msg, int err=0):
-    Error("LUA: %s: %s", msg, lua_tostring(L,-1)) { lua_pop(L,-1); this->err=err; }
+    Error("LUA: %s: %s", msg, lua_tostring(L,-1)), err(err) { lua_pop(L,-1); }
   ~LuaError() throw() {}
   LuaError(const LuaError &e): Error(e) {}
 

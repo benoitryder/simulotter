@@ -114,13 +114,13 @@ void Physics::step()
   dJointGroupEmpty(joints);
 
   // Update robot values, do asserv and strategy
-  std::vector<Robot*> &robots = Robot::get_robots();
-  std::vector<Robot*>::iterator itr;
+  std::map<unsigned int,Robot*> &robots = match->get_robots();
+  std::map<unsigned int,Robot*>::iterator itr;
   for( itr=robots.begin(); itr!=robots.end(); ++itr )
   {
-    (*itr)->update();
-    (*itr)->asserv();
-    (*itr)->strategy();
+    (*itr).second->update();
+    (*itr).second->asserv();
+    (*itr).second->strategy();
   }
 }
 
@@ -202,8 +202,8 @@ void Physics::collide_callback(void *data, dGeomID o1, dGeomID o2)
 
   // Ignore elements in dispensers
   //TODO only ignore if completely inside
-  if( (cat1==CAT_DISPENSER) && (cat2==CAT_ELEMENT) ||
-      (cat2==CAT_DISPENSER) && (cat1==CAT_ELEMENT) )
+  if( ((cat1==CAT_DISPENSER) && (cat2==CAT_ELEMENT)) ||
+      ((cat2==CAT_DISPENSER) && (cat1==CAT_ELEMENT)) )
   {
     dJointID c = dJointCreateSlider(physics->get_world(), physics->get_joints());
     dJointAttach(c, b1, b2);

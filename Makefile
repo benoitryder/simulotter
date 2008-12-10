@@ -8,8 +8,10 @@ else
 LDFLAGS = `sdl-config --libs` -lm -lode -lGL -llua5.1 -lglut
 endif
 
-OBJS = main.o config.o physics.o display.o object.o robot.o rules.o maths.o log.o lua_utils.o sensor.o
-OBJS += rules2009.o
+OBJS = main.o config.o physics.o display.o object.o robot.o match.o maths.o log.o sensor.o
+OBJS += eurobot2009.o
+# lua_utils must be the last one to register all Lua classes
+OBJS += lua_utils.o
 
 TARGET := simulotter
 

@@ -477,20 +477,22 @@ void Display::handler_cam_mode(Display *d, const SDL_Event &event)
       break;
     case CAM_FREE:
       {
-        std::vector<Robot*> &robots = Robot::get_robots();
+        //TODO allow other objects
+        std::map<unsigned int,Robot*> &robots = match->get_robots();
         if( !robots.empty() )
         {
-          d->set_camera_target_obj(robots[0]);
+          d->set_camera_target_obj((*robots.begin()).second);
           d->set_camera_mode(CAM_LOOK);
           break;
         }
       }
     case CAM_LOOK:
       {
-        std::vector<Robot*> &robots = Robot::get_robots();
+        //TODO allow other objects
+        std::map<unsigned int,Robot*> &robots = match->get_robots();
         if( !robots.empty() )
         {
-          d->set_camera_eye_obj(robots[0]);
+          d->set_camera_eye_obj((*robots.begin()).second);
           d->set_camera_mode(CAM_ONBOARD);
           d->set_camera_target(1.0, 3*M_PI/4, 0.0);//XXX
           d->set_camera_eye(0.0, 0.0, 0.3);//XXX
@@ -511,7 +513,7 @@ void Display::handler_cam_mouse(Display *d, const SDL_Event &event)
   if( d->camera.mode & CAM_EYE_REL )
     d->move_camera_eye( 0, dy*cfg->camera_step_angle, -dx*cfg->camera_step_angle );
   else if( d->camera.mode & CAM_TARGET_REL )
-    d->move_camera_target( 0, dy*cfg->camera_step_angle, dx*cfg->camera_step_angle );
+    d->move_camera_target( 0, dy*cfg->camera_step_angle, -dx*cfg->camera_step_angle );
 }
 
 

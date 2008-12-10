@@ -317,7 +317,7 @@ const dReal OGround::size_start;
 
 OGround::OGround(const Color4 color, const Color4 color_t1, const Color4 color_t2)
 {
-  this->geom_box = dCreateBox(0, Rules::table_size_x, Rules::table_size_y, size_z);
+  this->geom_box = dCreateBox(0, 3.0, 2.1, size_z);  // Default table size
   add_geom(this->geom_box);
   init();
 

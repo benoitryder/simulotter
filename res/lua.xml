@@ -67,7 +67,7 @@
       <arg name="z" type="float"/>
     </function>
 
-    <function name="set_pos">
+    <function name="set_rot">
       Set rotation from a quaternion.
       <arg name="w" type="float"/>
       <arg name="a" type="float"/>
@@ -84,7 +84,7 @@
 
     <function name="set_mass">
       Set object total mass.<br/>
-      If <code>m</code> is negative (or null) this method has no effect.
+      If <tt>m</tt> is negative (or null) this method has no effect.
       Mass cannot be set if body has been set.
       <arg name="m" type="float"/>
     </function>
@@ -157,6 +157,27 @@
       Return robot's team, or -1 if not set. (Teams numbers are set at match start.)
       <return type="int"/>
     </function>
+
+    <function name="match_register">
+      Register the robot in the match and set its team.
+      If no team is supplied an available one is used.
+      <arg name="team" type="unsigned int" required="0"/>
+    </function>
+
+    <function name="update" user="1">
+      Function called after ODE step to update internal data using ODE data.
+    </function>
+
+    <function name="asserv" user="1">
+    </function>
+
+    <function name="strategy" user="1">
+      Lua strategies are coroutines, they continue their execution from the
+      point where they yielded. When the strategy coroutine finishes, robot
+      control stops: asserv and strategy are not called anymore.<br/>
+      Strategy is called after an asserv step.
+    </function>
+
   </class>
 
   <class name="RBasic" base="Robot">
@@ -215,6 +236,88 @@
 
     <function name="is_waiting">
       <return type="bool"/>
+    </function>
+  </class>
+
+  <class name="Match">
+    Game match.<br/>
+    Exactly one match can and must be created.
+
+    <function name="get_team_nb">
+      Return number of teams.
+      <return type="int"/>
+    </function>
+
+    <function name="get_color">
+      Get color of a given team.
+      <arg name="team" type="int"/>
+      <return type="Color"/>
+    </function>
+
+    <function name="init" user="1">
+      Create and initialize game objects.
+      <arg name="fconf" type="int" required="0"/>
+    </function>
+
+  </class>
+
+
+  <!-- Classes defined in eurobot2009 -->
+
+  <class name="OColElem" base="ObjectColor">
+    Column element.<br/>
+    Object is automatically initialized, <tt>init()</tt> should not be called.
+    <constructor></constructor>
+  </class>
+
+  <class name="OLintel" base="ObjectColor">
+    Lintel.<br/>
+    Object is automatically initialized, <tt>init()</tt> should not be called.
+    <constructor></constructor>
+  </class>
+
+  <class name="ODispenser" base="ObjectColor">
+    Dispenser for column elements.<br/>
+    Object is automatically initialized, <tt>init()</tt> should not be called.
+    <constructor></constructor>
+
+    <function name="set_pos">
+      Set position from attach point (<tt>x</tt>, <tt>y</tt>).<br/>
+      <tt>z</tt> is the space between the dispenser and the ground and
+      <tt>side</tt> is the dispenser attach side (0 top, 1 right, 2 bottom,
+      3 left).
+      <arg name="x" type="float"/>
+      <arg name="y" type="float"/>
+      <arg name="z" type="float"/>
+      <arg name="side" type="int"/>
+    </function>
+
+    <function name="fill">
+      Put an object in the dispenser. <tt>z</tt> is given in global
+      coordinates.
+      <arg name="o" type="Object"/>
+      <arg name="z" type="float"/>
+    </function>
+  </class>
+
+  <class name="OLintelStorage" base="ObjectColor">
+    Lintel storage.<br/>
+    Object is automatically initialized, <tt>init()</tt> should not be called.
+    <constructor></constructor>
+
+    <function name="set_pos">
+      Set position from attach point (lintel storage corner in contact with
+      table wall).<br/>
+      <tt>d</tt> is the attach positon on the given wall, <tt>side</tt>
+      is the attach side (0 top, 1 right, 2 bottom, 3 left).<br/>
+      <b>Note:</b> this function overwrites <tt>Object::set_pos(float x, float y)</tt>.
+      <arg name="d" type="float"/>
+      <arg name="side" type="int"/>
+    </function>
+
+    <function name="fill">
+      Put a lintel in the storage
+      <arg name="o" type="OLintel"/>
     </function>
   </class>
 

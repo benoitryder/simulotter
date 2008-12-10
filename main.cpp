@@ -9,8 +9,6 @@
 #include "global.h"
 #include "maths.h"
 
-#include "rules2009.h"
-
 #ifdef WIN32
 #include <windows.h>
 #include <shellapi.h>
@@ -40,7 +38,7 @@ unsigned long millitime(void)
 Config  *cfg     = NULL;
 Physics *physics = NULL;
 Display *display = NULL;
-Rules   *rules   = NULL;
+Match   *match   = NULL;
 LuaManager *lm   = NULL;
 Log *LOG         = NULL;
 
@@ -68,20 +66,21 @@ int main(int argc, char **argv)
       lm->do_file("init.lua");
     }
 
+    if( match == NULL )
+      throw(Error("no created match"));
+
     LOG->trace("init display");
     glutInit(&argc, argv);
     display->init();
 
-    LOG->trace("init rules");
-    rules = new rules2009::RAtlantis();
-    rules->check_robots();
-    rules->match_init(-1);
+    LOG->trace("init match");
+    match->init();
 
     LOG->trace("init robots");
-    std::vector<Robot*> &robots = Robot::get_robots();
-    std::vector<Robot*>::iterator itr;
+    std::map<unsigned int,Robot*> &robots = match->get_robots();
+    std::map<unsigned int,Robot*>::iterator itr;
     for( itr=robots.begin(); itr!=robots.end(); ++itr )
-      (*itr)->match_init();
+      (*itr).second->match_init();
 
     LOG->trace("check objects");
     std::vector<Object*> &objs = physics->get_objs();
@@ -136,7 +135,7 @@ int main(int argc, char **argv)
     fprintf(stderr,"%s\n", e.what());
     delete physics;
     delete display;
-    delete rules;
+    delete match;
     delete lm;
     delete cfg;
     delete LOG;
@@ -145,7 +144,7 @@ int main(int argc, char **argv)
 
   delete physics;
   delete display;
-  delete rules;
+  delete match;
   delete lm;
   delete cfg;
   delete LOG;

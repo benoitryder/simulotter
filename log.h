@@ -39,7 +39,7 @@ class Error: public std::exception
 public:
 
   Error(const char *fmt, ...);
-  Error() { this->msg = NULL; }
+  Error(): msg(NULL) {}
   ~Error() throw() { free(msg); }
   Error(const Error &e);
   Error &operator=(const Error &e);

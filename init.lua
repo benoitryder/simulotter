@@ -2,7 +2,7 @@
 -- Config
 
 config.gravity_z = -0.5
-config.cfm = config.cfm; -- CFM depends on ODE precision
+config.cfm = config.cfm -- CFM depends on ODE precision
 config.step_dt = 0.002
 config.time_scale =  2
 config.contacts_nb = 5
@@ -119,6 +119,10 @@ function r1:strategy()
   return
 end
 
+
+dofile("2009.lua")
+
+r1:match_register()
 
 trace("------ SCRIPT END ------")
 

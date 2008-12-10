@@ -49,7 +49,14 @@
             margin-right: 0.5em;
           }
 
-          .proto, .type, .name {
+          code {
+            font-family: monospace;
+          }
+          strong {
+            font-weight: bold;
+          }
+
+          .proto, .type, .name, .proto .user {
             font-family: monospace;
           }
           .value .name, .function .name, .constructor .name {
@@ -77,6 +84,13 @@
           }
           .function .proto {
             margin-bottom: 0.5ex;
+          }
+          .function .proto .user {
+            background-color: #eeeeee;
+            color: #800000;
+            font-weight: bold;
+            padding: 0 .5em;
+            margin-left: 1em;
           }
 
           table.values {
@@ -178,14 +192,17 @@
           <xsl:if test="position()!=last()"><xsl:text>, </xsl:text></xsl:if>
         </xsl:for-each>
         <xsl:text> )</xsl:text>
+        <xsl:if test="@user = '1'"><span class="user"><xsl:text>user func</xsl:text></span></xsl:if>
       </p>
       <p class="desc"><xsl:call-template name="xhtml"/></p>
     </div>
   </xsl:template>
 
   <xsl:template name="xhtml">
-    <xsl:apply-templates select="br|text()"/>
+    <xsl:apply-templates select="br|tt|b|text()"/>
   </xsl:template>
   <xsl:template match="br"><br/></xsl:template>
+  <xsl:template match="tt"><code><xsl:apply-templates/></code></xsl:template>
+  <xsl:template match="b"><strong><xsl:apply-templates/></strong></xsl:template>
 
 </xsl:stylesheet>

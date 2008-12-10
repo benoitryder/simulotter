@@ -4,12 +4,11 @@
 #include "config.h"
 #include "physics.h"
 #include "display.h"
-#include "rules.h"
+#include "match.h"
 #include "lua_utils.h"
 #include "log.h"
 
-/** @file
- * @brief Global variable instances
+/** @file Global variable instances
  *
  * Associated classes are accessed via these singletons
  * 
@@ -19,9 +18,8 @@
 extern Config  *cfg;
 extern Physics *physics;
 extern Display *display;
-extern Rules   *rules;
+extern Match   *match;
 extern LuaManager *lm;
 extern Log *LOG; // lowercase log is already defined :(
-
 
 #endif
