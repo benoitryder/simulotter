@@ -23,6 +23,7 @@ colors = {
 match = Match( { colors.ral_6018, colors.ral_3020 } )
 
 function match:init(fconf)
+  --TODO: init random seed
 
   -- Field configuration
   --   columns: 1 to 10
@@ -170,14 +171,14 @@ function match:init(fconf)
   -- Fixed
   od = ODispenser()
   od:set_pos(table_size_x/2-disp_offset_x, -table_size_y/2, disp_offset_z, 2)
-  for i = 0,1 do
+  for i = 1,2 do
     o = OColElem()
     o:set_color(c1)
     od:fill(o, i*0.035)
   end
   od = ODispenser()
   od:set_pos(disp_offset_x-table_size_x/2, -table_size_y/2, disp_offset_z, 2)
-  for i = 0,1 do
+  for i = 1,2 do
     o = OColElem()
     o:set_color(c2)
     od:fill(o, i*0.035)
@@ -186,14 +187,14 @@ function match:init(fconf)
   -- Random
   od = ODispenser()
   od:set_pos(table_size_x/2-wall_width/2, conf_disp==0 and disp_offset_y or -disp_offset_y, disp_offset_z, 1)
-  for i = 0,1 do
+  for i = 1,2 do
     o = OColElem()
     o:set_color(c1)
     od:fill(o, i*0.035)
   end
   od = ODispenser()
   od:set_pos(-table_size_x/2+wall_width/2, conf_disp==0 and disp_offset_y or -disp_offset_y, disp_offset_z, 3)
-  for i = 0,1 do
+  for i = 1,2 do
     o = OColElem()
     o:set_color(c2)
     od:fill(o, i*0.035)

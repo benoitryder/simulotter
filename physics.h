@@ -1,6 +1,8 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
 
+class Physics;
+
 #include <ode/ode.h>
 #include <vector>
 #include "object.h"
@@ -84,8 +86,10 @@ enum
   CAT_ROBOT     =   0x4|CAT_DYNAMIC,
   /// Playing element (dynamic)
   CAT_ELEMENT   =   0x8|CAT_DYNAMIC,
-  /// Vertical dispenser in which elements fall (static)
-  CAT_DISPENSER =  0x10,
+  /// Use a custom collision function
+  CAT_HANDLER   =  0x10,
+  /// Temporary geom for cylinder hack
+  CAT_CYLINDER_HACK = (1<<31),
 
   CAT_ALL       = -1
 };

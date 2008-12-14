@@ -69,37 +69,6 @@ r1:set_threshold_xy(0.05)
 r1:set_threshold_a(0.10)
 
 
--- Building
-if false then
-  gcol = Geom:cylinder(0.035, 0.030)
-  col = {}
-  for i = 1,4 do
-    col[i] = ObjectColor()
-    col[i]:add_geom(gcol)
-    col[i]:set_mass(0.100)
-    col[i]:init()
-  end
-
-  glin = Geom:box(0.200, 0.070, 0.030)
-  lin = ObjectColor()
-  lin:add_geom(glin)
-  lin:set_mass(0.300)
-  lin:init()
-
-  col[1]:set_color( { 1,0,0 } )
-  col[2]:set_color( { 0,1,0 } )
-  col[3]:set_color( { 1,0,0 } )
-  col[4]:set_color( { 0,1,0 } )
-  lin:set_color( { 1,1,0 } )
-
-  col[1]:set_pos( -0.050, 0, 0.070 )
-  col[2]:set_pos( -0.050, 0, 0.105 )
-  col[3]:set_pos(  0.050, 0, 0.070 )
-  col[4]:set_pos(  0.050, 0, 0.105 )
-  lin:set_pos( 0, 0, 0.140 )
-end
-
-
 function r1:strategy()
 
   t = {

@@ -144,14 +144,14 @@ public:
   };
 
   /// Event handler type
-  typedef void (*event_handler)(Display *d, const SDL_Event &event);
+  typedef void (*EventHandler)(Display *d, const SDL_Event &event);
 
   /// Add or replace an event handler
-  void set_handler(const SDL_Event &event, event_handler handler) { handlers[event] = handler; }
+  void set_handler(const SDL_Event &event, EventHandler handler) { handlers[event] = handler; }
 
 private:
   /// Event handlers
-  std::map<SDL_Event, event_handler, EventCmp> handlers;
+  std::map<SDL_Event, EventHandler, EventCmp> handlers;
 
   /** @name Default handlers
    */

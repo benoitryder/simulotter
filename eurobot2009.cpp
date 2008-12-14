@@ -2,6 +2,7 @@
 #include "colors.h"
 #include "object.h"
 #include "global.h"
+#include "maths.h"
 
 
 namespace eurobot2009
@@ -19,8 +20,8 @@ namespace eurobot2009
     add_geom(dCreateCylinder(0, radius, height));
     init();
     set_color((Color4)COLOR_PLEXI);
-    set_category(CAT_DISPENSER);
     set_collide(CAT_DYNAMIC);
+    add_category(CAT_HANDLER);
   }
 
   void ODispenser::set_pos(dReal x, dReal y, dReal z, int side)
@@ -53,6 +54,28 @@ namespace eurobot2009
     glTranslatef(0, 0, -height/2);
     glutWireCylinder(radius, height, cfg->draw_div, 10);
     glPopMatrix();
+  }
+
+  bool ODispenser::collision_handler(Physics *physics, dGeomID o1, dGeomID o2)
+  {
+    // Only process elements
+    if( (dGeomGetCategoryBits(o2) & CAT_ELEMENT) != CAT_ELEMENT )
+      return false;
+
+    // Element center not on the dispenser axis: normal processing
+    const dReal *pos1 = dGeomGetPosition(o1);
+    const dReal *pos2 = dGeomGetPosition(o2);
+    if( dist2d(pos1[0],pos1[1], pos2[0],pos2[1]) > radius )
+      return false;
+
+    // Element over or under the dispenser: nothing to do
+    if( pos2[2] > pos1[2]+height/2 || pos2[2] < pos1[2]-height/2 )
+      return true; // nothing to do, collision is processed
+
+    dJointID c = dJointCreateSlider(physics->get_world(), physics->get_joints());
+    dJointAttach(c, 0, dGeomGetBody(o2));
+    dJointSetSliderAxis(c, 0.0, 0.0, 1.0);
+    return true;
   }
 
 

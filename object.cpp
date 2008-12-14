@@ -19,6 +19,7 @@ void Object::add_geom(dGeomID geom)
 {
   if( is_initialized() )
     throw Error("add_geom(): attempt to modify an initialized object");
+  dGeomSetData(geom, NULL);
   this->geoms.push_back(geom);
 }
 
@@ -140,6 +141,8 @@ void Object::init()
     set_category(CAT_DYNAMIC);
     set_collide(CAT_ALL);
   }
+
+  dBodySetData(this->body, this);
 
   physics->get_objs().push_back(this);
 

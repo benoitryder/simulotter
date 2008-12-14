@@ -62,6 +62,11 @@ namespace eurobot2009
 
     void draw();
 
+    /** @brief Dispenser collision
+     * Elements can only fall along the z axis. Other objects are ignored.
+     */
+    virtual bool collision_handler(Physics *physics, dGeomID o1, dGeomID o2);
+
   protected:
     static const dReal radius;
     static const dReal height;

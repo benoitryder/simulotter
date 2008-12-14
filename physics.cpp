@@ -75,8 +75,11 @@ void Physics::step()
     dGeomCylinderGetParams(o1, &r, &l);
     dGeomID b1 = dCreateBox(0, 2*r, 2*r, l);
     dGeomSetBody(b1, dGeomGetBody(o1));
+    // Set real geom ID to hack geom data
+    // Could be needed by custom collision handlers.
+    dGeomSetData(b1, (void*)o1);
 
-    dGeomSetCategoryBits(b1, dGeomGetCategoryBits(o1));
+    dGeomSetCategoryBits(b1, dGeomGetCategoryBits(o1)|CAT_CYLINDER_HACK);
 
     const dReal *R1 = dGeomGetRotation(o1);
     const dReal *R2 = dGeomGetRotation(o2);
@@ -186,6 +189,7 @@ dGeomID Physics::geom_duplicate(dGeomID geom)
 
 void Physics::collide_callback(void *data, dGeomID o1, dGeomID o2)
 {
+  Physics *physics = (Physics*)data;
   int i, n;
   unsigned long cat1, cat2;
   dBodyID b1, b2;
@@ -198,17 +202,27 @@ void Physics::collide_callback(void *data, dGeomID o1, dGeomID o2)
   b2 = ((cat2 & CAT_DYNAMIC)==0) ? 0 : dGeomGetBody(o2);
 
   if( b1 == b2 )
-    return; // Geoms of the same object do not collide
+    return; // Geoms of a same object do not collide
 
-  // Ignore elements in dispensers
-  //TODO only ignore if completely inside
-  if( ((cat1==CAT_DISPENSER) && (cat2==CAT_ELEMENT)) ||
-      ((cat2==CAT_DISPENSER) && (cat1==CAT_ELEMENT)) )
+  // Cylinder/cylinder: store them to hack them later
+  if( dGeomGetClass(o1)==dCylinderClass && dGeomGetClass(o2)==dCylinderClass )
   {
-    dJointID c = dJointCreateSlider(physics->get_world(), physics->get_joints());
-    dJointAttach(c, b1, b2);
-    dJointSetSliderAxis(c, 0.0, 0.0, 1.0);
+    physics->hack_cylinders.push_back((GeomPair){o1,o2});
     return;
+  }
+
+  // Call collision handler(s), if any
+  if( (cat1 & CAT_HANDLER) != 0 )
+  {
+    Object *o = (Object*)dBodyGetData(dGeomGetBody(o1));
+    if( o->collision_handler(physics, o1, o2) )
+      return;
+  }
+  if( (cat2 & CAT_HANDLER) != 0 )
+  {
+    Object *o = (Object*)dBodyGetData(dGeomGetBody(o2));
+    if( o->collision_handler(physics, o2, o1) )
+      return;
   }
 
   // Default surface parameters
@@ -220,13 +234,6 @@ void Physics::collide_callback(void *data, dGeomID o1, dGeomID o2)
   //sp.bounce_vel = 0.010;
 
   dContact contacts[cfg->contacts_nb];
-
-  // Store them to hack them later
-  if( dGeomGetClass(o1)==dCylinderClass && dGeomGetClass(o2)==dCylinderClass )
-  {
-    ((Physics*)data)->hack_cylinders.push_back((GeomPair){o1,o2});
-    return;
-  }
 
   n = dCollide(o1, o2, cfg->contacts_nb, &contacts[0].geom, sizeof(*contacts));
 

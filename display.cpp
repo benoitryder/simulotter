@@ -266,7 +266,7 @@ void Display::scene_destroy() {}
 void Display::handle_events()
 {
   SDL_Event event;
-  std::map<SDL_Event, event_handler, EventCmp>::iterator ithandler;
+  std::map<SDL_Event, EventHandler, EventCmp>::iterator ithandler;
 
   while(SDL_PollEvent(&event))
   {

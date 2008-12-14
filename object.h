@@ -1,10 +1,13 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+class Object;
+
 #include <SDL/SDL.h>
 #include <GL/freeglut.h>
 #include <ode/ode.h>
 #include <vector>
+#include "physics.h"
 #include "lua_utils.h"
 #include "colors.h"
 
@@ -62,6 +65,8 @@ public:
    * If a body or a mass has been set, object is dynamic (CAT_DYNAMIC
    * category, does not collide static objects).
    *
+   * Body user- data pointer is set to instance pointer.
+   *
    * @note A non initialized object cannot be moved or rotated.
    *
    * @note Subclasses may initialize the object in their constructor.
@@ -77,7 +82,7 @@ public:
 
   /** @name Category and collide bitfields operations
    *
-   * All geoms in a same objects should have the same category and collide
+   * All geoms in a same object usually have the same category and collide
    * bits. All operations set the same bitfield on each geoms.
    */
   //@{
@@ -109,6 +114,20 @@ public:
   /// Draw the whole object
   virtual void draw();
 
+  /** @brief Custom collision handler
+   *
+   * Custom collision function is called for geoms with category CAT_HANDLER.
+   *
+   * The first geom is the geom that triggered the handler.
+   * It must return \e true if the collision has been handled.
+   *
+   * @note Handler must be overrided since the default one throws an error.
+   */
+  virtual bool collision_handler(Physics *physics, dGeomID o1, dGeomID o2)
+  {
+    throw(Error("collision_handler() not implemented"));
+    return false;
+  }
 
 protected:
   dBodyID body;
