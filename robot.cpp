@@ -123,10 +123,11 @@ void Robot::asserv()
 
 void Robot::strategy()
 {
-  static int val = -1;
+  static int val = 0;
   if( ref_strategy == LUA_NOREF )
   {
-    val = this->do_strategy(val);
+    if( val != -1 )
+      val = this->do_strategy(val);
     return;
   }
 
@@ -208,12 +209,7 @@ void RBasic::do_asserv()
     else
     {
       // Aim target point, then move
-      dReal da;
-      if( target_x == x )
-        da = ( target_y > y ) ? M_PI_2 : -M_PI_2;
-      else
-        da = atan2(target_y-y, (target_x==x)?0.0001:target_x-x);
-      da = norma(da-a);
+      dReal da = norma( atan2(target_y-y, target_x-x) - a );
       if( absf( da ) < threshold_a )
       {
         set_av(0);
@@ -266,7 +262,7 @@ void RBasic::order_a(dReal a, bool rel)
   target_a = a;
   if( rel )
     target_a += this->a;
-  a = norma(a);
+  target_a = norma(target_a);
 
   order |= ORDER_GO_A;
 }

@@ -522,9 +522,17 @@ void Display::handler_cam_ahead(Display *d, const SDL_Event &event)
   if( d->camera.mode == CAM_FREE )
     spheric2cart_add(d->camera.eye, cfg->camera_step_linear, d->camera.target[1], d->camera.target[2]);
   else if( d->camera.mode & CAM_EYE_REL )
+  {
     d->camera.eye[0] -= cfg->camera_step_linear;
+    if( d->camera.eye[0] < 0 )
+      d->camera.eye[0] = 0;
+  }
   else if( d->camera.mode & CAM_TARGET_REL )
+  {
     d->camera.target[0] -= cfg->camera_step_linear;
+    if( d->camera.eye[0] < 0 )
+      d->camera.eye[0] = 0;
+  }
 }
 
 void Display::handler_cam_back(Display *d, const SDL_Event &event)
@@ -542,9 +550,9 @@ void Display::handler_cam_left(Display *d, const SDL_Event &event)
   if( d->camera.mode == CAM_FREE )
     spheric2cart_add(d->camera.eye, cfg->camera_step_linear, M_PI_2, d->camera.target[2]+M_PI_2);
   else if( d->camera.mode & CAM_EYE_REL )
-    d->camera.eye[2] -= cfg->camera_step_linear;
+    d->camera.eye[2] -= cfg->camera_step_angle;
   else if( d->camera.mode & CAM_TARGET_REL )
-    d->camera.target[2] -= cfg->camera_step_linear;
+    d->camera.target[2] -= cfg->camera_step_angle;
 }
 
 void Display::handler_cam_right(Display *d, const SDL_Event &event)
@@ -552,9 +560,9 @@ void Display::handler_cam_right(Display *d, const SDL_Event &event)
   if( d->camera.mode == CAM_FREE )
     spheric2cart_add(d->camera.eye, -cfg->camera_step_linear, M_PI_2, d->camera.target[2]+M_PI_2);
   else if( d->camera.mode & CAM_EYE_REL )
-    d->camera.eye[2] += cfg->camera_step_linear;
+    d->camera.eye[2] += cfg->camera_step_angle;
   else if( d->camera.mode & CAM_TARGET_REL )
-    d->camera.target[2] += cfg->camera_step_linear;
+    d->camera.target[2] += cfg->camera_step_angle;
 }
 
 void Display::handler_cam_up(Display *d, const SDL_Event &event)
@@ -562,9 +570,9 @@ void Display::handler_cam_up(Display *d, const SDL_Event &event)
   if( d->camera.mode == CAM_FREE )
     spheric2cart_add(d->camera.eye, -cfg->camera_step_linear, d->camera.target[1]-M_PI_2, d->camera.target[2]);
   else if( d->camera.mode & CAM_EYE_REL )
-    d->camera.eye[1] -= cfg->camera_step_linear;
+    d->camera.eye[1] -= cfg->camera_step_angle;
   else if( d->camera.mode & CAM_TARGET_REL )
-    d->camera.target[1] -= cfg->camera_step_linear;
+    d->camera.target[1] -= cfg->camera_step_angle;
 }
 
 void Display::handler_cam_down(Display *d, const SDL_Event &event)
@@ -572,8 +580,8 @@ void Display::handler_cam_down(Display *d, const SDL_Event &event)
   if( d->camera.mode == CAM_FREE )
     spheric2cart_add(d->camera.eye, cfg->camera_step_linear, d->camera.target[1]-M_PI_2, d->camera.target[2]);
   else if( d->camera.mode & CAM_EYE_REL )
-    d->camera.eye[1] += cfg->camera_step_linear;
+    d->camera.eye[1] += cfg->camera_step_angle;
   else if( d->camera.mode & CAM_TARGET_REL )
-    d->camera.target[1] += cfg->camera_step_linear;
+    d->camera.target[1] += cfg->camera_step_angle;
 }
 

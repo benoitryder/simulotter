@@ -191,7 +191,7 @@ void Object::set_pos(dReal x, dReal y)
     throw Error("set_pos(): object is not initialized");
   dReal a[6];
   get_aabb(a);
-  set_pos(x, y, a[5]-a[4] + cfg->drop_epsilon);
+  set_pos(x, y, (a[5]-a[4])/2 + cfg->drop_epsilon);
 }
 
 void Object::set_rot(const dQuaternion q)

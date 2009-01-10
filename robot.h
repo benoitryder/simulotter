@@ -95,7 +95,7 @@ protected:
    * Strategy function is called with its last return value. If it returns -1,
    * it would not be called anymore.
    *
-   * @param   val  last returned value, -1 at the first call
+   * @param   val  last returned value, 0 at the first call
    * @return  The next parameter value or -1 to stop the robot.
    */
   virtual int do_strategy(int val) { throw(Error("do_strategy() not implemented")); }

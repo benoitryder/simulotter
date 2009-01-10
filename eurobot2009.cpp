@@ -7,10 +7,10 @@
 
 namespace eurobot2009
 {
-  const dReal table_size_x = 3.0;
-  const dReal table_size_y = 2.1;
-  const dReal wall_width  = 0.022;
-  const dReal wall_height = 0.070;
+  static const dReal table_size_x = 3.0;
+  static const dReal table_size_y = 2.1;
+  static const dReal wall_width  = 0.022;
+  static const dReal wall_height = 0.070;
 
   const dReal ODispenser::radius = 0.040;
   const dReal ODispenser::height = 0.150;

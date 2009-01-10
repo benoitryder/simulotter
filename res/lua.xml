@@ -11,6 +11,7 @@
       <value name="gravity_z" type="float">Z gravity</value>
       <value name="cfm" type="float">Global CFM (constraint force mixing)</value>
       <value name="step_dt" type="float">Time interval between each simulation step</value>
+      <value name="time_scale" type="float">Time scale coefficient (&gt;1 to slow down, &lt;1 to speed up)</value>
       <value name="contacts_nb" type="int">Number of contact points</value>
       <value name="drop_epsilon" type="float">Default droping height gap for dynamic objects</value>
       <value name="draw_epsilon" type="float">Gap size between to contiguous surfaces</value>
@@ -114,7 +115,7 @@
       <arg name="z" type="float" required="0"/>
     </function>
 
-    <function name="set_pos">
+    <function name="set_rot">
       Set rotation from a quaternion.
       <arg name="w" type="float"/>
       <arg name="a" type="float"/>
@@ -193,12 +194,6 @@
       <arg name="lz" type="float"/>
       <arg name="mass" type="float"/>
     </constructor>
-
-
-    <function name="get_team">
-      Return robot's team, or -1 if not set. (Teams numbers are set at match start.)
-      <return type="int"/>
-    </function>
 
     <function name="get_x"><return type="float"/></function>
     <function name="get_y"><return type="float"/></function>
