@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     LOG->trace("create display");
     display = new Display();
 
-    LOG->trace("init physics");
+    LOG->trace("create physics");
     physics = new Physics();
 
     LOG->trace("load Lua script");
@@ -64,11 +64,11 @@ int main(int argc, char **argv)
       lm->do_file("init.lua");
     }
 
-    //TODO add a Physics::init() method for this?
-    physics->getWorld()->setGravity(btVector3(0,0,cfg->gravity_z));
-
     if( match == NULL )
       throw(Error("no created match"));
+
+    LOG->trace("init physics");
+    physics->init();
 
     LOG->trace("init display");
     glutInit(&argc, argv);
@@ -97,7 +97,6 @@ int main(int argc, char **argv)
       time = millitime();
       if( time >= time_step )
       {
-        //TODO use "variable time step" features of Bullet
         physics->step();
         time_step += (unsigned long)(step_dt * cfg->time_scale);
       }

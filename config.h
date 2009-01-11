@@ -84,6 +84,7 @@ public:
   /** @brief Refresh rate (frames per second)
    *
    * @note It also defines event handling rate.
+   * @note Value cannot be changed after the simulation start.
    */
   float fps;
 

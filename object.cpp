@@ -35,12 +35,12 @@ void Object::setPos(const btVector2 &pos)
 }
 
 
-inline void Object::draw()
+void Object::draw()
 {
   drawShape(m_worldTransform, m_collisionShape);
 }
 
-inline void Object::drawTransform(const btTransform &transform)
+void Object::drawTransform(const btTransform &transform)
 {
   btScalar m[16];
   transform.getOpenGLMatrix(m);

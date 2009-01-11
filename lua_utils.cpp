@@ -127,8 +127,6 @@ int LuaClassBase::new_class(lua_State *L)
 {
   int n = lua_gettop(L);
 
-  LOG->trace("LUA class constructor");
-
   // Check base class
   if( lua_isuserdata(L, 1) )
     luaL_checkudata(L, 1, registry_class_mt_name);
@@ -138,7 +136,6 @@ int LuaClassBase::new_class(lua_State *L)
   lua_newtable(L);
   int new_class = lua_gettop(L);
 
-  LOG->trace("  set the base class");
   // Set the base class
   if( lua_isnoneornil(L, 1) )
     lua_pushnil(L);
@@ -149,7 +146,6 @@ int LuaClassBase::new_class(lua_State *L)
   // Is there a constructor?
   if( n > 1 )
   {
-    LOG->trace("  set constructor");
     luaL_checktype(L, 2, LUA_TFUNCTION);
     lua_pushvalue(L, 2);
     lua_setfield(L, new_class, "_ctor");
@@ -158,11 +154,8 @@ int LuaClassBase::new_class(lua_State *L)
   lua_pushvalue(L, new_class);
   lua_setfield(L, new_class, "__index");
 
-  LOG->trace("  set metatable");
   lua_getfield(L, LUA_REGISTRYINDEX, registry_class_mt_name);
   lua_setmetatable(L, -2);
-
-  LOG->trace("  DONE");
 
   return 1;
 }
@@ -172,15 +165,12 @@ int LuaClassBase::new_instance(lua_State *L)
 {
   int n = lua_gettop(L);
 
-  LOG->trace("instance new");
-
   lua_newtable(L);
 
   // Set class table as object metatable
   lua_pushvalue(L, 1);
   if( lua_isuserdata(L, 1) )
   {
-    LOG->trace("  userdata class");
     LuaClassBase *ud = *(LuaClassBase **)luaL_checkudata(L, 1, registry_class_mt_name);
     lua_getfield(L, LUA_REGISTRYINDEX, ud->get_name());
     lua_remove(L, -2);
@@ -195,7 +185,6 @@ int LuaClassBase::new_instance(lua_State *L)
     lua_pushvalue(L, -2);
     for( int i=2; i<=n; i++ )
       lua_pushvalue(L, i);
-    LOG->trace("  call _ctor");
     LuaManager::pcall(L, n, 0);
   }
   else
@@ -206,18 +195,14 @@ int LuaClassBase::new_instance(lua_State *L)
 
 int LuaClassBase::index_class(lua_State *L)
 {
-  LOG->trace("class/mt __index [ %s ]", lua_tostring(L, 2));
-
   // Predefined class: get field from method table
   if( lua_isuserdata(L, 1) )
   {
     LuaClassBase *ud = *(LuaClassBase **)luaL_checkudata(L, 1, registry_class_mt_name);
-    LOG->trace("  userdata class: %s", ud->get_name());
     lua_getfield(L, LUA_REGISTRYINDEX, ud->get_name());
     lua_pushvalue(L, 2);
     lua_gettable(L, -2);
     lua_remove(L, -2);
-    LOG->trace("  DONE: class mt/__index");
     return 1;
   }
 
@@ -226,17 +211,12 @@ int LuaClassBase::index_class(lua_State *L)
 
   // No base class, return nil (which is already on the stack)
   if( lua_isnil(L, -1) )
-  {
-    LOG->trace("  no base classe");
-    LOG->trace("  DONE: class mt/__index");
     return 1;
-  }
 
   lua_pushvalue(L, 2);
   lua_gettable(L, -2);
   lua_remove(L, -2);// Pop _base/_ud
 
-  LOG->trace("  DONE: class mt/__index");
   return 1;
 }
 

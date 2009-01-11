@@ -11,8 +11,8 @@
 #include "object.h"
 #include "robot.h"
 #include "physics.h"
-#include "display.h"
 #include "config.h"
+#include "display.h"
 
 //@file
 

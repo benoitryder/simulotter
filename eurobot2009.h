@@ -93,6 +93,32 @@ namespace eurobot2009
     static btBoxShape back_shape;
     static btBoxShape bottom_shape;
   };
+
+
+  /// Rob'Otter robot
+  class RORobot: public RBasic //XXX
+  {
+  friend class LuaRORobot;
+  public:
+    RORobot(btScalar m);
+    virtual ~RORobot();
+
+    /** @brief Draw the robot
+     *
+     * Assumes that the dispenser is not rotated (robot's Z axis aligned with
+     * world's Z axis).
+     */
+    void draw();
+
+    /// Distance from the center to a corner
+    static const btScalar radius;
+    static const btScalar height;
+
+  private:
+    static btCompoundShape shape;
+    static btConvexHullShape body_shape;
+    static btBoxShape wheel_shape;
+  };
 }
 
 

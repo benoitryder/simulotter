@@ -11,8 +11,6 @@
 Display::Display()
 {
   this->screen = NULL;
-  this->sdl_bpp   = 0;
-  this->sdl_flags = 0;
 
   camera_mode = CAM_FIXED;
   camera_eye.spheric = scale( btSpheric3(4.0, M_PI/6, -M_PI/3) );
@@ -88,7 +86,11 @@ Display::~Display()
 void Display::resize(int width, int height)
 {
   LOG->trace("Display resize: %d x %d", width, height);
-  if( (screen = SDL_SetVideoMode(width, height, sdl_bpp, sdl_flags)) == NULL )
+
+  Uint32 flags = SDL_OPENGL;
+  flags |= this->fullscreen ? SDL_FULLSCREEN : SDL_RESIZABLE;
+
+  if( (screen = SDL_SetVideoMode(width, height, 0, flags)) == NULL )
   {
     windowDestroy();
     throw(Error("SDL: cannot change video mode"));
@@ -157,33 +159,11 @@ void Display::update()
 
 void Display::windowInit()
 {
-  const SDL_VideoInfo* info = NULL;
-
   if(SDL_Init(SDL_INIT_VIDEO) < 0)
   {
     windowDestroy();
     throw(Error("SDL: initialization failed: %s", SDL_GetError()));
   }
-
-  // Get the best available bpp value
-  if( (info = SDL_GetVideoInfo()) == NULL )
-  {
-    windowDestroy();
-    throw(Error("SDL: cannot get hardware info"));
-  }
-  this->sdl_bpp = info->vfmt->BitsPerPixel;
-
-  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-  if(cfg->fullscreen)
-    this->sdl_flags = SDL_OPENGL | SDL_FULLSCREEN;
-  else
-    this->sdl_flags = SDL_OPENGL | SDL_RESIZABLE;
 
   SDL_WM_SetCaption("SimulOtter", NULL);
 
@@ -195,6 +175,9 @@ void Display::windowInit()
   //SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
   SDL_EnableKeyRepeat(10, 5);
 
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+  this->fullscreen = cfg->fullscreen;
   resize(cfg->screen_x, cfg->screen_y);
 }
 

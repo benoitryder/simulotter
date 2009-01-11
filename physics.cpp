@@ -23,10 +23,8 @@ Physics::Physics()
       dispatcher, broadphase, solver, col_config
       );
 
-  //Note: gravity must be set again after loading lua script
-  world->setGravity(btVector3(0,0,cfg->gravity_z));
-
   pause_state = false;
+  step_dt = 0;
 }
 
 Physics::~Physics()
@@ -44,13 +42,20 @@ Physics::~Physics()
 }
 
 
+void Physics::init()
+{
+  this->step_dt = cfg->step_dt;
+  physics->getWorld()->setGravity(btVector3(0,0,cfg->gravity_z));
+}
+
 void Physics::step()
 {
   if( this->pause_state )
     return;
 
-  //TODO timeStep / subSteps / fixedTimeStep / ...
-  world->stepSimulation(cfg->step_dt, 1, cfg->step_dt);
+  //XXX Simulation goes smoother with several 1-substep calls than with 1
+  // several-substep-call. Yes, it's a bit strange.
+  world->stepSimulation(step_dt, 1, step_dt);
 
   // Update robot values, do asserv and strategy
   std::map<unsigned int,Robot*> &robots = match->getRobots();

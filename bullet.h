@@ -15,13 +15,15 @@
 #define btglLoadMatrix glLoadMatrixd
 #define btglMultMatrix glMultMatrixd
 #define btglVertex3    glVertex3d
+#define btglNormal3    glNormal3d
 #define btglScale      glScaled
 #define btglTranslate  glTranslated
 #define btglRotate     glRotated
 #else
 #define btglLoadMatrix glLoadMatrixf
 #define btglMultMatrix glMultMatrixf
-#define btglVertex3    glVertex3d
+#define btglVertex3    glVertex3f
+#define btglNormal3    glNormal3f
 #define btglScale      glScalef
 #define btglTranslate  glTranslatef
 #define btglRotate     glRotatef

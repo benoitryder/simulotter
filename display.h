@@ -32,11 +32,9 @@ public:
 private:
   SDL_Surface *screen;
 
-  Uint8  sdl_bpp;   ///< bits per pixel
-  Uint32 sdl_flags; ///< SDL video mode flags
-
   int screen_x; ///< Screen width
   int screen_y; ///< Screen height
+  bool fullscreen;
 
   void windowInit();
   void windowDestroy();

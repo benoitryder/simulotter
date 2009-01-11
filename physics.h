@@ -16,6 +16,9 @@ public:
   Physics();
   ~Physics();
 
+  /// Init physics (using configuration values)
+  void init();
+
   /// Advance simulation and update robots
   void step();
 
@@ -50,6 +53,9 @@ private:
 
   /// Simulation pause state
   bool pause_state;
+
+  /// Simulation time step, must not be modified
+  btScalar step_dt;
 };
 
 

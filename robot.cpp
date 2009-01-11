@@ -142,6 +142,11 @@ void Robot::strategy()
 }
 
 
+RBasic::RBasic()
+{
+  this->order = ORDER_NONE;
+}
+
 RBasic::RBasic(const btVector3 &halfExtents, btScalar m)
 {
   shape = new btBoxShape( halfExtents );

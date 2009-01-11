@@ -136,6 +136,149 @@ namespace eurobot2009
   }
 
 
+
+  const btScalar RORobot::radius = scale(0.150);
+  const btScalar RORobot::height = scale(0.200);
+  btCompoundShape RORobot::shape;
+  btConvexHullShape RORobot::body_shape;
+  btBoxShape RORobot::wheel_shape(scale(btVector3(0.015,0.040,0.040)));//TODO
+
+  RORobot::RORobot(btScalar m)
+  {
+    // First instance: initialize shape
+    if( shape.getNumChildShapes() == 0 )
+    {
+      // Hexagonal body
+      if( body_shape.getNumPoints() == 0 )
+      {
+        btVector2 p = btVector2(radius,0).rotate(M_PI/6);
+        for( int i=0; i<6; i++ )
+        {
+          body_shape.addPoint( btVector3(p.x,p.y,+height/2) );
+          body_shape.addPoint( btVector3(p.x,p.y,-height/2) );
+          p = p.rotate(M_PI/3);
+        }
+      }
+      shape.addChildShape(btTransform::getIdentity(), &body_shape);
+
+      // Wheels (use boxes instead of cylinders)
+      const btVector3 &wheel_size = wheel_shape.getHalfExtentsWithMargin();
+      btTransform tr = btTransform::getIdentity();
+      btVector2 vw( radius*cos(M_PI/6) + wheel_size.x(), 0 );
+      tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - wheel_size.y())) );
+      shape.addChildShape(tr, &wheel_shape);
+
+      vw = vw.rotate(2*M_PI/3);
+      tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - wheel_size.y())) );
+      tr.setRotation( btQuaternion(btVector3(0,0,1), 2*M_PI/3) );
+      shape.addChildShape(tr, &wheel_shape);
+
+      vw = vw.rotate(-4*M_PI/3);
+      tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - wheel_size.y())) );
+      tr.setRotation( btQuaternion(btVector3(0,0,1), -2*M_PI/3) );
+      shape.addChildShape(tr, &wheel_shape);
+    }
+
+    setShape( &shape );
+    setMass(m);
+
+    btVector3 min,max;
+    getAabb(min,max);
+  }
+
+  RORobot::~RORobot()
+  {
+  }
+
+  void RORobot::draw()
+  {
+    glColor4fv(match->getColor(getTeam()));
+    glPushMatrix();
+    drawTransform();
+
+    btglTranslate(0, 0, -height/2);
+
+    glPushMatrix();
+
+    btglScale(radius, radius, height);
+    btVector2 v;
+
+    // Faces
+
+    glBegin(GL_QUADS);
+
+    v = btVector2(1,0).rotate(M_PI/6);
+    btVector2 n(1,0); // normal vector
+    for( int i=0; i<6; i++ )
+    {
+      n = n.rotate(M_PI/3);
+      btglNormal3(n.x, n.y, 0.0);
+
+      btglVertex3(v.x, v.y, 0.0);
+      btglVertex3(v.x, v.y, 1.0);
+      v = v.rotate(M_PI/3);
+      btglVertex3(v.x, v.y, 1.0);
+      btglVertex3(v.x, v.y, 0.0);
+    }
+
+    glEnd();
+
+    // Bottom
+    glBegin(GL_POLYGON);
+    btglNormal3(0.0, 0.0, -1.0);
+    v = btVector2(1,0).rotate(M_PI/6);
+    for( int i=0; i<6; i++ )
+    {
+      btglVertex3(v.x, v.y, 0.0);
+      v = v.rotate(M_PI/3);
+    }
+    glEnd();
+
+    // Top
+    glBegin(GL_POLYGON);
+    btglNormal3(0.0, 0.0, 1.0);
+    v = btVector2(1,0).rotate(M_PI/6);
+    for( int i=0; i<6; i++ )
+    {
+      btglVertex3(v.x, v.y, 1.0);
+      v = v.rotate(M_PI/3);
+    }
+    glEnd();
+
+    glPopMatrix();
+
+    // Wheels (box shapes, but drawn using cylinders)
+    const btVector3 &wheel_size = wheel_shape.getHalfExtentsWithMargin();
+    btglTranslate(0, 0, wheel_size.y());
+    btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
+    btVector2 vw( radius*btCos(M_PI/6), 0 );
+
+    glPushMatrix();
+    btglTranslate(0, vw.y, vw.x);
+    glutSolidCylinder(wheel_size.y(), 2*wheel_size.x(), cfg->draw_div, cfg->draw_div);
+    glPopMatrix();
+
+    glPushMatrix();
+    vw = vw.rotate(2*M_PI/3);
+    btglTranslate(0, vw.y, vw.x);
+    btglRotate(-120.0f, 1.0f, 0.0f, 0.0f);
+    glutSolidCylinder(wheel_size.y(), 2*wheel_size.x(), cfg->draw_div, cfg->draw_div);
+    glPopMatrix();
+
+    glPushMatrix();
+    vw = vw.rotate(-4*M_PI/3);
+    btglTranslate(0, vw.y, vw.x);
+    btglRotate(120.0f, 1.0f, 0.0f, 0.0f);
+    glutSolidCylinder(wheel_size.y(), 2*wheel_size.x(), cfg->draw_div, cfg->draw_div);
+    glPopMatrix();
+
+    glPopMatrix();
+
+    drawDirection();
+  }
+
+
+
   class LuaOColElem: public LuaClass<OColElem>
   {
     static int _ctor(lua_State *L)
@@ -245,6 +388,25 @@ namespace eurobot2009
       LUA_REGFUNC(fill);
     }
   };
+
+  class LuaRORobot: public LuaClass<RORobot>
+  {
+    static int _ctor(lua_State *L)
+    {
+      RORobot **ud = new_userdata(L);
+      *ud = new RORobot(LARG_f(2));
+      lua_pushvalue(L, 1);
+      (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
+
+      return 0;
+    }
+
+  public:
+    LuaRORobot()
+    {
+      LUA_REGFUNC(_ctor);
+    }
+  };
 }
 
 using namespace eurobot2009;
@@ -253,4 +415,6 @@ LUA_REGISTER_SUB_CLASS(OColElem,ObjectColor);
 LUA_REGISTER_SUB_CLASS(OLintel,ObjectColor);
 LUA_REGISTER_SUB_CLASS(ODispenser,ObjectColor);
 LUA_REGISTER_SUB_CLASS(OLintelStorage,ObjectColor);
+
+LUA_REGISTER_SUB_CLASS(RORobot,RBasic);
 

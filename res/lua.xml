@@ -303,5 +303,13 @@
     </function>
   </class>
 
+  <class name="RORobot" base="RBasic">
+    Rob'Otter robot for Eurobot 2009.
+    <constructor>
+      <arg name="mass" type="float"/>
+    </constructor>
+
+  </class>
+
 </lua>
 

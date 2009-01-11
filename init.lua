@@ -1,7 +1,7 @@
 
 -- Config
 
-config.gravity_z = -9.81 --XXX
+config.gravity_z = -9.81
 config.step_dt = 0.002
 config.time_scale =  1
 config.drop_epsilon = 0.001
@@ -52,7 +52,8 @@ end
 
 trace("------ SCRIPT START ------")
 
-r1 = RBasic(.2, .2, .1, 10)
+--r1 = RBasic(.2, .2, .1, 10)
+r1 = RORobot(10)
 r1:add_object()
 r1:set_pos(-(3.0-.5)/2, (2.1-.5)/2)
 
@@ -78,7 +79,10 @@ function r1:strategy()
   while true do
     for k,v in pairs(t) do
       self:order_xy( v[1], v[2], v[3] )
-      repeat coroutine.yield() until self:is_waiting()
+      repeat
+        --trace("R1: "..tostring(x)..","..tostring(y))
+        coroutine.yield()
+      until self:is_waiting()
     end
   end
   self:order_stop()

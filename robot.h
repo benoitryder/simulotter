@@ -93,7 +93,7 @@ protected:
 private:
 
   /// Team number (TEAM_INVALID if not set)
-  unsigned int team;
+  int team;
 
   /// Cached update function reference
   int ref_update;
@@ -126,7 +126,7 @@ class RBasic: public Robot
 {
   friend class LuaRBasic;
 public:
-  RBasic() {};
+  RBasic();
 
   /** @brief Convenient constructor
    *
@@ -212,7 +212,7 @@ protected:
   };
 
 
-  int order;
+  unsigned int order;
 
   void set_v(btScalar v)  { this->setLinearVelocity( btVector2(v,0).rotate(a) ); }
   void set_av(btScalar v) { this->setAngularVelocity( btVector3(0,0,v) ); }
