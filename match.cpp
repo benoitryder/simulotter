@@ -30,10 +30,10 @@ Match::~Match()
 }
 
 
-unsigned int Match::register_robot(Robot *r, unsigned int team)
+unsigned int Match::registerRobot(Robot *r, unsigned int team)
 {
   // Valid team: force
-  if( team >= 0 && team < get_team_nb() )
+  if( team >= 0 && team < getTeamNb() )
   {
     if( robots.find(team) != robots.end() )
       throw(Error("team slot already in use: %d", team));
@@ -42,7 +42,7 @@ unsigned int Match::register_robot(Robot *r, unsigned int team)
   }
   else
   {
-    for( unsigned int i=0; i<get_team_nb(); i++ )
+    for( unsigned int i=0; i<getTeamNb(); i++ )
       if( robots.find(i) == robots.end() )
       {
         robots[i] = r;
@@ -129,11 +129,11 @@ class LuaMatch: public LuaClass<Match>
     return 0;
   }
 
-  LUA_DEFINE_GET(get_team_nb)
+  LUA_DEFINE_GET(get_team_nb, getTeamNb)
 
   static int get_color(lua_State *L)
   {
-    push(L, get_ptr(L)->get_color(LARG_i(2)));
+    push(L, get_ptr(L)->getColor(LARG_i(2)));
     return 1;
   }
 

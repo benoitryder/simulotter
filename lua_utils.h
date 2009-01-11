@@ -170,7 +170,8 @@ public:
   static void push(lua_State *L, const char *s) { lua_pushstring(L, s); }
   static void push(lua_State *L, unsigned int    n) { lua_pushinteger(L, n); }
   static void push(lua_State *L, unsigned long   n) { lua_pushinteger(L, n); }
-  static void push(lua_State *L, const GLfloat *c)
+  static void push(lua_State *L, const btVector2 &v) { lua_pushnumber(L, v.x); lua_pushnumber(L, v.y); }
+  static void push(lua_State *L, const Color4 c)
   {
     lua_createtable(L, 0, 4);
     for( int i=0; i<4; i++ )
@@ -179,6 +180,9 @@ public:
       lua_rawseti(L, -2, i+1);
     }
   }
+  template<typename T, int n> static void push(lua_State *L, const T t[n]) { for( int i=0; i<n; i++ ) push(L, t[i]); }
+  static void push(lua_State *L, const btVector3 &v) { push<btScalar,3>(L,v); }
+  static void push(lua_State *L, const btQuaternion &q) { push<btScalar,4>(L,q); }
   //@}
 
 protected:
@@ -327,27 +331,36 @@ protected:
 #define LARG_s(n)   (luaL_checkstring(L,(n)))
 #define LARG_bn(n)  (lua_toboolean(L,(n)))
 #define LARG_lud(n) (luaL_checktype(L,(n), LUA_TLIGHTUSERDATA),lua_touserdata(L,(n)))
+#define LARG_scaled(n) (scale(LARG_f(n)))
 
 //@}
 
-/// Bind getters (no argument, 1 return value)
-#define LUA_DEFINE_GET(n) \
-  static int n(lua_State *L) { push(L, get_ptr(L)->n()); return 1; }
+/** @name Bind getters (no argument, \e i return values)
+ */
+//@{
+
+#define LUA_DEFINE_GETN(i,n,f) \
+  static int n(lua_State *L) { push(L, get_ptr(L)->f()); return i; }
+#define LUA_DEFINE_GETN_SCALED(i,n,f) \
+  static int n(lua_State *L) { push(L, unscale(get_ptr(L)->f())); return i; }
+#define LUA_DEFINE_GET(n,f)  LUA_DEFINE_GETN(1,n,f)
+#define LUA_DEFINE_GET_SCALED(n,f) LUA_DEFINE_GETN_SCALED(1,n,f)
+
 
 /** @name Bind setters (arguments, no return value)
  */
 //@{
 
-#define LUA_DEFINE_SET0(n) \
-  static int n(lua_State *L) { get_ptr(L)->n( ); return 0; }
-#define LUA_DEFINE_SET1(n,m1) \
-  static int n(lua_State *L) { get_ptr(L)->n( m1(2) ); return 0; }
-#define LUA_DEFINE_SET2(n,m1,m2) \
-  static int n(lua_State *L) { get_ptr(L)->n( m1(2), m2(3) ); return 0; }
-#define LUA_DEFINE_SET3(n,m1,m2,m3) \
-  static int n(lua_State *L) { get_ptr(L)->n( m1(2), m2(3), m3(4) ); return 0; }
-#define LUA_DEFINE_SET4(n,m1,m2,m3,m4) \
-  static int n(lua_State *L) { get_ptr(L)->n( m1(2), m2(3), m3(4), m4(5) ); return 0; }
+#define LUA_DEFINE_SET0(n,f) \
+  static int n(lua_State *L) { get_ptr(L)->f( ); return 0; }
+#define LUA_DEFINE_SET1(n,f,m1) \
+  static int n(lua_State *L) { get_ptr(L)->f( m1(2) ); return 0; }
+#define LUA_DEFINE_SET2(n,f,m1,m2) \
+  static int n(lua_State *L) { get_ptr(L)->f( m1(2), m2(3) ); return 0; }
+#define LUA_DEFINE_SET3(n,f,m1,m2,m3) \
+  static int n(lua_State *L) { get_ptr(L)->f( m1(2), m2(3), m3(4) ); return 0; }
+#define LUA_DEFINE_SET4(n,f,m1,m2,m3,m4) \
+  static int n(lua_State *L) { get_ptr(L)->f( m1(2), m2(3), m3(4), m4(5) ); return 0; }
 
 //@}
 

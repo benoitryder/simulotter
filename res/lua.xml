@@ -9,10 +9,8 @@
       Configuration values.
 
       <value name="gravity_z" type="float">Z gravity</value>
-      <value name="cfm" type="float">Global CFM (constraint force mixing)</value>
       <value name="step_dt" type="float">Time interval between each simulation step</value>
       <value name="time_scale" type="float">Time scale coefficient (&gt;1 to slow down, &lt;1 to speed up)</value>
-      <value name="contacts_nb" type="int">Number of contact points</value>
       <value name="drop_epsilon" type="float">Default droping height gap for dynamic objects</value>
       <value name="draw_epsilon" type="float">Gap size between to contiguous surfaces</value>
       <value name="draw_div" type="int">Slices and stacks for GLUT geometry objects</value>
@@ -31,49 +29,44 @@
 
   </globals>
 
-  <class name="Geom">
-    Create ODE geometries. There are no constructor, use creation methods
+  <class name="Shape">
+    Create collision shapes. There are no constructor, use creation methods
     instead.<br/>
-    Geoms passed to object constructors are duplicated and can be reused.
 
-    <function name="sphere"><return type="Geom"/>
+    <function name="sphere"><return type="Shape"/>
       <arg name="radius" type="float"/>
     </function>
-    <function name="box"><return type="Geom"/>
+    <function name="box"><return type="Shape"/>
+      Create a box shape with given <b>half</b> lengths.
       <arg name="lx" type="float"/>
       <arg name="ly" type="float"/>
       <arg name="lz" type="float"/>
     </function>
-    <function name="plane"><return type="Geom"/>
-      <arg name="a" type="float"/>
-      <arg name="b" type="float"/>
-      <arg name="c" type="float"/>
-      <arg name="d" type="float"/>
-    </function>
-    <function name="capsule"><return type="Geom"/>
+
+    <function name="capsuleX"><return type="Shape"/>
       <arg name="radius" type="float"/>
-      <arg name="length" type="float"/>
+      <arg name="half_length" type="float"/>
     </function>
-    <function name="cylinder"><return type="Geom"/>
+    <function name="capsuleY"><return type="Shape"/>
       <arg name="radius" type="float"/>
-      <arg name="length" type="float"/>
+      <arg name="half_length" type="float"/>
     </function>
-    <function name="ray"><return type="Geom"/>
-      <arg name="length" type="float"/>
+    <function name="capsuleZ"><return type="Shape"/>
+      <arg name="radius" type="float"/>
+      <arg name="half_length" type="float"/>
     </function>
 
-    <function name="set_pos">
-      <arg name="x" type="float"/>
-      <arg name="y" type="float"/>
-      <arg name="z" type="float"/>
+    <function name="cylinderX"><return type="Shape"/>
+      <arg name="radius" type="float"/>
+      <arg name="half_length" type="float"/>
     </function>
-
-    <function name="set_rot">
-      Set rotation from a quaternion.
-      <arg name="w" type="float"/>
-      <arg name="a" type="float"/>
-      <arg name="b" type="float"/>
-      <arg name="c" type="float"/>
+    <function name="cylinderY"><return type="Shape"/>
+      <arg name="radius" type="float"/>
+      <arg name="half_length" type="float"/>
+    </function>
+    <function name="cylinderZ"><return type="Shape"/>
+      <arg name="radius" type="float"/>
+      <arg name="half_length" type="float"/>
     </function>
 
   </class>
@@ -83,26 +76,34 @@
 
     <constructor></constructor>
 
+    <function name="set_shape">
+      Set object collision shape.<br/>
+      This function must be called to initialize the object.
+      <arg name="shape" type="Shape"/>
+    </function>
+
     <function name="set_mass">
       Set object total mass.<br/>
-      If <tt>m</tt> is negative (or null) this method has no effect.
-      Mass cannot be set if body has been set.
+      If mass is null, object will be static.
+      Mass cannot be set if shape is not set.
       <arg name="m" type="float"/>
     </function>
 
-    <function name="init">
-      This function must be called when all objects elements
-      have been set.<br/>
-      Geoms and body of an initialized object cannot be modified.<br/>
-      A non initialized object cannot be moved or rotated.
-    </function>
-
     <function name="is_initialized">
+      Returns wether the object is initialized.
       <return type="bool"/>
     </function>
 
     <function name="get_pos">
       Return x, y and z position.
+      <return type="float"/>
+      <return type="float"/>
+      <return type="float"/>
+    </function>
+
+    <function name="set_rot">
+      Return rotation quaternion (a, b, c, w).
+      <return type="float"/>
       <return type="float"/>
       <return type="float"/>
       <return type="float"/>
@@ -117,14 +118,10 @@
 
     <function name="set_rot">
       Set rotation from a quaternion.
-      <arg name="w" type="float"/>
       <arg name="a" type="float"/>
       <arg name="b" type="float"/>
       <arg name="c" type="float"/>
-    </function>
-
-    <function name="set_visible">
-      <arg type="bool"/>
+      <arg name="w" type="float"/>
     </function>
 
   </class>
@@ -155,7 +152,7 @@
     <constructor></constructor>
 
     <function name="get_team">
-      Return robot's team, or -1 if not set. (Teams numbers are set at match start.)
+      Return robot's team, or nil if not set.
       <return type="int"/>
     </function>
 
@@ -166,7 +163,8 @@
     </function>
 
     <function name="update" user="1">
-      Function called after ODE step to update internal data using ODE data.
+      Function called after each simulation step to update internal data using
+      simulation data.
     </function>
 
     <function name="asserv" user="1">
@@ -183,26 +181,23 @@
 
   <class name="RBasic" base="Robot">
     Basic robot.<br/>
-    Default values are null, including maximum velocities and accelerations.
+    Default values are null, including maximum velocities.
     They should be set, otherwise the robot will not move.
 
     <constructor></constructor>
     <constructor>
-      Create a default box robot with given size and mass.
+      Create a default box robot with given <b>half</b> lengths and mass.
       <arg name="lx" type="float"/>
       <arg name="ly" type="float"/>
       <arg name="lz" type="float"/>
       <arg name="mass" type="float"/>
     </constructor>
 
-    <function name="get_x"><return type="float"/></function>
-    <function name="get_y"><return type="float"/></function>
+    <function name="get_xy"><return type="float"/><return type="float"/></function>
     <function name="get_a"><return type="float"/></function>
     <function name="get_v"><return type="float"/></function>
     <function name="get_av"><return type="float"/></function>
 
-    <function name="set_dv_max"><arg type="float"/>Set linear acceleration.</function>
-    <function name="set_dav_max"><arg type="float"/>Set angular acceleration.</function>
     <function name="set_v_max"><arg type="float"/>Set maximum linear velocity.</function>
     <function name="set_av_max"><arg type="float"/>Set maximum angular velocity.</function>
     <function name="set_threshold_xy"><arg type="float"/>Set distance precision for XY orders.</function>
@@ -230,6 +225,7 @@
     </function>
 
     <function name="is_waiting">
+      Returns true if the robot is waiting orders.
       <return type="bool"/>
     </function>
   </class>
@@ -249,31 +245,23 @@
       <return type="Color"/>
     </function>
 
-    <function name="init" user="1">
-      Create and initialize game objects.
-      <arg name="fconf" type="int" required="0"/>
-    </function>
-
   </class>
 
 
   <!-- Classes defined in eurobot2009 -->
 
   <class name="OColElem" base="ObjectColor">
-    Column element.<br/>
-    Object is automatically initialized, <tt>init()</tt> should not be called.
+    Column element.
     <constructor></constructor>
   </class>
 
   <class name="OLintel" base="ObjectColor">
-    Lintel.<br/>
-    Object is automatically initialized, <tt>init()</tt> should not be called.
+    Lintel.
     <constructor></constructor>
   </class>
 
   <class name="ODispenser" base="ObjectColor">
-    Dispenser for column elements.<br/>
-    Object is automatically initialized, <tt>init()</tt> should not be called.
+    Dispenser for column elements.
     <constructor></constructor>
 
     <function name="set_pos">
@@ -296,8 +284,7 @@
   </class>
 
   <class name="OLintelStorage" base="ObjectColor">
-    Lintel storage.<br/>
-    Object is automatically initialized, <tt>init()</tt> should not be called.
+    Lintel storage.
     <constructor></constructor>
 
     <function name="set_pos">

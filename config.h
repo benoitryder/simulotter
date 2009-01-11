@@ -1,7 +1,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <ode/ode.h>
 #include "lua_utils.h"
 #include "colors.h"
 
@@ -18,6 +17,8 @@
  *
  * All values are public but they should (or must) not be modified after
  * initialization.
+ *
+ * Length values must be scaled.
  */
 class Config
 {
@@ -28,10 +29,6 @@ public:
   //@{
 
   float gravity_z;
-
-  /** @name Global CFM (constraint force mixing)
-   */
-  float cfm;
 
   /** @brief Time interval between each simulation step
    *
@@ -48,9 +45,6 @@ public:
    * @note Value can be changed while the simulation is running.
    */
   float time_scale;
-
-  /// Number of contact points
-  unsigned int contacts_nb;
 
   /// Default dropping height gap for dynamic objects
   float drop_epsilon;

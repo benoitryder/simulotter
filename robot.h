@@ -2,14 +2,9 @@
 #define ROBOT_H
 
 #include <SDL/SDL.h>
-#include <ode/ode.h>
 #include <math.h>
 #include <vector>
-
-class Robot;
-
-#include "object.h"
-#include "match.h"
+#include "global.h"
 
 
 ///@file
@@ -23,41 +18,36 @@ class Robot: public Object
 public:
 
   Robot();
+  virtual ~Robot();
 
-  /** @brief Initialize the robot
-   *
-   * Call parent initialization function, set category.
-   */
-  virtual void init();
-
-  ~Robot();
-
-  unsigned int get_team() const { return this->team; }
+  unsigned int getTeam() const { return this->team; }
 
   /** @brief Register the robot in the match and set its team
-   * @sa Match::register_robot()
+   * @sa Match::registerRobot()
    */
-  void match_register(unsigned int team=TEAM_INVALID);
+  void matchRegister(unsigned int team=TEAM_INVALID);
 
   virtual void draw();
 
   /// Draw a small direction cone above the robot
-  void draw_direction();
+  void drawDirection();
 
   /** @brief Init robot for the match.
    *
    * Get and cache update, asserv and strategy Lua functions, if any. This
    * method should be called before the match starts.
    */
-  void match_init();
+  void matchInit();
 
   /** @brief Update asserv and strategy data
    *
    * Call the update Lua function (if any) or the do_update() method.
    * Robot instance is given as first argument.
    *
-   * This function is called after ODE step to update internal data using ODE
-   * data (e.g. position).
+   * This function is called after each simulation step to update internal data
+   * using simulation data (e.g. position).
+   *
+   * @todo Remove it (and use Bullet handlers instead)?
    */
   void update();
 
@@ -124,25 +114,25 @@ protected:
 /** @brief Basic robot
  *
  * A robot with a simple asserv.
+ *
+ * @note Asserv moves the robot by setting velocity (including Z-velocity) at
+ * each step using set_v() which may cause odd behaviors.
+ *  - The robot will not drop to the ground and should be properly positionned
+ *    above the ground (using <tt>setPos(btVector2)</tt> for instance).
+ *  - If an object is blocked against a wall by the robot it will be applied a
+ *    very strong force and be thrown away at high speed.
  */
 class RBasic: public Robot
 {
   friend class LuaRBasic;
 public:
-  RBasic();
+  RBasic() {};
 
   /** @brief Convenient constructor
    *
    * Create a default box robot with given size and mass.
    */
-  RBasic(dReal lx, dReal ly, dReal lz, dReal m);
-
-  /** @brief Initialize the robot
-   *
-   * Call parent initialization function, add motors, reset
-   * orders.
-   */
-  virtual void init();
+  RBasic::RBasic(const btVector3 &halfExtents, btScalar m);
 
   ~RBasic();
 
@@ -157,66 +147,54 @@ public:
    */
   virtual void do_asserv();
 
-  /** @name Methods used in strategy
+  /** @name Basic methods used in strategy
    */
   //@{
-  dReal get_x()  const { return this->x;  }
-  dReal get_y()  const { return this->y;  }
-  dReal get_a()  const { return this->a;  }
-  dReal get_v()  const { return this->v;  }
-  dReal get_av() const { return this->av; }
+  const btVector2 &get_xy()  const { return this->xy; }
+  btScalar get_a()  const { return this->a; }
+  btScalar get_v()  const { return this->v;  }
+  btScalar get_av() const { return this->av; }
 
-  void order_xy(dReal x, dReal y, bool rel=false);
-  void order_a(dReal a, bool rel=false);
-  void order_xya(dReal x, dReal y, dReal a, bool rel=false) { order_xy(x,y,rel); order_a(a,rel); }
-  void order_back(dReal d);
+  void order_xy(btVector2 xy, bool rel=false);
+  void order_a(btScalar a, bool rel=false);
+  void order_xya(btVector2 xy, btScalar a, bool rel=false) { order_xy(xy,rel); order_a(a,rel); }
+  void order_back(btScalar d);
   void order_stop() { order = ORDER_NONE; }
 
   bool is_waiting() { return order == ORDER_NONE; }
   //@}
 
-  /// Set linear acceleration
-  void set_dv_max(dReal dv);
-  /// Set angular acceleration
-  void set_dav_max(dReal dav);
+  void set_v_max(btScalar v)  { this->v_max  = v; }
+  void set_av_max(btScalar v) { this->av_max = v; }
 
-  void set_v_max(dReal v)  { this->v_max  = v; }
-  void set_av_max(dReal v) { this->av_max = v; }
-
-  void set_threshold_xy(dReal t) { this->threshold_xy = t; }
-  void set_threshold_a(dReal t)  { this->threshold_a  = t; }
+  void set_threshold_xy(btScalar t) { this->threshold_xy = t; }
+  void set_threshold_a(btScalar t)  { this->threshold_a  = t; }
 
 private:
+  btCollisionShape *shape;
 
-  /// Plane joint and angle motor
-  dJointID j2D;
-  /** @brief Linear motor
-   *
-   * @note Plane 2D joint has 2 plane motors but it does not use robot
-   * direction.
-   */
-  dJointID jLMotor;
+protected:
 
   /** @name Position and velocity values
    *
    * These values are updated after calling \e update().
    */
   //@{
-  dReal x, y; ///< Position
-  dReal a;    ///< Angle position (radians)
-  dReal v;    ///< Velocity
-  dReal av;   ///< Angular velocity (radians)
+  btVector2 xy; ///< Position
+  btScalar  a; ///< Position
+  btScalar  v;  ///< Velocity
+  btScalar  av; ///< Angular velocity (radians)
   //@}
 
-  dReal v_max;
-  dReal av_max;
+  btScalar v_max;
+  btScalar av_max;
 
   /** @name Order targets
    */
   //@{
-  dReal target_x, target_y;
-  dReal target_a;
-  dReal target_back_x, target_back_y;
+  btVector2 target_xy;
+  btScalar  target_a;
+  btVector2 target_back_xy;
   //@}
 
   /** @brief Order types
@@ -236,13 +214,13 @@ private:
 
   int order;
 
-  void set_v(dReal v)  { dJointSetLMotorParam(jLMotor, dParamVel, v); }
-  void set_av(dReal v) { dJointSetPlane2DAngleParam(j2D, dParamVel, v); }
+  void set_v(btScalar v)  { this->setLinearVelocity( btVector2(v,0).rotate(a) ); }
+  void set_av(btScalar v) { this->setAngularVelocity( btVector3(0,0,v) ); }
 
   /// Asserv position threshold
-  dReal threshold_xy;
+  btScalar threshold_xy;
   /// Asserv angle threshold
-  dReal threshold_a;
+  btScalar threshold_a;
 };
 
 #endif

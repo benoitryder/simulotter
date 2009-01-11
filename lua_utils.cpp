@@ -1,5 +1,4 @@
 #include "global.h"
-#include "lua_utils.h"
 
 
 /// Convenient macro for registering global objects

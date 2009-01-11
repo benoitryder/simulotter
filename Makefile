@@ -1,14 +1,15 @@
 CXX = g++
 
-CFLAGS = -g -Wall `ode-config --cflags` -I/usr/local/include/lua5.1 -I/usr/include/lua5.1
+CFLAGS = -g -Wall -I/usr/local/include/lua5.1 -I/usr/include/lua5.1
 
+BULLET_LIBS = -lBulletDynamics -lBulletCollision -lLinearMath
 ifeq ($(OS),Windows_NT)
-LDFLAGS = -mconsole -lfreeglut -mwindows -lSDL -lm -lode -lopengl32 -lglu32 -lwinmm -llua
+LDFLAGS = -mconsole -lfreeglut -mwindows -lSDL -lm $(BULLET_LIBS) -lopengl32 -lglu32 -lwinmm -llua
 else
-LDFLAGS = `sdl-config --libs` -lm -lode -lGL -llua5.1 -lglut
+LDFLAGS = -lm $(BULLET_LIBS) -lGL -llua5.1 -lglut
 endif
 
-OBJS = main.o config.o physics.o display.o object.o robot.o match.o maths.o log.o sensor.o
+OBJS = main.o config.o physics.o display.o object.o robot.o match.o log.o
 OBJS += eurobot2009.o
 # lua_utils must be the last one to register all Lua classes
 OBJS += lua_utils.o
@@ -27,7 +28,7 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CXX) $(CFLAGS) $(OBJS) -o $@ $(LDFLAGS)
 
-%.o: %.cpp config.h
+%.o: %.cpp global.h
 	$(CXX) $(CFLAGS) -c $< -o $@
 
 clean: distclean

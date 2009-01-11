@@ -4,10 +4,8 @@
 #include <unistd.h>
 #include <sys/time.h>
 
-#include "object.h"
-#include "robot.h"
 #include "global.h"
-#include "maths.h"
+
 
 #ifdef WIN32
 #include <windows.h>
@@ -66,6 +64,9 @@ int main(int argc, char **argv)
       lm->do_file("init.lua");
     }
 
+    //TODO add a Physics::init() method for this?
+    physics->getWorld()->setGravity(btVector3(0,0,cfg->gravity_z));
+
     if( match == NULL )
       throw(Error("no created match"));
 
@@ -77,17 +78,10 @@ int main(int argc, char **argv)
     match->init();
 
     LOG->trace("init robots");
-    std::map<unsigned int,Robot*> &robots = match->get_robots();
+    std::map<unsigned int,Robot*> &robots = match->getRobots();
     std::map<unsigned int,Robot*>::iterator itr;
     for( itr=robots.begin(); itr!=robots.end(); ++itr )
-      (*itr).second->match_init();
-
-    LOG->trace("check objects");
-    std::vector<Object*> &objs = physics->get_objs();
-    std::vector<Object*>::iterator ito;
-    for( ito=objs.begin(); ito!=objs.end(); ++ito )
-      if( !(*ito)->is_initialized() )
-        throw Error("check failed: object is not initialized");
+      (*itr).second->matchInit();
 
     unsigned int disp_dt = (unsigned int)(1000.0/cfg->fps);
     unsigned int step_dt = (unsigned int)(1000.0*cfg->step_dt);
@@ -103,12 +97,13 @@ int main(int argc, char **argv)
       time = millitime();
       if( time >= time_step )
       {
+        //TODO use "variable time step" features of Bullet
         physics->step();
         time_step += (unsigned long)(step_dt * cfg->time_scale);
       }
       if( time >= time_disp )
       {
-        display->handle_events();
+        display->handleEvents();
         display->update();
         time_disp += disp_dt;
       }

@@ -9,9 +9,9 @@
  */
 #define TEAM_INVALID  ((unsigned int)-1)
 
+#include "global.h"
 
-#include "object.h"
-#include "robot.h"
+class Robot;
 
 ///@file
 
@@ -20,8 +20,6 @@
  *
  * Only one match can be created and is automatically assigned to the global
  * \e match variable. It is required to allow match creation in Lua.
- *
- * @todo Find a better way to do it.
  */
 class Match
 {
@@ -39,7 +37,7 @@ public:
   Match(const Color4 colors[], unsigned int team_nb=2, int duration=90);
   virtual ~Match();
 
-  unsigned int get_team_nb() const { return team_nb; }
+  unsigned int getTeamNb() const { return team_nb; }
 
   /** @brief Register a robot and return its team
    *
@@ -52,12 +50,12 @@ public:
    *
    * @return Robot's team
    */
-  unsigned int register_robot(Robot *r, unsigned int team=TEAM_INVALID);
+  unsigned int registerRobot(Robot *r, unsigned int team=TEAM_INVALID);
 
-  std::map<unsigned int, Robot*> &get_robots() { return robots; }
+  std::map<unsigned int, Robot*> &getRobots() { return robots; }
 
   /// Get color of a given team
-  const GLfloat *get_color(unsigned int team) const { return colors[team]; }
+  const GLfloat *getColor(unsigned int team) const { return colors[team]; }
 
   /** @brief Initialize the match
    *

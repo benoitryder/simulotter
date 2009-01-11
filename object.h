@@ -1,157 +1,90 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-class Object;
 
-#include <SDL/SDL.h>
-#include <GL/freeglut.h>
-#include <ode/ode.h>
 #include <vector>
-#include "physics.h"
-#include "lua_utils.h"
-#include "colors.h"
+#include "global.h"
+
 
 ///@file
 
 
 /** @brief Basic object
  *
- * New objects are automatically added to the simulation objects and geoms are
- * put in the global space.
- *
- * There a two object types: static and dynamic. Static objects are disabled and 
- * not updated during a simulation step.
+ * Objects have to be added to the world (after initialization) using
+ * Physics::addObject().
  */
-class Object
+class Object: public btRigidBody
 {
 public:
+  /** @brief Default empty constructor
+   *
+   * Bullet does not provide empty constructor. Empty construction info are
+   * provided and various initialization functions can be used to set values
+   * afterwards.
+   */
   Object();
 
-  /// Add a geom to the object
-  void add_geom(dGeomID geom);
+  virtual ~Object() {}
 
-  /** @brief Set object body
+  /** @brief Set object shape
    *
-   * If \e body is null, this method has no effect.
-   * Body cannot be set if mass has been set.
+   * In order to prevent LUA scripts to reassign a shape in subclasses, this
+   * function will fail if shape is already set. Implementations may call bullet
+   * functions if they really need to reassign shape.
    *
-   * @sa init()
+   * @note This function must be called to initialize the object.
    */
-  void set_body(dBodyID body);
+  void setShape(btCollisionShape *shape);
 
-  /** @brief Set object mass
+  /** @brief Set object mass and inertia
    *
-   * If \e m is negative (or null), this method has no effect.
-   * Mass cannot be set if body has been set.
+   * Inertia is determined from mass and object shape.
    *
-   * @sa init()
+   * @note Object shape must be set before calling this function.
    */
-  void set_mass(dReal m);
+  void setMass(btScalar mass);
 
-  /** @brief Initialize the object
-   *
-   * This function must be called for each object when all object
-   * elements have been set. Geoms and body of an initialized object
-   * cannot be modified.
-   *
-   * Geoms are put in the global space and attached to the body.
-   * Each geom offset is set to its position (before begin attached).
-   * Object is put to the physics object vector.
-   *
-   * If a mass has been set, a body is created with mass attributes
-   * determined from geoms.
-   *
-   * Category bits are cleared, collide bits are set to CAT_ALL.
-   * If a body or a mass has been set, object is dynamic (CAT_DYNAMIC
-   * category, does not collide static objects).
-   *
-   * Body user- data pointer is set to instance pointer.
-   *
-   * @note A non initialized object cannot be moved or rotated.
-   *
-   * @note Subclasses may initialize the object in their constructor.
-   */
-  virtual void init();
-
-  bool is_initialized() { return this->initialized; }
-
-  virtual ~Object();
-
-  /// Get bouding box
-  void get_aabb(dReal aabb[6]);
-
-  /** @name Category and collide bitfields operations
-   *
-   * All geoms in a same object usually have the same category and collide
-   * bits. All operations set the same bitfield on each geoms.
-   */
-  //@{
-  unsigned long get_category();
-  unsigned long get_collide();
-  void set_category(unsigned long cat);
-  void set_collide (unsigned long col);
-  void add_category(unsigned long cat) { set_category(get_category()|cat); }
-  void add_collide (unsigned long col) { set_collide(get_collide()|col);   }
-  void sub_category(unsigned long cat) { set_category(get_category()&~cat); }
-  void sub_collide (unsigned long col) { set_collide(get_collide()&~col);   }
-  //@}
-
-  bool is_visible() const { return this->visible; }
-
-  const dReal *get_pos() const { return dBodyGetPosition(body);   }
-  const dReal *get_rot() const { return dBodyGetQuaternion(body); }
-
-  void set_pos(dReal x, dReal y, dReal z);
-  /** @brief Place above (not on or in) the ground
-   * @sa Config::drop_epsilon
-   */
-  void set_pos(dReal x, dReal y);
-
-  void set_rot(const dQuaternion q);
-
-  void set_visible(bool b) { this->visible = b; }
+  bool isInitialized() { return getCollisionShape() != NULL; }
 
   /// Draw the whole object
   virtual void draw();
 
-  /** @brief Custom collision handler
-   *
-   * Custom collision function is called for geoms with category CAT_HANDLER.
-   *
-   * The first geom is the geom that triggered the handler.
-   * It must return \e true if the collision has been handled.
-   *
-   * @note Handler must be overrided since the default one throws an error.
+  /** @brief Get object position
+   * @note Identical to getCenterOfMassPosition()
    */
-  virtual bool collision_handler(Physics *physics, dGeomID o1, dGeomID o2)
-  {
-    throw(Error("collision_handler() not implemented"));
-    return false;
-  }
+  const btVector3 &getPos() const { return m_worldTransform.getOrigin(); }
+  /** @brief Get object rotation
+   * @note Identical to getCenterOfMassOrientation()
+   */
+  const btQuaternion getRot() const { return m_worldTransform.getRotation(); }
+
+  /** @brief Set object position
+   * @todo Change <tt>m_interpolation*</tt> too?
+   */
+  void setPos(const btVector3 &pos) { m_worldTransform.setOrigin(pos); }
+  /** @brief Place above (not on or in) the ground
+   * @sa Config::drop_epsilon
+   */
+  void setPos(const btVector2 &pos);
+  /** @brief Set object rotation
+   * @todo Change <tt>m_interpolation*</tt> too?
+   */
+  void setRot(const btQuaternion &rot) { m_worldTransform.setRotation(rot); }
 
 protected:
-  dBodyID body;
-  std::vector<dGeomID> geoms;
-
   /// Change the GL matrix according to position and rotation
-  static void draw_move(dGeomID geom);
-  /// Change the GL matrix according to position and rotation, body version
-  void draw_move();
+  static void drawTransform(const btTransform &transform);
 
-  /// Draw a given geometry
-  static void draw_geom(dGeomID geom);
+  /// drawTransform(), instance version
+  void drawTransform() { drawTransform(m_worldTransform); }
 
-private:
-  /** @brief Indicate whether the object is initialized
-   * @sa init()
+  /** @brief Draw a collision shape
+   *
+   * @note This function is based on <em>GL_ShapeDrawer::drawOpenGL</em> method
+   * from <em>Bullet</em>'s demos.
    */
-  bool initialized;
-
-  /// Mass used for initialization
-  dReal init_mass;
-
-  /// Object is not drawn if not visible
-  bool visible;
+  static void drawShape(const btTransform &transform, const btCollisionShape *shape);
 };
 
 
@@ -159,9 +92,9 @@ private:
 class ObjectColor: public Object
 {
 public:
-  ObjectColor() {}
+  ObjectColor(): Object() {}
 
-  void set_color(Color4 color) { COLOR_COPY(this->color, color); }
+  void setColor(Color4 color) { COLOR_COPY(this->color, color); }
   virtual void draw() { glColor4fv(color); Object::draw(); }
 
 protected:
@@ -190,23 +123,20 @@ public:
    * @note Only the first 3 color values are used.
    */
   OGround(const Color4 color, const Color4 color_t1, const Color4 color_t2);
-  ~OGround() {}
+  ~OGround();
 
   virtual void draw();
 
 protected:
-  static const dReal size_z = 0.1;
-
-  /// Starting zone size
-  static const dReal size_start = 0.5;
-
-  /// Main box geom
-  dGeomID geom_box;
+  /// Starting zone size (scaled)
+  static const btScalar size_start;
 
   Color4 color;
   Color4 color_t1;
   Color4 color_t2;
 
+private:
+  static btBoxShape shape;
 };
 
 

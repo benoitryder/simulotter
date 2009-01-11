@@ -3,7 +3,8 @@
 
 #include <SDL/SDL.h>
 #include <map>
-#include "object.h"
+#include "global.h"
+
 
 ///@file
 
@@ -19,7 +20,7 @@ public:
   /// Init and start video display
   void init()
   {
-    window_init();
+    windowInit();
   }
 
   /// Resize the screen
@@ -37,10 +38,10 @@ private:
   int screen_x; ///< Screen width
   int screen_y; ///< Screen height
 
-  void window_init();
-  void window_destroy();
-  void scene_init();
-  void scene_destroy();
+  void windowInit();
+  void windowDestroy();
+  void sceneInit();
+  void sceneDestroy();
 
 
   /** @name Camera
@@ -75,39 +76,36 @@ public:
     CAM_LOOK    = CAM_EYE_FIXED  | CAM_TARGET_OBJECT,
   };
 
-  int get_camera_mode() const { return camera.mode;   }
-
-  const float *get_camera_eye()    const { return camera.eye;    }
-  const float *get_camera_target() const { return camera.target; }
-
-  /** @brief Compute eye and target cartesian positions
-   * get_camera_eye() and get_camera_target() return values, this method
-   * returns global positions.
+  /** @brief Camera point position
+   *
+   * @note \e cart and \e spheric are not used simultaneously.
    */
-  void get_camera_pos(float eye_pos[3], float target_pos[3]);
+  typedef struct
+  {
+    btVector3  cart;
+    btSpheric3 spheric;
+    Object *obj;
+  } CameraPoint;
+
+  const CameraPoint &getCameraEye()    const { return camera_eye;    }
+  const CameraPoint &getCameraTarget() const { return camera_target; }
+  int getCameraMode() const { return camera_mode;   }
+
+  /** @brief Compute eye and target cartesian global positions
+   * getCameraEye() and getCameraTarget() return values which may be relative
+   * to each other, this method returns global positions.
+   */
+  void getCameraPos(btVector3 &eye_pos, btVector3 &target_pos) const;
 
   /** @brief Change camera mode
    * @note Object(s) must be set before choosing an object mode.
    */
-  void set_camera_mode(int mode);
-  void set_camera_eye    (float v0, float v1, float v2) { camera.eye[0]    = v0; camera.eye[1]    = v1; camera.eye[2]    = v2; }
-  void set_camera_target (float v0, float v1, float v2) { camera.target[0] = v0; camera.target[1] = v1; camera.target[2] = v2; }
-  void move_camera_eye   (float v0, float v1, float v2) { camera.eye[0]   += v0; camera.eye[1]   += v1; camera.eye[2]   += v2; }
-  void move_camera_target(float v0, float v1, float v2) { camera.target[0]+= v0; camera.target[1]+= v1; camera.target[2]+= v2; }
-  void set_camera_eye_obj(Object *o) { camera.eye_obj = o; }
-  void set_camera_target_obj(Object *o) { camera.target_obj = o; }
+  void setCameraMode(int mode);
 
 private:
-  /** @brief Camera position and direction
-   */
-  struct
-  {
-    float eye[3];
-    float target[3];
-    Object *eye_obj;
-    Object *target_obj;
-    int mode;
-  } camera;
+  CameraPoint camera_eye;
+  CameraPoint camera_target;
+  int camera_mode;
 
   //@}
 
@@ -126,7 +124,7 @@ private:
 public:
 
   /// Process SDL events
-  void handle_events();
+  void handleEvents();
 
   /** @brief Event comparison function class
    *
@@ -147,7 +145,7 @@ public:
   typedef void (*EventHandler)(Display *d, const SDL_Event &event);
 
   /// Add or replace an event handler
-  void set_handler(const SDL_Event &event, EventHandler handler) { handlers[event] = handler; }
+  void setHandler(const SDL_Event &event, EventHandler handler) { handlers[event] = handler; }
 
 private:
   /// Event handlers
@@ -156,17 +154,17 @@ private:
   /** @name Default handlers
    */
   //@{
-  static void handler_quit     (Display *d, const SDL_Event &event) {throw(0);}
-  static void handler_resize   (Display *d, const SDL_Event &event);
-  static void handler_pause    (Display *d, const SDL_Event &event);
-  static void handler_cam_mode (Display *d, const SDL_Event &event);
-  static void handler_cam_mouse(Display *d, const SDL_Event &event);
-  static void handler_cam_ahead(Display *d, const SDL_Event &event);
-  static void handler_cam_back (Display *d, const SDL_Event &event);
-  static void handler_cam_left (Display *d, const SDL_Event &event);
-  static void handler_cam_right(Display *d, const SDL_Event &event);
-  static void handler_cam_up   (Display *d, const SDL_Event &event);
-  static void handler_cam_down (Display *d, const SDL_Event &event);
+  static void handlerQuit    (Display *d, const SDL_Event &event) {throw(0);}
+  static void handlerResize  (Display *d, const SDL_Event &event);
+  static void handlerPause   (Display *d, const SDL_Event &event);
+  static void handlerCamMode (Display *d, const SDL_Event &event);
+  static void handlerCamMouse(Display *d, const SDL_Event &event);
+  static void handlerCamAhead(Display *d, const SDL_Event &event);
+  static void handlerCamBack (Display *d, const SDL_Event &event);
+  static void handlerCamLeft (Display *d, const SDL_Event &event);
+  static void handlerCamRight(Display *d, const SDL_Event &event);
+  static void handlerCamUp   (Display *d, const SDL_Event &event);
+  static void handlerCamDown (Display *d, const SDL_Event &event);
   //@}
 
   //@}

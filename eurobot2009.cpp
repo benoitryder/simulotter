@@ -1,131 +1,138 @@
+#include <GL/freeglut.h>
 #include "eurobot2009.h"
-#include "colors.h"
-#include "object.h"
-#include "global.h"
-#include "maths.h"
 
 
 namespace eurobot2009
 {
-  static const dReal table_size_x = 3.0;
-  static const dReal table_size_y = 2.1;
-  static const dReal wall_width  = 0.022;
-  static const dReal wall_height = 0.070;
+  static const btScalar TABLE_HALF_X     = scale(1.50);
+  static const btScalar TABLE_HALF_Y     = scale(1.05);
+  static const btScalar WALL_HALF_WIDTH  = scale(0.011);
 
-  const dReal ODispenser::radius = 0.040;
-  const dReal ODispenser::height = 0.150;
+
+  btCylinderShapeZ OColElem::shape( scale(btVector3(0.035,0.035,0.015)) );
+
+  OColElem::OColElem()
+  {
+    setShape( &shape );
+    setMass( 0.100 );
+  }
+
+  btBoxShape OLintel::shape( scale(btVector3(0.100,0.035,0.015)) );
+  OLintel::OLintel()
+  {
+    setShape( &shape );
+    setMass( 0.300 );
+  }
+
+
+  const btScalar ODispenser::radius = scale(0.040);
+  const btScalar ODispenser::height = scale(0.150);
+  btCylinderShapeZ ODispenser::shape( btVector3(radius,radius,height/2) );
 
   ODispenser::ODispenser()
   {
-    add_geom(dCreateCylinder(0, radius, height));
-    init();
-    set_color((Color4)COLOR_PLEXI);
-    set_collide(CAT_DYNAMIC);
-    add_category(CAT_HANDLER);
+    setShape( &shape );
+    setColor((Color4)COLOR_PLEXI);
+    m_checkCollideWith = true;
   }
 
-  void ODispenser::set_pos(dReal x, dReal y, dReal z, int side)
+  void ODispenser::setPos(const btVector3 &v, int side)
   {
+    btVector3 offset(0,0, height/2);
     switch( side )
     {
-      case 0: y -= radius; break;
-      case 1: x -= radius; break;
-      case 2: y += radius; break;
-      case 3: x += radius; break;
+      case 0: offset.setY(-radius); break;
+      case 1: offset.setX(-radius); break;
+      case 2: offset.setY( radius); break;
+      case 3: offset.setX( radius); break;
       default:
         throw(Error("invalid value for dispenser side"));
     }
-    z += height/2;
     //XXX gcc does not find the matching method by itself :(
-    ObjectColor::set_pos(x, y, z);
+    ObjectColor::setPos( v + offset );
   }
 
-  void ODispenser::fill(Object *o, dReal z)
+  void ODispenser::fill(Object *o, btScalar z)
   {
-    const dReal *pos = get_pos();
-    o->set_pos(pos[0], pos[1], z);
+    btVector3 pos = getPos();
+    pos.setZ(z);
+    o->setPos(pos);
   }
 
   void ODispenser::draw()
   {
     glColor4fv(color);
     glPushMatrix();
-    draw_move();
+    drawTransform();
     glTranslatef(0, 0, -height/2);
     glutWireCylinder(radius, height, cfg->draw_div, 10);
     glPopMatrix();
   }
 
-  bool ODispenser::collision_handler(Physics *physics, dGeomID o1, dGeomID o2)
+  bool ODispenser::checkCollideWithOverride(btCollisionObject *co)
   {
-    // Only process elements
-    if( (dGeomGetCategoryBits(o2) & CAT_ELEMENT) != CAT_ELEMENT )
-      return false;
-
-    // Element center not on the dispenser axis: normal processing
-    const dReal *pos1 = dGeomGetPosition(o1);
-    const dReal *pos2 = dGeomGetPosition(o2);
-    if( dist2d(pos1[0],pos1[1], pos2[0],pos2[1]) > radius )
-      return false;
-
-    // Element over or under the dispenser: nothing to do
-    if( pos2[2] > pos1[2]+height/2 || pos2[2] < pos1[2]-height/2 )
-      return true; // nothing to do, collision is processed
-
-    dJointID c = dJointCreateSlider(physics->get_world(), physics->get_joints());
-    dJointAttach(c, 0, dGeomGetBody(o2));
-    dJointSetSliderAxis(c, 0.0, 0.0, 1.0);
-    return true;
+    btRigidBody *o = btRigidBody::upcast(co);
+    if( o )
+    {
+      if( btVector2(this->getPos()-o->getCenterOfMassPosition()).length() <= radius )
+        return false;
+    }
+    
+    return Object::checkCollideWithOverride(co);
   }
 
+
+  btCompoundShape OLintelStorage::shape;
+  btBoxShape OLintelStorage::arm_shape( btVector3(WALL_HALF_WIDTH,scale(0.035),WALL_HALF_WIDTH) );
+  btBoxShape OLintelStorage::back_shape( btVector3(scale(0.100),WALL_HALF_WIDTH,scale(0.030)) );
+  btBoxShape OLintelStorage::bottom_shape( btVector3(scale(0.100),WALL_HALF_WIDTH,scale(0.035)) );
 
   OLintelStorage::OLintelStorage()
   {
-    dGeomID geom;
+    // First instance: initialize shape
+    if( shape.getNumChildShapes() == 0 )
+    {
+      btTransform tr = btTransform::getIdentity();
+      // Bottom
+      tr.setOrigin( btVector3(0, 3*WALL_HALF_WIDTH-scale(0.035), WALL_HALF_WIDTH-scale(0.035)) );
+      shape.addChildShape(tr, &bottom_shape);
+      // Back
+      tr.setOrigin( btVector3(0, scale(0.035)+WALL_HALF_WIDTH, scale(0.030)-WALL_HALF_WIDTH) );
+      shape.addChildShape(tr, &back_shape);
+      // Left arm
+      tr.setOrigin( btVector3(scale(0.100)-WALL_HALF_WIDTH, 0, 0) );
+      shape.addChildShape(tr, &arm_shape);
+      // Right arm
+      tr.setOrigin( btVector3( -(scale(0.100)-WALL_HALF_WIDTH), 0, 0) );
+      shape.addChildShape(tr, &arm_shape);
+    }
 
-    // Bottom
-    geom = dCreateBox(0, 0.200, wall_width, 0.070);
-    dGeomSetPosition(geom, 0, -(0.070-3*wall_width)/2, -(0.070-wall_width)/2);
-    add_geom(geom);
-    // Back
-    geom = dCreateBox(0, 0.200, wall_width, .060);
-    dGeomSetPosition(geom, 0, (0.070+wall_width)/2, (0.060-wall_width)/2);
-    add_geom(geom);
-    // Left
-    geom = dCreateBox(0, wall_width, 0.070, wall_width);
-    dGeomSetPosition(geom, +(0.200-wall_width)/2, 0, 0);
-    add_geom(geom);
-    // Right
-    geom = dCreateBox(0, wall_width, 0.070, wall_width);
-    dGeomSetPosition(geom, -(0.200-wall_width)/2, 0, 0);
-    add_geom(geom);
-
-    init();
-
-    set_color((Color4)COLOR_BLACK);
+    setShape( &shape );
+    setColor((Color4)COLOR_BLACK);
   }
 
-  void OLintelStorage::set_pos(dReal d, int side)
+  void OLintelStorage::setPos(btScalar d, int side)
   {
-    dReal x, y;
+    btScalar x, y;
     switch( side )
     {
-      case 0: x = d; y =  table_size_y/2+0.070/2; break;
-      case 1: y = d; x =  table_size_x/2+0.070/2; break;
-      case 2: x = d; y = -table_size_y/2-0.070/2; break;
-      case 3: y = d; x = -table_size_x/2-0.070/2; break;
+      case 0: x = d; y =  TABLE_HALF_Y+scale(0.035); break;
+      case 1: y = d; x =  TABLE_HALF_X+scale(0.035); break;
+      case 2: x = d; y = -TABLE_HALF_Y-scale(0.035); break;
+      case 3: y = d; x = -TABLE_HALF_X-scale(0.035); break;
       default:
         throw(Error("invalid value for lintel storage side"));
     }
 
     //XXX gcc does not find the matching method by itself :(
-    ObjectColor::set_pos(x, y, wall_height+wall_width/2);
+    ObjectColor::setPos( btVector3(x, y, scale(0.070)+WALL_HALF_WIDTH) );
   }
 
   void OLintelStorage::fill(OLintel *o)
   {
-    const dReal *pos = get_pos();
-    o->set_pos(pos[0], pos[1], pos[2]+0.030/2+wall_width/2+cfg->drop_epsilon);
+    btVector3 pos = getPos();
+    pos[2] += scale(0.015)+WALL_HALF_WIDTH+cfg->drop_epsilon;
+    o->setPos(pos);
   }
 
 
@@ -173,11 +180,11 @@ namespace eurobot2009
     static int set_pos(lua_State *L)
     {
       if( lua_isnone(L, 4) )
-        get_ptr(L)->ObjectColor::set_pos(LARG_f(2), LARG_f(3));
+        get_ptr(L)->ObjectColor::setPos( btVector3(LARG_scaled(2), LARG_scaled(3), 0.0) );
       else if( lua_isnone(L, 5) )
-        get_ptr(L)->ObjectColor::set_pos(LARG_f(2), LARG_f(3), LARG_f(4));
+        get_ptr(L)->ObjectColor::setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
       else
-        get_ptr(L)->set_pos(LARG_f(2), LARG_f(3), LARG_f(4), LARG_i(5));
+        get_ptr(L)->setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)), LARG_i(5));
       return 0;
     }
 
@@ -187,7 +194,7 @@ namespace eurobot2009
       //XXX check validity
       Object *o = *(Object**)lua_touserdata(L, -1);
       lua_pop(L, 1);
-      get_ptr(L)->fill(o, LARG_f(3));
+      get_ptr(L)->fill(o, LARG_scaled(3));
       return 0;
     }
 
@@ -214,9 +221,9 @@ namespace eurobot2009
       // override ObjectColor::set_pos(dReal,dReal)
       // with OLintelStorageset_pos(dReal,int)
       if( lua_isnone(L, 4) )
-        get_ptr(L)->set_pos(LARG_f(2), LARG_i(3));
+        get_ptr(L)->setPos(LARG_scaled(2), LARG_i(3));
       else
-        get_ptr(L)->ObjectColor::set_pos(LARG_f(2), LARG_f(3), LARG_f(4));
+        get_ptr(L)->ObjectColor::setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
       return 0;
     }
 

@@ -1,5 +1,4 @@
 #include <string.h>
-#include <ode/ode.h>
 #include "global.h"
 #include "robot.h"
 #include "maths.h"
@@ -7,17 +6,27 @@
 
 Physics::Physics()
 {
-  dInitODE();
+  col_config = new btDefaultCollisionConfiguration();
+  dispatcher = new btCollisionDispatcher(col_config);
+
+  //XXX set world size and max object number
+  broadphase = new btAxisSweep3(
+      scale(btVector3(-10,-5,-2)),
+      scale(btVector3(10,5,2)),
+      100
+      );
+
+  // Parralel solver pour du multithread (?)
+  solver = new btSequentialImpulseConstraintSolver();
+
+  world = new btDiscreteDynamicsWorld(
+      dispatcher, broadphase, solver, col_config
+      );
+
+  //Note: gravity must be set again after loading lua script
+  world->setGravity(btVector3(0,0,cfg->gravity_z));
+
   pause_state = false;
-
-  world = dWorldCreate();
-  space = dSimpleSpaceCreate(0);
-
-  dWorldSetGravity(world, 0, 0, cfg->gravity_z);
-  dWorldSetCFM(world, cfg->cfm);
-
-  joints = dJointGroupCreate(0);
-  dJointGroupEmpty(joints);
 }
 
 Physics::~Physics()
@@ -27,10 +36,11 @@ Physics::~Physics()
     delete *it;
   objs.clear();
 
-  dSpaceDestroy(space);
-  dWorldDestroy(world);
-
-  dCloseODE();
+  delete world;
+  delete solver;
+  delete dispatcher;
+  delete col_config;
+  delete broadphase;
 }
 
 
@@ -39,85 +49,11 @@ void Physics::step()
   if( this->pause_state )
     return;
 
-  std::vector<dGeomID>::iterator it2;
-  for( it2=hack_boxes.begin(); it2!=hack_boxes.end(); ++it2 )
-    dGeomDestroy(*it2);
-  hack_boxes.clear();
-  hack_cylinders.clear();
-
-  dSpaceCollide(space, this, &Physics::collide_callback);
-
-  // Cylinder hack
-  // Convert the top cylinder into a box
-  // Fine with small cylinders (h < r)
-  // XXX use two capsules if there are no contact on bases?
-  std::vector<GeomPair>::iterator it;
-  for( it=hack_cylinders.begin(); it!=hack_cylinders.end(); ++it )
-  {
-    dGeomID o1 = (*it).o1;
-    dGeomID o2 = (*it).o2;
-    const dReal *v1, *v2;
-
-    v1 = dGeomGetPosition(o1);
-    v2 = dGeomGetPosition(o2);
-    // The box should be the top element, swap if needed
-    //XXX Use bounding box ?
-    //XXX Really better to transform the top element?
-    if( v2[2] > v1[2] )
-    {
-      o1 = (*it).o2;
-      o2 = (*it).o1;
-      v1 = dGeomGetPosition(o1);
-      v2 = dGeomGetPosition(o2);
-    }
-
-    dReal r, l;
-    dGeomCylinderGetParams(o1, &r, &l);
-    dGeomID b1 = dCreateBox(0, 2*r, 2*r, l);
-    dGeomSetBody(b1, dGeomGetBody(o1));
-    // Set real geom ID to hack geom data
-    // Could be needed by custom collision handlers.
-    dGeomSetData(b1, (void*)o1);
-
-    dGeomSetCategoryBits(b1, dGeomGetCategoryBits(o1)|CAT_CYLINDER_HACK);
-
-    const dReal *R1 = dGeomGetRotation(o1);
-    const dReal *R2 = dGeomGetRotation(o2);
-
-    // vc: vecteur joignant les centres
-    dVector3 vc, v, vv;
-    vc[0]=v2[0]-v1[0]; vc[1]=v2[1]-v1[1]; vc[2]=v2[2]-v1[2];
-    // On garde la composante orthogonale à l'axe de o2
-    // On passe dans le repère de o2, on met z à 0 et on rechange de repère
-    v[0] = R2[0]*vc[0]+R2[4]*vc[1]+R2[8]*vc[2];
-    v[1] = R2[1]*vc[0]+R2[5]*vc[1]+R2[9]*vc[2];
-    vv[0] = R2[0]*v[0]+R2[1]*v[1];
-    vv[1] = R2[4]*v[0]+R2[5]*v[1];
-    vv[2] = R2[8]*v[0]+R2[9]*v[1];
-
-    // Passage dans le repère de o1, on veut v colinéaire à x1
-    v[0] = R1[0]*vv[0]+R1[4]*vv[1]+R1[8]*vv[2];
-    v[1] = R1[1]*vv[0]+R1[5]*vv[1]+R1[9]*vv[2];
-
-    if( !isnan(v[1]/v[0]) )
-    {
-      dQuaternion q;
-      dQFromAxisAndAngle(q, 0, 0, 1, atan(v[1]/v[0]));
-      dGeomSetOffsetQuaternion(b1, q);
-    }
-
-    collide_callback(this, b1, o2);
-    //Note: uncomment to display hack_boxes
-    // AND comment dGeomDestroy();
-    //hack_boxes.push_back(b1);
-    dGeomDestroy(b1);
-  }
-
-  dWorldStep(world, cfg->step_dt);
-  dJointGroupEmpty(joints);
+  //TODO timeStep / subSteps / fixedTimeStep / ...
+  world->stepSimulation(cfg->step_dt, 1, cfg->step_dt);
 
   // Update robot values, do asserv and strategy
-  std::map<unsigned int,Robot*> &robots = match->get_robots();
+  std::map<unsigned int,Robot*> &robots = match->getRobots();
   std::map<unsigned int,Robot*>::iterator itr;
   for( itr=robots.begin(); itr!=robots.end(); ++itr )
   {
@@ -128,260 +64,134 @@ void Physics::step()
 }
 
 
-dGeomID Physics::geom_duplicate(dGeomID geom)
+void Physics::addObject(Object *obj)
 {
-  dGeomID g;
-  switch( dGeomGetClass(geom) )
-  {
-    case dSphereClass:
-      {
-        dReal r = dGeomSphereGetRadius(geom);
-        g = dCreateSphere(0, r);
-        break;
-      }
-    case dBoxClass:
-      {
-        dVector3 size;
-        dGeomBoxGetLengths(geom, size);
-        g = dCreateBox(0, size[0], size[1], size[2]);
-        break;
-      }
-    case dPlaneClass:
-      {
-        dVector4 p;
-        dGeomPlaneGetParams(geom, p);
-        g = dCreatePlane(0, p[0], p[1], p[2], p[3]);
-        break;
-      }
-    case dCapsuleClass:
-      {
-        dReal r, len;
-        dGeomCapsuleGetParams(geom, &r, &len);
-        g = dCreateCapsule(0, r, len);
-        break;
-      }
-    case dCylinderClass:
-      {
-        dReal r, len;
-        dGeomCylinderGetParams(geom, &r, &len);
-        g = dCreateCylinder(0, r, len);
-        break;
-      }
-    case dRayClass:
-      {
-        g = dCreateRay(0, dGeomRayGetLength(geom));
-        break;
-      }
-    default:
-      {
-        throw(Error("geom class not supported in geom_duplicate"));
-        break;
-      }
-  }
-
-  const dReal *pos = dGeomGetPosition(geom);
-  const dReal *rot = dGeomGetRotation(geom);
-  dGeomSetPosition(g, pos[0], pos[1], pos[2]);
-  dGeomSetRotation(g, rot);
-  return g;
+  if( !obj->isInitialized() )
+    throw Error("Physics::addObject(): object is not initialized");
+  world->addRigidBody(obj);
+  objs.push_back(obj);
 }
 
-
-void Physics::collide_callback(void *data, dGeomID o1, dGeomID o2)
-{
-  Physics *physics = (Physics*)data;
-  int i, n;
-  unsigned long cat1, cat2;
-  dBodyID b1, b2;
-  dSurfaceParameters sp;
-
-  cat1 = dGeomGetCategoryBits(o1);
-  cat2 = dGeomGetCategoryBits(o2);
-
-  b1 = ((cat1 & CAT_DYNAMIC)==0) ? 0 : dGeomGetBody(o1);
-  b2 = ((cat2 & CAT_DYNAMIC)==0) ? 0 : dGeomGetBody(o2);
-
-  if( b1 == b2 )
-    return; // Geoms of a same object do not collide
-
-  // Cylinder/cylinder: store them to hack them later
-  if( dGeomGetClass(o1)==dCylinderClass && dGeomGetClass(o2)==dCylinderClass )
-  {
-    physics->hack_cylinders.push_back((GeomPair){o1,o2});
-    return;
-  }
-
-  // Call collision handler(s), if any
-  if( (cat1 & CAT_HANDLER) != 0 )
-  {
-    Object *o = (Object*)dBodyGetData(dGeomGetBody(o1));
-    if( o->collision_handler(physics, o1, o2) )
-      return;
-  }
-  if( (cat2 & CAT_HANDLER) != 0 )
-  {
-    Object *o = (Object*)dBodyGetData(dGeomGetBody(o2));
-    if( o->collision_handler(physics, o2, o1) )
-      return;
-  }
-
-  // Default surface parameters
-  sp.mode = dContactSlip1 | dContactSlip2 | dContactApprox1 | dContactBounce;
-  sp.mu = dInfinity;
-  sp.slip1 = 0.01;
-  sp.slip2 = 0.01;
-  sp.bounce = 0.05;
-  //sp.bounce_vel = 0.010;
-
-  dContact contacts[cfg->contacts_nb];
-
-  n = dCollide(o1, o2, cfg->contacts_nb, &contacts[0].geom, sizeof(*contacts));
-
-  for( i=0; i<n; i++ )
-  {
-    /*
-    dBodyID b1, b2;
-    // Robots are not affected by elements
-    if( (cat1&CAT_ROBOT)==CAT_ROBOT && (cat2&CAT_ELEMENT)==CAT_ELEMENT )
-      b1 = 0;
-    else
-      b1 = dGeomGetBody(contacts[i].geom.g1);
-    if( (cat2&CAT_ROBOT)==CAT_ROBOT && (cat1&CAT_ELEMENT)==CAT_ELEMENT )
-      b2 = 0;
-    else
-      b2 = dGeomGetBody(contacts[i].geom.g2);
-      */
-    b1 = ((cat1 & CAT_DYNAMIC)==0) ? 0 : dGeomGetBody(contacts[i].geom.g1);
-    b2 = ((cat2 & CAT_DYNAMIC)==0) ? 0 : dGeomGetBody(contacts[i].geom.g2);
-
-    memcpy(&contacts[i].surface, &sp, sizeof(sp));;
-    dJointID c = dJointCreateContact(physics->get_world(), physics->get_joints(), &contacts[i]);
-    dJointAttach(c, b1, b2);
-  }
-}
+btRigidBody Physics::static_body( btRigidBody::btRigidBodyConstructionInfo(0,NULL,NULL) );
 
 
-/** @name Lua geoms
+
+/** @name Lua collision shapes
  *
- * Lua geoms are not standard class: instances are created using a specific
- * method for each geom each.
+ * Shapes is not a usual class: instances are created using a specific method
+ * for each shape.
  * Instances are not tables with an \e _ud fields be userdata.
  * new_userdata() and get_ptr() are redefined for this purpose.
  *
- * Geoms are duplicated, and thus can be reused and properly collected
- * properly.
+ * @todo Garbage collection, object deletion, ...
+ * @todo Compound shapes
  */
 //@{
 
-class LuaGeom: public LuaClass<dGeomID>
+class LuaShape: public LuaClass<btCollisionShape>
 {
-  static dGeomID *new_userdata(lua_State *L)
+  static btCollisionShape **new_userdata(lua_State *L)
   {
     // check that we use Class:method and not Class.method
     luaL_checktype(L, 1, LUA_TUSERDATA);
-    dGeomID *ud = (dGeomID *)lua_newuserdata(L, sizeof(dGeomID));
+    btCollisionShape **ud = (btCollisionShape **)lua_newuserdata(L, sizeof(btCollisionShape *));
     lua_getfield(L, LUA_REGISTRYINDEX, name);
     lua_setmetatable(L, -2);
     return ud;
   }
 
-  static dGeomID get_ptr(lua_State *L)
+  static btCollisionShape *get_ptr(lua_State *L)
   {
-    return *(dGeomID*)luaL_checkudata(L, 1, name);
+    return *(btCollisionShape **)luaL_checkudata(L, 1, name);
   }
 
   static int _ctor(lua_State *L)
   {
-    return luaL_error(L, "no Geom constructor, use creation methods");
+    return luaL_error(L, "no Shape constructor, use creation methods");
   }
 
   static int sphere(lua_State *L)
   {
-    dGeomID *ud = new_userdata(L);
-    *ud = dCreateSphere(0, LARG_f(2));
+    btCollisionShape **ud = new_userdata(L);
+    *ud = new btSphereShape(LARG_scaled(2));
     return 1;
   }
 
   static int box(lua_State *L)
   {
-    dGeomID *ud = new_userdata(L);
-    *ud = dCreateBox(0, LARG_f(2), LARG_f(3), LARG_f(4));
+    btCollisionShape **ud = new_userdata(L);
+    *ud = new btBoxShape( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
     return 1;
   }
 
-  static int plane(lua_State *L)
+  static int capsuleX(lua_State *L)
   {
-    dGeomID *ud = new_userdata(L);
-    *ud = dCreatePlane(0, LARG_f(2), LARG_f(3), LARG_f(4), LARG_f(5));
+    btCollisionShape **ud = new_userdata(L);
+    *ud = new btCapsuleShapeX(LARG_scaled(2), LARG_scaled(3));
+    return 1;
+  }
+  static int capsuleY(lua_State *L)
+  {
+    btCollisionShape **ud = new_userdata(L);
+    *ud = new btCapsuleShape(LARG_scaled(2), LARG_scaled(3));
+    return 1;
+  }
+  static int capsuleZ(lua_State *L)
+  {
+    btCollisionShape **ud = new_userdata(L);
+    *ud = new btCapsuleShapeZ(LARG_scaled(2), LARG_scaled(3));
     return 1;
   }
 
-  static int capsule(lua_State *L)
+  static int cylinderX(lua_State *L)
   {
-    dGeomID *ud = new_userdata(L);
-    *ud = dCreateCapsule(0, LARG_f(2), LARG_f(3));
+    btCollisionShape **ud = new_userdata(L);
+    *ud = new btCylinderShapeX( btVector3(LARG_scaled(3), LARG_scaled(2), LARG_scaled(2)) );
     return 1;
   }
-
-  static int cylinder(lua_State *L)
+  static int cylinderY(lua_State *L)
   {
-    dGeomID *ud = new_userdata(L);
-    *ud = dCreateCylinder(0, LARG_f(2), LARG_f(3));
+    btCollisionShape **ud = new_userdata(L);
+    *ud = new btCylinderShape( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(2)) );
     return 1;
   }
-
-  static int ray(lua_State *L)
+  static int cylinderZ(lua_State *L)
   {
-    dGeomID *ud = new_userdata(L);
-    *ud = dCreateCapsule(0, LARG_f(2), LARG_f(3));
+    btCollisionShape **ud = new_userdata(L);
+    *ud = new btCylinderShapeZ( btVector3(LARG_scaled(2), LARG_scaled(2), LARG_scaled(3)) );
     return 1;
-  }
-
-
-  static int set_pos(lua_State *L)
-  {
-    dGeomID geom = get_ptr(L);
-    dGeomSetPosition(geom, LARG_f(2), LARG_f(3), LARG_f(4));
-    return 0;
-  }
-
-  static int set_rot(lua_State *L)
-  {
-    dGeomID geom = get_ptr(L);
-    const dQuaternion q = { LARG_f(2), LARG_f(3), LARG_f(4), LARG_f(5) };
-    dGeomSetQuaternion(geom, q);
-    return 0;
   }
 
   // Garbage collector
   static int gc(lua_State *L)
   {
-    dGeomID geom = get_ptr(L);
-    // Don't destroy used geoms (should not happened, just in case)
+    /*TODO
+    btCollisionShape *shape = get_ptr(L);
+    // Don't destroy used geoms (should not happen, just in case)
     if( dGeomGetSpace(geom) == 0 )
       dGeomDestroy( geom );
+      */
     return 0;
   }
 
 public:
-  LuaGeom()
+  LuaShape()
   {
     LUA_REGFUNC(_ctor);
     LUA_REGFUNC(sphere);
     LUA_REGFUNC(box);
-    LUA_REGFUNC(plane);
-    LUA_REGFUNC(capsule);
-    LUA_REGFUNC(cylinder);
-    LUA_REGFUNC(ray);
-    LUA_REGFUNC(set_pos);
-    LUA_REGFUNC(set_rot);
+    LUA_REGFUNC(capsuleX);
+    LUA_REGFUNC(capsuleY);
+    LUA_REGFUNC(capsuleZ);
+    LUA_REGFUNC(cylinderX);
+    LUA_REGFUNC(cylinderY);
+    LUA_REGFUNC(cylinderZ);
     functions.push_back((LuaRegFunc){"__gc", gc});
   }
 };
 
-template<> const char *LuaClass<dGeomID>::name = "Geom";
-static LuaGeom register_LuaGeom;
-template<> const char *LuaClass<dGeomID>::base_name = NULL;
+template<> const char *LuaClass<btCollisionShape>::name = "Shape";
+static LuaShape register_LuaShape;
+template<> const char *LuaClass<btCollisionShape>::base_name = NULL;
 
 //@}
-

@@ -1,11 +1,9 @@
 
 -- Config
 
-config.gravity_z = -0.5
-config.cfm = config.cfm -- CFM depends on ODE precision
+config.gravity_z = -9.81 --XXX
 config.step_dt = 0.002
-config.time_scale =  2
-config.contacts_nb = 5
+config.time_scale =  1
 config.drop_epsilon = 0.001
 
 config.draw_epsilon = 0.0005
@@ -54,15 +52,13 @@ end
 
 trace("------ SCRIPT START ------")
 
-r1 = RBasic(.4, .4, .2, 10)
-r1:init()
+r1 = RBasic(.2, .2, .1, 10)
+r1:add_object()
 r1:set_pos(-(3.0-.5)/2, (2.1-.5)/2)
 
 x,y,z = r1:get_pos()
 trace("R1: "..x..","..y..","..z)
 
-r1:set_dv_max(100);
-r1:set_dav_max(10);
 r1:set_v_max(1.5)
 r1:set_av_max(4)
 r1:set_threshold_xy(0.05)
@@ -71,11 +67,12 @@ r1:set_threshold_a(0.10)
 
 function r1:strategy()
 
+  x,y = self:get_xy()
   t = {
     {  .2,   -1, true },
     {  0,  -.5, false },
     {  1.2, 0, false },
-    { self:get_x(), self:get_y(), false },
+    {  x, y , false },
   }
 
   while true do
@@ -87,7 +84,6 @@ function r1:strategy()
   self:order_stop()
   return
 end
-
 
 dofile("2009.lua")
 

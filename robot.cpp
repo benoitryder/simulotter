@@ -1,5 +1,5 @@
 #include <math.h>
-#include <ode/ode.h>
+#include <GL/freeglut.h>
 
 #include "global.h"
 #include "object.h"
@@ -17,13 +17,6 @@ Robot::Robot()
   this->team = TEAM_INVALID;
 }
 
-void Robot::init()
-{
-  Object::init();
-  set_category(CAT_ROBOT);
-}
-
-
 Robot::~Robot()
 {
   lua_State *L = lm->get_L();
@@ -37,42 +30,41 @@ Robot::~Robot()
     luaL_unref(L, LUA_REGISTRYINDEX, ref_strategy);
 }
 
-void Robot::match_register(unsigned int team)
+void Robot::matchRegister(unsigned int team)
 {
-  if( get_team() != TEAM_INVALID )
+  if( getTeam() != TEAM_INVALID )
     throw(Error("robot is already registered"));
 
   if( match == NULL )
     throw(Error("no match to register the robot in"));
 
-  this->team = match->register_robot(this, team);
+  this->team = match->registerRobot(this, team);
 }
 
 
 void Robot::draw()
 {
-  glColor4fv(match->get_color(team));
+  glColor4fv(match->getColor(team));
   Object::draw();
-  draw_direction();
+  drawDirection();
 }
 
-void Robot::draw_direction()
+void Robot::drawDirection()
 {
-  dReal a[6];
-
   glPushMatrix();
+  drawTransform(m_worldTransform);
 
-  draw_move();
-  get_aabb(a);
-  const dReal *pos = get_pos();
-  glTranslatef(0, 0, a[5]-pos[2]+cfg->draw_direction_r+cfg->draw_epsilon);
-  glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+  btVector3 aabb_min, aabb_max;
+  getAabb(aabb_min, aabb_max);
+
+  btglTranslate(0, 0, aabb_max.getZ()-getPos().getZ()+cfg->draw_direction_r+cfg->draw_epsilon);
+  btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
   glutSolidCone(cfg->draw_direction_r, cfg->draw_direction_h, cfg->draw_div, cfg->draw_div);
 
   glPopMatrix();
 }
 
-void Robot::match_init()
+void Robot::matchInit()
 {
   if( ref_obj == LUA_NOREF )
     return;
@@ -150,43 +142,27 @@ void Robot::strategy()
 }
 
 
-RBasic::RBasic() {}
-
-RBasic::RBasic(dReal lx, dReal ly, dReal lz, dReal m)
+RBasic::RBasic(const btVector3 &halfExtents, btScalar m)
 {
-  add_geom( dCreateBox(0, lx, ly, lz) );
-  set_mass(m);
-}
-
-void RBasic::init()
-{
-  Robot::init();
+  shape = new btBoxShape( halfExtents );
+  setShape(shape);
+  setMass(m);
 
   this->order = ORDER_NONE;
-
-  this->j2D = dJointCreatePlane2D(physics->get_world(), 0);
-  this->jLMotor = dJointCreateLMotor(physics->get_world(), 0);
-  dJointAttach(this->j2D, this->body, 0);
-  dJointAttach(this->jLMotor, this->body, 0);
-  dJointSetLMotorNumAxes(this->jLMotor, 1);
-  // Axis is given in global coordinates
-  // Assumes that robot has not been rotated yet
-  dJointSetLMotorAxis(this->jLMotor, 0, 1, 1.0,0.0,0.0);
 }
 
 RBasic::~RBasic()
 {
-  dJointDestroy(j2D);
-  dJointDestroy(jLMotor);
+  delete shape;
 }
 
 
 void RBasic::do_asserv()
 {
-  // Go back: priority order
+  // Go back: order which have priority
   if( order & ORDER_GO_BACK )
   {
-    if( dist2d(x, y, target_back_x, target_back_y) < threshold_xy )
+    if( distance2(xy, target_back_xy) < threshold_xy )
     {
       set_v(0);
       order &= ~ORDER_GO_BACK;
@@ -201,7 +177,7 @@ void RBasic::do_asserv()
   // Go in position
   if( order & ORDER_GO_XY )
   {
-    if( dist2d(x, y, target_x, target_y) < threshold_xy )
+    if( distance2(xy, target_xy) < threshold_xy )
     {
       set_v(0);
       order &= ~ORDER_GO_XY;
@@ -209,15 +185,15 @@ void RBasic::do_asserv()
     else
     {
       // Aim target point, then move
-      dReal da = norma( atan2(target_y-y, target_x-x) - a );
-      if( absf( da ) < threshold_a )
+      btScalar da = normA( (target_xy-xy).angle() - a );
+      if( btFabs( da ) < threshold_a )
       {
         set_av(0);
         set_v(v_max);
       }
       else
       {
-        set_av(av_max*signf(da));
+        set_av( btFsel(da, av_max, -av_max) );
         set_v(0);
       }
       return;
@@ -227,96 +203,63 @@ void RBasic::do_asserv()
   // Turn
   if( order & ORDER_GO_A )
   {
-    dReal da = norma(target_a-a);
-    if( absf( da ) < threshold_a )
+    btScalar da = normA( target_a-a );
+    if( btFabs( da ) < threshold_a )
     {
       set_av(0);
       order &= ~ORDER_GO_A;
     }
     else
     {
-      set_av(av_max*signf(da));
+      set_av( btFsel(da, av_max, -av_max) );
       return;
     }
   }
 }
 
 
-void RBasic::order_xy(dReal x, dReal y, bool rel)
+void RBasic::order_xy(btVector2 xy, bool rel)
 {
-  LOG->trace("XY  %c %f,%f", rel?'+':'=', x, y);
-  target_x = x;
-  target_y = y;
+  LOG->trace("XY  %c %f,%f", rel?'+':'=', xy.x, xy.y);
+  target_xy = xy;
   if( rel )
-  {
-    target_x += this->x;
-    target_y += this->y;
-  }
+    target_xy += this->xy;
 
   order |= ORDER_GO_XY;
 }
 
-void RBasic::order_a(dReal a, bool rel)
+void RBasic::order_a(btScalar a, bool rel)
 {
   LOG->trace("A  %c %f", rel?'+':'=', a);
   target_a = a;
   if( rel )
     target_a += this->a;
-  target_a = norma(target_a);
+  target_a = normA(target_a);
 
   order |= ORDER_GO_A;
 }
 
-void RBasic::order_back(dReal d)
+void RBasic::order_back(btScalar d)
 {
   LOG->trace("BACK  %f", d);
-  target_back_x = this->x - d*cos(this->a);
-  target_back_y = this->y - d*sin(this->a);
+  target_back_xy = xy - d*btVector2(1,0).rotate(a);
 
   order |= ORDER_GO_BACK;
 }
 
 
-void RBasic::set_dv_max(dReal dv)
-{
-  dMass mass;
-  dBodyGetMass(body, &mass);
-  dJointSetLMotorParam(jLMotor, dParamFMax, dv*mass.mass);
-}
-
-void RBasic::set_dav_max(dReal dav)
-{
-  dMass mass;
-  dBodyGetMass(body, &mass);
-  dJointSetPlane2DAngleParam(j2D, dParamFMax, dav/mass.I[11]);
-}
-
-
 void RBasic::do_update()
 {
-  const dReal *pos = dBodyGetPosition(body);
-  const dReal *vel = dBodyGetLinearVel(body);
-  const dReal *quat_ptr = dBodyGetQuaternion(body);
+  //XXX robot may not be exactly aligned with Z axis
+  xy = this->getPos();
+  const btQuaternion &rot = this->getRot();
+  a = rot.getAngle();
+  if( rot.getZ() < 0 )
+    a = -a;
 
-  // Reset body to Z=0 (cf. ODE manual)
-  dReal quat[4];
-  quat[0] = quat_ptr[0];
-  quat[1] = 0;
-  quat[2] = 0; 
-  quat[3] = quat_ptr[3]; 
-  dReal quat_len = sqrt(quat[0]*quat[0] + quat[3]*quat[3]);
-  quat[0] /= quat_len;
-  quat[3] /= quat_len;
-  dBodySetQuaternion(body, quat);
-
-  av = dBodyGetAngularVel(body)[2];
-  dBodySetAngularVel(body, 0, 0, av);
-  av *= cfg->step_dt;
-
-  x = pos[0];
-  y = pos[1];
-  a = norma(2*acos(quat[0])) * signf(quat[3]);
-  v = sqrt(vel[0]*vel[0] + vel[1]*vel[1]);
+  v = btVector2(this->getLinearVelocity()).length();
+  av = this->getAngularVelocity().getZ();
+  //XXX reset body to Z=0 (?)
 }
 
 
@@ -332,15 +275,23 @@ class LuaRobot: public LuaClass<Robot>
     return 0;
   }
 
-  LUA_DEFINE_GET(get_team)
+  static int get_team(lua_State *L)
+  {
+    unsigned int team = get_ptr(L)->getTeam();
+    if( team == TEAM_INVALID )
+      lua_pushnil(L);
+    else
+      push(L, team);
+    return 1;
+  }
 
   static int match_register(lua_State *L)
   {
     // Default team
     if( lua_isnone(L, 2) )
-      get_ptr(L)->match_register();
+      get_ptr(L)->matchRegister();
     else
-      get_ptr(L)->match_register(LARG_i(2));
+      get_ptr(L)->matchRegister(LARG_i(2));
 
     return 0;
   }
@@ -363,19 +314,7 @@ class LuaRBasic: public LuaClass<RBasic>
     RBasic **ud = new_userdata(L);
     LOG->trace("LuaRBasic: BEGIN [%p]", ud);
 
-    // Empty constructor
-    if( lua_isnone(L, 2) )
-    {
-      LOG->trace("  proto: empty");
-      *ud = new RBasic();
-    }
-    // Box constructor
-    else
-    {
-      LOG->trace("  proto: box");
-      *ud = new RBasic(LARG_f(2), LARG_f(3), LARG_f(4), LARG_f(5));
-    }
-
+    *ud = new RBasic( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)), LARG_f(5));
     lua_pushvalue(L, 1);
     (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
 
@@ -383,48 +322,50 @@ class LuaRBasic: public LuaClass<RBasic>
     return 0;
   }
 
-  LUA_DEFINE_GET(get_x )
-  LUA_DEFINE_GET(get_y )
-  LUA_DEFINE_GET(get_a )
-  LUA_DEFINE_GET(get_v )
-  LUA_DEFINE_GET(get_av)
+  LUA_DEFINE_GETN_SCALED(2, get_xy, get_xy)
+  LUA_DEFINE_GET_SCALED(get_v, get_v)
+  LUA_DEFINE_GET(get_a , get_a)
+  LUA_DEFINE_GET(get_av, get_av)
 
-  LUA_DEFINE_SET1(set_dv_max,       LARG_f)
-  LUA_DEFINE_SET1(set_dav_max,      LARG_f)
-  LUA_DEFINE_SET1(set_v_max,        LARG_f)
-  LUA_DEFINE_SET1(set_av_max,       LARG_f)
-  LUA_DEFINE_SET1(set_threshold_xy, LARG_f)
-  LUA_DEFINE_SET1(set_threshold_a,  LARG_f)
+  LUA_DEFINE_SET1(set_v_max,        set_v_max,        LARG_scaled)
+  LUA_DEFINE_SET1(set_av_max,       set_av_max,       LARG_f)
+  LUA_DEFINE_SET1(set_threshold_xy, set_threshold_xy, LARG_scaled)
+  LUA_DEFINE_SET1(set_threshold_a,  set_threshold_a,  LARG_f)
 
-  LUA_DEFINE_SET3(order_xy,   LARG_f, LARG_f, LARG_bn)
-  LUA_DEFINE_SET2(order_a,    LARG_f, LARG_bn)
-  LUA_DEFINE_SET4(order_xya,  LARG_f, LARG_f, LARG_f, LARG_bn)
-  LUA_DEFINE_SET1(order_back, LARG_f)
-  LUA_DEFINE_SET0(order_stop)
+  static int order_xy(lua_State *L)
+  {
+    get_ptr(L)->order_xy( btVector2(LARG_scaled(2), LARG_scaled(3)), LARG_bn(4) );
+    return 0;
+  }
+  static int order_xya(lua_State *L)
+  {
+    get_ptr(L)->order_xya( btVector2(LARG_scaled(2), LARG_scaled(3)), LARG_f(4), LARG_bn(5) );
+    return 0;
+  }
+  LUA_DEFINE_SET2(order_a,    order_a,    LARG_f, LARG_bn)
+  LUA_DEFINE_SET1(order_back, order_back, LARG_scaled)
+  LUA_DEFINE_SET0(order_stop, order_stop)
 
-  LUA_DEFINE_GET(is_waiting)
+  LUA_DEFINE_GET(is_waiting, is_waiting)
 
 public:
   LuaRBasic()
   {
     LUA_REGFUNC(_ctor);
 
-    LUA_REGFUNC(get_x);
-    LUA_REGFUNC(get_y);
-    LUA_REGFUNC(get_a);
+    LUA_REGFUNC(get_xy);
     LUA_REGFUNC(get_v);
+    LUA_REGFUNC(get_a);
     LUA_REGFUNC(get_av);
 
-    LUA_REGFUNC(set_dv_max);
-    LUA_REGFUNC(set_dav_max);
     LUA_REGFUNC(set_v_max);
     LUA_REGFUNC(set_av_max);
     LUA_REGFUNC(set_threshold_xy);
     LUA_REGFUNC(set_threshold_a);
 
     LUA_REGFUNC(order_xy);
-    LUA_REGFUNC(order_a);
     LUA_REGFUNC(order_xya);
+    LUA_REGFUNC(order_a);
     LUA_REGFUNC(order_back);
     LUA_REGFUNC(order_stop);
 
