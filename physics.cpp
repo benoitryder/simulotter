@@ -69,14 +69,6 @@ void Physics::step()
 }
 
 
-void Physics::addObject(Object *obj)
-{
-  if( !obj->isInitialized() )
-    throw Error("Physics::addObject(): object is not initialized");
-  world->addRigidBody(obj);
-  objs.push_back(obj);
-}
-
 btRigidBody Physics::static_body( btRigidBody::btRigidBodyConstructionInfo(0,NULL,NULL) );
 
 

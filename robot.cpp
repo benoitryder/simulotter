@@ -268,6 +268,20 @@ void RBasic::do_update()
 }
 
 
+inline void RBasic::set_v(btScalar v)
+{
+  btVector2 vxy = btVector2(v,0).rotate(a);
+  this->setLinearVelocity( btVector3(vxy.x, vxy.y,
+        this->getLinearVelocity().z()) );
+}
+
+inline void RBasic::set_av(btScalar v)
+{
+  this->setAngularVelocity( btVector3(0,0,v) );
+}
+
+
+
 class LuaRobot: public LuaClass<Robot>
 {
   static int _ctor(lua_State *L)

@@ -115,12 +115,8 @@ protected:
  *
  * A robot with a simple asserv.
  *
- * @note Asserv moves the robot by setting velocity (including Z-velocity) at
- * each step using set_v() which may cause odd behaviors.
- *  - The robot will not drop to the ground and should be properly positionned
- *    above the ground (using <tt>setPos(btVector2)</tt> for instance).
- *  - If an object is blocked against a wall by the robot it will be applied a
- *    very strong force and be thrown away at high speed.
+ * @note Asserv moves the robot by setting velocity at each step (using
+ * set_v()) which may cause odd behaviors.
  */
 class RBasic: public Robot
 {
@@ -214,8 +210,8 @@ protected:
 
   unsigned int order;
 
-  void set_v(btScalar v)  { this->setLinearVelocity( btVector2(v,0).rotate(a) ); }
-  void set_av(btScalar v) { this->setAngularVelocity( btVector3(0,0,v) ); }
+  void set_v(btScalar v);
+  void set_av(btScalar v);
 
   /// Asserv position threshold
   btScalar threshold_xy;

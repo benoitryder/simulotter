@@ -137,44 +137,63 @@ namespace eurobot2009
 
 
 
-  const btScalar RORobot::radius = scale(0.150);
-  const btScalar RORobot::height = scale(0.200);
+  const btScalar RORobot::height   = scale(0.200);
+  const btScalar RORobot::side     = scale(0.110);
+  const btScalar RORobot::r_wheel  = scale(0.025);
+  const btScalar RORobot::h_wheel  = scale(0.020);
+  const btScalar RORobot::w_pachev = scale(0.080);
+  const btScalar RORobot::h_pachev = scale(0.140);
+
+  const btScalar RORobot::d_side   = ( side + 2*r_wheel ) / btSqrt(3);
+  const btScalar RORobot::d_wheel  = ( r_wheel + 2*side ) / btSqrt(3);
+  const btScalar RORobot::a_side   = 2*btAtan2( side,    d_side  );
+  const btScalar RORobot::a_wheel  = 2*btAtan2( r_wheel, d_wheel );
+  const btScalar RORobot::radius   = btSqrt(side*side+d_side*d_side);
+
   btCompoundShape RORobot::shape;
   btConvexHullShape RORobot::body_shape;
-  btBoxShape RORobot::wheel_shape(scale(btVector3(0.015,0.040,0.040)));//TODO
+  btBoxShape RORobot::wheel_shape( btVector3(h_wheel/2,r_wheel,r_wheel) );
+  btBoxShape RORobot::pachev_shape( 0.5*btVector3(w_pachev,w_pachev,h_pachev) );
 
   RORobot::RORobot(btScalar m)
   {
+    LOG->trace("d_wheel: %f, d_side: %f, radius: %f\n", d_wheel, d_side, radius);
+    LOG->trace("dw: %f , ds: %f\n",
+        btSqrt(side*side+d_side*d_side),
+        btSqrt(r_wheel*r_wheel+d_wheel*d_wheel)
+        );
     // First instance: initialize shape
     if( shape.getNumChildShapes() == 0 )
     {
-      // Hexagonal body
+      // Triangular body
       if( body_shape.getNumPoints() == 0 )
       {
-        btVector2 p = btVector2(radius,0).rotate(M_PI/6);
-        for( int i=0; i<6; i++ )
+        btVector2 p = btVector2(radius,0).rotate(-a_wheel/2);
+        for( int i=0; i<3; i++ )
         {
           body_shape.addPoint( btVector3(p.x,p.y,+height/2) );
           body_shape.addPoint( btVector3(p.x,p.y,-height/2) );
-          p = p.rotate(M_PI/3);
+          p = p.rotate(a_wheel);
+          body_shape.addPoint( btVector3(p.x,p.y,+height/2) );
+          body_shape.addPoint( btVector3(p.x,p.y,-height/2) );
+          p = p.rotate(a_side);
         }
       }
       shape.addChildShape(btTransform::getIdentity(), &body_shape);
 
       // Wheels (use boxes instead of cylinders)
-      const btVector3 &wheel_size = wheel_shape.getHalfExtentsWithMargin();
       btTransform tr = btTransform::getIdentity();
-      btVector2 vw( radius*cos(M_PI/6) + wheel_size.x(), 0 );
-      tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - wheel_size.y())) );
+      btVector2 vw( d_wheel+h_wheel/2, 0 );
+      tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - r_wheel)) );
       shape.addChildShape(tr, &wheel_shape);
 
       vw = vw.rotate(2*M_PI/3);
-      tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - wheel_size.y())) );
+      tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - r_wheel)) );
       tr.setRotation( btQuaternion(btVector3(0,0,1), 2*M_PI/3) );
       shape.addChildShape(tr, &wheel_shape);
 
       vw = vw.rotate(-4*M_PI/3);
-      tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - wheel_size.y())) );
+      tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - r_wheel)) );
       tr.setRotation( btQuaternion(btVector3(0,0,1), -2*M_PI/3) );
       shape.addChildShape(tr, &wheel_shape);
     }
@@ -182,17 +201,51 @@ namespace eurobot2009
     setShape( &shape );
     setMass(m);
 
-    btVector3 min,max;
-    getAabb(min,max);
+
+    // Pàchev
+    btVector3 pachev_inertia;
+    pachev_shape.calculateLocalInertia(0.01, pachev_inertia);
+    pachev = new btRigidBody( btRigidBodyConstructionInfo(0.01,NULL,&pachev_shape,pachev_inertia) );
+    btTransform tr_pachev;
+    tr_pachev.setIdentity();
+    tr_pachev.setOrigin( scale(btVector3(-d_side-w_pachev/2, 0, h_pachev/2)) );
+
+    btTransform tr_a, tr_b;
+    tr_a.setIdentity();
+    tr_b.setIdentity();
+    tr_a.getBasis().setEulerZYX(0, -M_PI_2, 0);
+    tr_b.getBasis().setEulerZYX(0, -M_PI_2, 0);
+    tr_a.setOrigin( btVector3(-d_side, 0, -height/2) );
+    tr_b.setOrigin( scale(btVector3(0.04, 0, -h_pachev/2)) );
+    pachev_link = new btSliderConstraint(*this, *pachev, tr_a, tr_b, true);
+    pachev_link->setLowerLinLimit( scale(0.050) );//XXX
+    pachev_link->setUpperLinLimit( scale(0.050) );//XXX
+    pachev_link->setLowerAngLimit(0);
+    pachev_link->setUpperAngLimit(0);
   }
 
   RORobot::~RORobot()
   {
+    //TODO remove elements from the world
+    delete pachev;
+    delete pachev_link;
   }
+
+  void RORobot::addToWorld(Physics *physics)
+  {
+    Robot::addToWorld(physics);
+    physics->getWorld()->addRigidBody(pachev);
+    physics->getWorld()->addConstraint(pachev_link, true);
+  }
+
 
   void RORobot::draw()
   {
     glColor4fv(match->getColor(getTeam()));
+
+    //XXX draw the pachev
+    Object::drawShape(pachev->getCenterOfMassTransform(), &pachev_shape);
+    
     glPushMatrix();
     drawTransform();
 
@@ -207,16 +260,27 @@ namespace eurobot2009
 
     glBegin(GL_QUADS);
 
-    v = btVector2(1,0).rotate(M_PI/6);
+    v = btVector2(1,0).rotate(-a_wheel/2);
     btVector2 n(1,0); // normal vector
-    for( int i=0; i<6; i++ )
+    for( int i=0; i<3; i++ )
     {
-      n = n.rotate(M_PI/3);
+      // wheel side
       btglNormal3(n.x, n.y, 0.0);
+      n = n.rotate(M_PI/3);
 
       btglVertex3(v.x, v.y, 0.0);
       btglVertex3(v.x, v.y, 1.0);
-      v = v.rotate(M_PI/3);
+      v = v.rotate(a_wheel);
+      btglVertex3(v.x, v.y, 1.0);
+      btglVertex3(v.x, v.y, 0.0);
+
+      // triangle side
+      btglNormal3(n.x, n.y, 0.0);
+      n = n.rotate(M_PI/3);
+
+      btglVertex3(v.x, v.y, 0.0);
+      btglVertex3(v.x, v.y, 1.0);
+      v = v.rotate(a_side);
       btglVertex3(v.x, v.y, 1.0);
       btglVertex3(v.x, v.y, 0.0);
     }
@@ -226,50 +290,53 @@ namespace eurobot2009
     // Bottom
     glBegin(GL_POLYGON);
     btglNormal3(0.0, 0.0, -1.0);
-    v = btVector2(1,0).rotate(M_PI/6);
-    for( int i=0; i<6; i++ )
+    v = btVector2(1,0).rotate(-a_wheel/2);
+    for( int i=0; i<3; i++ )
     {
       btglVertex3(v.x, v.y, 0.0);
-      v = v.rotate(M_PI/3);
+      v = v.rotate(a_wheel);
+      btglVertex3(v.x, v.y, 0.0);
+      v = v.rotate(a_side);
     }
     glEnd();
 
     // Top
     glBegin(GL_POLYGON);
     btglNormal3(0.0, 0.0, 1.0);
-    v = btVector2(1,0).rotate(M_PI/6);
-    for( int i=0; i<6; i++ )
+    v = btVector2(1,0).rotate(-a_wheel/2);
+    for( int i=0; i<3; i++ )
     {
       btglVertex3(v.x, v.y, 1.0);
-      v = v.rotate(M_PI/3);
+      v = v.rotate(a_wheel);
+      btglVertex3(v.x, v.y, 1.0);
+      v = v.rotate(a_side);
     }
     glEnd();
 
     glPopMatrix();
 
     // Wheels (box shapes, but drawn using cylinders)
-    const btVector3 &wheel_size = wheel_shape.getHalfExtentsWithMargin();
-    btglTranslate(0, 0, wheel_size.y());
+    btglTranslate(0, 0, r_wheel);
     btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
-    btVector2 vw( radius*btCos(M_PI/6), 0 );
+    btVector2 vw( d_wheel, 0 );
 
     glPushMatrix();
     btglTranslate(0, vw.y, vw.x);
-    glutSolidCylinder(wheel_size.y(), 2*wheel_size.x(), cfg->draw_div, cfg->draw_div);
+    glutSolidCylinder(r_wheel, h_wheel, cfg->draw_div, cfg->draw_div);
     glPopMatrix();
 
     glPushMatrix();
     vw = vw.rotate(2*M_PI/3);
     btglTranslate(0, vw.y, vw.x);
     btglRotate(-120.0f, 1.0f, 0.0f, 0.0f);
-    glutSolidCylinder(wheel_size.y(), 2*wheel_size.x(), cfg->draw_div, cfg->draw_div);
+    glutSolidCylinder(r_wheel, h_wheel, cfg->draw_div, cfg->draw_div);
     glPopMatrix();
 
     glPushMatrix();
     vw = vw.rotate(-4*M_PI/3);
     btglTranslate(0, vw.y, vw.x);
     btglRotate(120.0f, 1.0f, 0.0f, 0.0f);
-    glutSolidCylinder(wheel_size.y(), 2*wheel_size.x(), cfg->draw_div, cfg->draw_div);
+    glutSolidCylinder(r_wheel, h_wheel, cfg->draw_div, cfg->draw_div);
     glPopMatrix();
 
     glPopMatrix();
@@ -277,6 +344,15 @@ namespace eurobot2009
     drawDirection();
   }
 
+  void RORobot::do_update()
+  {
+    /*XXX
+    btTransform tr = pachev->getCenterOfMassTransform();
+    tr.setBasis(this->m_worldTransform.getBasis());
+    pachev->setWorldTransform(tr);
+    */
+    RBasic::do_update();
+  }
 
 
   class LuaOColElem: public LuaClass<OColElem>

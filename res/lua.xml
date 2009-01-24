@@ -101,7 +101,7 @@
       <return type="float"/>
     </function>
 
-    <function name="set_rot">
+    <function name="get_rot">
       Return rotation quaternion (a, b, c, w).
       <return type="float"/>
       <return type="float"/>
@@ -122,6 +122,17 @@
       <arg name="b" type="float"/>
       <arg name="c" type="float"/>
       <arg name="w" type="float"/>
+    </function>
+
+    <function name="set_rot">
+      Set rotation from Euler angles.
+      <arg name="z" type="float"/>
+      <arg name="y" type="float"/>
+      <arg name="x" type="float"/>
+    </function>
+
+    <function name="add_to_world">
+      Add an object in a physical world.
     </function>
 
   </class>

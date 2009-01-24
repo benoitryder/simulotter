@@ -25,7 +25,17 @@ void Object::setMass(btScalar mass)
     getCollisionShape()->calculateLocalInertia(mass, inertia);
 
   setMassProps(mass, inertia);
+  updateInertiaTensor();
 }
+
+void Object::addToWorld(Physics *physics)
+{
+  if( !isInitialized() )
+    throw(Error("object must be initialized to be added to a world"));
+  physics->getWorld()->addRigidBody(this);
+  physics->getObjs().push_back(this);
+}
+
 
 void Object::setPos(const btVector2 &pos)
 {
@@ -234,14 +244,20 @@ class LuaObject: public LuaClass<Object>
 
   static int set_rot(lua_State *L)
   {
-    get_ptr(L)->setRot( btQuaternion(LARG_f(2), LARG_f(3), LARG_f(4)) );
+    if( lua_isnone(L, 4) )
+#ifdef BT_EULER_DEFAULT_ZYX
+      get_ptr(L)->setRot( btQuaternion(LARG_f(2), LARG_f(3), LARG_f(4)) );
+#else
+      get_ptr(L)->setRot( btQuaternion(LARG_f(4), LARG_f(2), LARG_f(3)) );
+#endif
+    else
+      get_ptr(L)->setRot( btQuaternion(LARG_f(2), LARG_f(3), LARG_f(4), LARG_f(5)) );
     return 0;
   }
 
-  //XXX This is a temporary function
-  static int add_object(lua_State *L)
+  static int add_to_world(lua_State *L)
   {
-    physics->addObject(get_ptr(L));
+    get_ptr(L)->addToWorld(physics);
     return 0;
   }
 
@@ -256,7 +272,7 @@ public:
     LUA_REGFUNC(get_rot);
     LUA_REGFUNC(set_pos);
     LUA_REGFUNC(set_rot);
-    LUA_REGFUNC(add_object);
+    LUA_REGFUNC(add_to_world);
   }
 };
 

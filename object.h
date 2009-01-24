@@ -5,6 +5,8 @@
 #include <vector>
 #include "global.h"
 
+class Physics;
+
 
 ///@file
 
@@ -24,6 +26,7 @@ public:
    * afterwards.
    */
   Object();
+  Object(const btRigidBodyConstructionInfo &info): btRigidBody(info) {}//XXX-debug
 
   virtual ~Object() {}
 
@@ -44,6 +47,18 @@ public:
    * @note Object shape must be set before calling this function.
    */
   void setMass(btScalar mass);
+
+  /** @brief Add an object in a physics world.
+   *
+   * Object is added to the Bullet world and to the physics object array.
+   *
+   * This function may be reimplemented if an object uses elements such as
+   * constraints that need to be added to, but it should call this parent
+   * function.
+   *
+   * Object has to be initialized before being added to a world.
+   */
+  virtual void addToWorld(Physics *physics);
 
   bool isInitialized() { return getCollisionShape() != NULL; }
 
@@ -69,6 +84,7 @@ public:
   void setPos(const btVector2 &pos);
   /** @brief Set object rotation
    * @todo Change <tt>m_interpolation*</tt> too?
+   * @todo Call updateInertiaTensor() ?
    */
   void setRot(const btQuaternion &rot) { m_worldTransform.setRotation(rot); }
 

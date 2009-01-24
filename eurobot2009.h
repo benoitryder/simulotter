@@ -95,13 +95,19 @@ namespace eurobot2009
   };
 
 
-  /// Rob'Otter robot
+  /** @brief Rob'Otter robot
+   *
+   * Triangular holonomic robot with a so called <em>pàchev</em> (<em>pince à
+   * cheveux</em>, means <em>hair grip</em>) to carry column elements.
+   */
   class RORobot: public RBasic //XXX
   {
   friend class LuaRORobot;
   public:
     RORobot(btScalar m);
     virtual ~RORobot();
+
+    virtual void addToWorld(Physics *physics);
 
     /** @brief Draw the robot
      *
@@ -110,14 +116,29 @@ namespace eurobot2009
      */
     void draw();
 
-    /// Distance from the center to a corner
-    static const btScalar radius;
+    virtual void do_update();
+
     static const btScalar height;
+    static const btScalar side;     ///< triangle side half size
+    static const btScalar r_wheel;  ///< wheel radius
+    static const btScalar h_wheel;  ///< wheel height (when laid flat)
+    static const btScalar w_pachev; ///< pàchev width
+    static const btScalar h_pachev; ///< pàchev height
+
+    static const btScalar d_side;   ///< distance center/triangle side
+    static const btScalar d_wheel;  ///< distance center/wheel side
+    static const btScalar a_side;   ///< center angle of triangle side
+    static const btScalar a_wheel;  ///< center angle of wheel side
+    static const btScalar radius;   ///< outer circle radius
 
   private:
     static btCompoundShape shape;
     static btConvexHullShape body_shape;
     static btBoxShape wheel_shape;
+    static btBoxShape pachev_shape;
+
+    btRigidBody *pachev;
+    btSliderConstraint *pachev_link;
   };
 }
 

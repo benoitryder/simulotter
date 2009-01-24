@@ -28,14 +28,6 @@ public:
 
   btDynamicsWorld *getWorld() { return this->world; }
 
-  /** @brief Add an object to the simulation
-   *
-   * The function will fail if the object is not initialized.
-   *
-   * @todo Allow to use <tt>addRigidBody(body,mask,mask)</tt>
-   */
-  void addObject(Object *obj);
-
   std::vector<Object*> &getObjs() { return this->objs; }
 
   /// Common static rigid body for constraints

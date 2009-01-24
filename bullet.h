@@ -47,5 +47,4 @@ template<typename T> T scale(T t) { return t / BULLET_SCALE; }
 /// Scale from Bullet units to user units
 template<typename T> T unscale(T t) { return t * BULLET_SCALE; }
 
-
 #endif
