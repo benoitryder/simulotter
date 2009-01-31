@@ -17,7 +17,7 @@ Match::Match(const Color4 colors[], unsigned int team_nb, int duration)
   this->team_nb = team_nb;
   this->colors = new Color4[team_nb];
   for( unsigned int i=0; i<team_nb; i++ )
-    COLOR_COPY(this->colors[i], colors[i]);
+    this->colors[i] = colors[i];
 }
 
 Match::~Match()

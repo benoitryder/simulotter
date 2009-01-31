@@ -77,45 +77,6 @@ int main(int argc, char **argv)
     LOG->trace("init match");
     match->init();
 
-    /*XXX-debug
-     */
-    if(0){
-      // add box shape (will be reused for all bodies)
-      btCollisionShape *shape = new btBoxShape(scale(btVector3(0.1,0.1,0.1)));
-      btVector3 localInertia(0,0,0);
-      shape->calculateLocalInertia(1.0,localInertia);
-
-      // add dynamic rigid body A1
-      Object *o1 = new Object();
-      o1->setShape(shape);
-      o1->setMass(1.0);
-      o1->setPos( scale(btVector3(-0.5,0,1)) );
-      o1->addToWorld(physics);
-
-      // add dynamic rigid body B1
-      Object *o2 = new Object();
-      o2->setShape(shape);
-      o2->setMass(1.0);
-      o2->setPos( scale(btVector3(0.5,0,1)) );
-      o2->addToWorld(physics);
-
-      // create slider constraint between A1 and B1 and add it to world
-      btTransform frameInA, frameInB;
-      frameInA = btTransform::getIdentity();
-      frameInB = btTransform::getIdentity();
-
-      btSliderConstraint *slider = new btSliderConstraint(*o1, *o2, frameInA, frameInB, true);
-      slider->setLowerLinLimit( scale(-0.5) );
-      slider->setUpperLinLimit( scale(+0.5) );
-      slider->setLowerAngLimit(1);
-      slider->setUpperAngLimit(0);
-
-      physics->getWorld()->addConstraint(slider, false);
-
-      o2->setLinearVelocity( scale(btVector3(0,1,2)) );
-    }
-
-
 
     LOG->trace("init robots");
     std::map<unsigned int,Robot*> &robots = match->getRobots();

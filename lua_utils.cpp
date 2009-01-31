@@ -48,7 +48,7 @@ void LuaManager::do_file(const char *filename)
 }
 
 
-int LuaManager::tocolor(lua_State *L, int index, Color4 c)
+int LuaManager::tocolor(lua_State *L, int index, Color4 &c)
 {
   // If index is relative to the top, get the absolute position
   if( index < 0 )
@@ -91,16 +91,16 @@ int LuaManager::tocolor(lua_State *L, int index, Color4 c)
       lua_pushstring(L, "invalid color component value");
       return 1;
     }
-    c[i] = f;
+    c.rgba[i] = f;
     lua_pop(L, 1);
   }
   if( n < 4 )
-    c[3] = 1.0f;
+    c.rgba[3] = 1.0f;
 
   return 0;
 }
 
-void LuaManager::checkcolor(lua_State *L, int narg, Color4 c)
+void LuaManager::checkcolor(lua_State *L, int narg, Color4 &c)
 {
   int ret = tocolor(L, narg, c);
   if( ret != 0 )

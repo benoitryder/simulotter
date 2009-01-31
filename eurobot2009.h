@@ -102,7 +102,7 @@ namespace eurobot2009
    */
   class RORobot: public RBasic //XXX
   {
-  friend class LuaRORobot;
+    friend class LuaRORobot;
   public:
     RORobot(btScalar m);
     virtual ~RORobot();
@@ -116,14 +116,32 @@ namespace eurobot2009
      */
     void draw();
 
-    virtual void do_update();
+    void do_asserv();
+
+    /** @name Strategy functions and orders
+     */
+    //@{
+    btScalar get_pachev_pos() const { return pachev_link->getLinearPos(); }
+
+    void order_pachev_move(btScalar h);
+    void order_pachev_release();
+    void order_pachev_grab();
+
+    btScalar target_pachev_pos;
+
+    enum {
+      ORDER_PACHEV_MOVE = 0x100,
+    };
+
+    void set_pachev_v(btScalar v)  { this->pachev_v  = v; }
+    void set_threshold_pachev(btScalar t) { this->threshold_pachev = t; }
+
+    //@}
 
     static const btScalar height;
     static const btScalar side;     ///< triangle side half size
     static const btScalar r_wheel;  ///< wheel radius
     static const btScalar h_wheel;  ///< wheel height (when laid flat)
-    static const btScalar w_pachev; ///< pàchev width
-    static const btScalar h_pachev; ///< pàchev height
 
     static const btScalar d_side;   ///< distance center/triangle side
     static const btScalar d_wheel;  ///< distance center/wheel side
@@ -135,10 +153,58 @@ namespace eurobot2009
     static btCompoundShape shape;
     static btConvexHullShape body_shape;
     static btBoxShape wheel_shape;
-    static btBoxShape pachev_shape;
 
-    btRigidBody *pachev;
+    friend class Pachev;
+    /** @brief Pàchev body class
+     * A dedicated class is defined to override collision check.
+     */
+    class Pachev: public btRigidBody
+    {
+      friend class RORobot;
+    public:
+      Pachev(RORobot *robot);
+      ~Pachev();
+
+      /** @brief Pàchev collision check
+       *
+       * Collision depends on pachev state:
+       *  - relaxed: objects near the pàchev axis (whichever its z
+       * position) does not collide;
+       *  - grab: inside objects are constrained;
+       *  - eject: special constraint.
+       *
+       * Checks assume that the dispenser is not rotated (pàchev axis aligned
+       * with Z axis).
+       *
+       * @todo Eject state.
+       */
+      virtual bool checkCollideWithOverride(btCollisionObject *co);
+
+      static const btScalar width;
+      static const btScalar height;
+      static const btScalar z_max; ///< Maximum Z position
+    private:
+      static btBoxShape shape;
+      RORobot *robot;
+    };
+
+    Pachev *pachev;
     btSliderConstraint *pachev_link;
+
+    /// Pachev states
+    typedef enum
+    {
+      PACHEV_RELEASE,
+      PACHEV_GRAB,
+      PACHEV_EJECT
+    } PachevState;
+
+    PachevState pachev_state;
+
+    /// Pàchev slider velocity
+    btScalar pachev_v;
+    /// Asserv pàchev threshold
+    btScalar threshold_pachev;
   };
 }
 

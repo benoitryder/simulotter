@@ -55,7 +55,7 @@ public:
   std::map<unsigned int, Robot*> &getRobots() { return robots; }
 
   /// Get color of a given team
-  const GLfloat *getColor(unsigned int team) const { return colors[team]; }
+  const Color4 getColor(unsigned int team) const { return colors[team]; }
 
   /** @brief Initialize the match
    *

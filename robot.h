@@ -128,7 +128,7 @@ public:
    *
    * Create a default box robot with given size and mass.
    */
-  RBasic::RBasic(const btVector3 &halfExtents, btScalar m);
+  RBasic(const btVector3 &halfExtents, btScalar m);
 
   ~RBasic();
 
@@ -201,10 +201,10 @@ protected:
    */
   enum
   {
-    ORDER_NONE    =  0,
-    ORDER_GO_XY   =  1,  // Position order
-    ORDER_GO_A    =  2,  // Angle order
-    ORDER_GO_BACK =  4,  // Go back
+    ORDER_NONE    =  0x0,
+    ORDER_GO_XY   =  0x1,  // Position order
+    ORDER_GO_A    =  0x2,  // Angle order
+    ORDER_GO_BACK =  0x4,  // Go back
   };
 
 

@@ -26,7 +26,7 @@ public:
    * afterwards.
    */
   Object();
-  Object(const btRigidBodyConstructionInfo &info): btRigidBody(info) {}//XXX-debug
+  Object(const btRigidBodyConstructionInfo &info): btRigidBody(info) {}
 
   virtual ~Object() {}
 
@@ -110,7 +110,7 @@ class ObjectColor: public Object
 public:
   ObjectColor(): Object() {}
 
-  void setColor(Color4 color) { COLOR_COPY(this->color, color); }
+  void setColor(const Color4 &color) { this->color = color; }
   virtual void draw() { glColor4fv(color); Object::draw(); }
 
 protected:
@@ -138,7 +138,7 @@ public:
    *
    * @note Only the first 3 color values are used.
    */
-  OGround(const Color4 color, const Color4 color_t1, const Color4 color_t2);
+  OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2);
   ~OGround();
 
   virtual void draw();

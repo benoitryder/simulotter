@@ -44,7 +44,8 @@ void Robot::matchRegister(unsigned int team)
 
 void Robot::draw()
 {
-  glColor4fv(match->getColor(team));
+  // Use a darker color to constrat with game elements
+  glColor4fv(match->getColor(team) * 0.5);
   Object::draw();
   drawDirection();
 }
@@ -144,6 +145,7 @@ void Robot::strategy()
 
 RBasic::RBasic()
 {
+  this->shape = NULL;
   this->order = ORDER_NONE;
 }
 
@@ -158,7 +160,8 @@ RBasic::RBasic(const btVector3 &halfExtents, btScalar m)
 
 RBasic::~RBasic()
 {
-  delete shape;
+  if( shape != NULL )
+    delete shape;
 }
 
 
@@ -264,7 +267,6 @@ void RBasic::do_update()
 
   v = btVector2(this->getLinearVelocity()).length();
   av = this->getAngularVelocity().getZ();
-  //XXX reset body to Z=0 (?)
 }
 
 

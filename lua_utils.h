@@ -35,12 +35,12 @@ public:
    * @retval  0  color is valid
    * @retval  1  invalid color, error message has been pushed on the stack
    */
-  static int tocolor(lua_State *L, int index, Color4 c);
+  static int tocolor(lua_State *L, int index, Color4 &c);
 
   /** @brief Check whether a given argument is a color and get it
    * @sa tocolor
    */
-  static void checkcolor(lua_State *L, int narg, Color4 c);
+  static void checkcolor(lua_State *L, int narg, Color4 &c);
 
   /** @brief Check whether a given argument is a table of userdata
    *
@@ -171,7 +171,7 @@ public:
   static void push(lua_State *L, unsigned int    n) { lua_pushinteger(L, n); }
   static void push(lua_State *L, unsigned long   n) { lua_pushinteger(L, n); }
   static void push(lua_State *L, const btVector2 &v) { lua_pushnumber(L, v.x); lua_pushnumber(L, v.y); }
-  static void push(lua_State *L, const Color4 c)
+  static void push(lua_State *L, const Color4 &c)
   {
     lua_createtable(L, 0, 4);
     for( int i=0; i<4; i++ )

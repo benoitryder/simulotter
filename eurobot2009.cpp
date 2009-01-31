@@ -32,7 +32,7 @@ namespace eurobot2009
   ODispenser::ODispenser()
   {
     setShape( &shape );
-    setColor((Color4)COLOR_PLEXI);
+    setColor(COLOR_PLEXI);
     m_checkCollideWith = true;
   }
 
@@ -108,7 +108,7 @@ namespace eurobot2009
     }
 
     setShape( &shape );
-    setColor((Color4)COLOR_BLACK);
+    setColor(Color4::black());
   }
 
   void OLintelStorage::setPos(btScalar d, int side)
@@ -141,8 +141,9 @@ namespace eurobot2009
   const btScalar RORobot::side     = scale(0.110);
   const btScalar RORobot::r_wheel  = scale(0.025);
   const btScalar RORobot::h_wheel  = scale(0.020);
-  const btScalar RORobot::w_pachev = scale(0.080);
-  const btScalar RORobot::h_pachev = scale(0.140);
+  const btScalar RORobot::Pachev::width  = scale(0.080);
+  const btScalar RORobot::Pachev::height = scale(0.140);
+  const btScalar RORobot::Pachev::z_max  = scale(0.080);
 
   const btScalar RORobot::d_side   = ( side + 2*r_wheel ) / btSqrt(3);
   const btScalar RORobot::d_wheel  = ( r_wheel + 2*side ) / btSqrt(3);
@@ -153,7 +154,7 @@ namespace eurobot2009
   btCompoundShape RORobot::shape;
   btConvexHullShape RORobot::body_shape;
   btBoxShape RORobot::wheel_shape( btVector3(h_wheel/2,r_wheel,r_wheel) );
-  btBoxShape RORobot::pachev_shape( 0.5*btVector3(w_pachev,w_pachev,h_pachev) );
+  btBoxShape RORobot::Pachev::shape( 0.5*btVector3(width,width,height) );
 
   RORobot::RORobot(btScalar m)
   {
@@ -203,12 +204,10 @@ namespace eurobot2009
 
 
     // Pàchev
-    btVector3 pachev_inertia;
-    pachev_shape.calculateLocalInertia(0.01, pachev_inertia);
-    pachev = new btRigidBody( btRigidBodyConstructionInfo(0.01,NULL,&pachev_shape,pachev_inertia) );
+    pachev = new Pachev(this);
     btTransform tr_pachev;
     tr_pachev.setIdentity();
-    tr_pachev.setOrigin( scale(btVector3(-d_side-w_pachev/2, 0, h_pachev/2)) );
+    tr_pachev.setOrigin( scale(btVector3(-d_side-Pachev::width/2, 0, Pachev::height/2)) );
 
     btTransform tr_a, tr_b;
     tr_a.setIdentity();
@@ -216,12 +215,19 @@ namespace eurobot2009
     tr_a.getBasis().setEulerZYX(0, -M_PI_2, 0);
     tr_b.getBasis().setEulerZYX(0, -M_PI_2, 0);
     tr_a.setOrigin( btVector3(-d_side, 0, -height/2) );
-    tr_b.setOrigin( scale(btVector3(0.04, 0, -h_pachev/2)) );
+    tr_b.setOrigin( btVector3(scale(0.04), 0, -Pachev::height/2) );
     pachev_link = new btSliderConstraint(*this, *pachev, tr_a, tr_b, true);
-    pachev_link->setLowerLinLimit( scale(0.050) );//XXX
-    pachev_link->setUpperLinLimit( scale(0.050) );//XXX
     pachev_link->setLowerAngLimit(0);
     pachev_link->setUpperAngLimit(0);
+
+    pachev_link->setPoweredLinMotor(true);
+    pachev_link->setTargetLinMotorVelocity(0);
+    // always move at full speed: do not limit acceleration
+    pachev_link->setMaxLinMotorForce(scale(100));
+    pachev_link->setLowerLinLimit(0);
+    pachev_link->setUpperLinLimit(0);
+
+    pachev_state = PACHEV_RELEASE;
   }
 
   RORobot::~RORobot()
@@ -231,6 +237,69 @@ namespace eurobot2009
     delete pachev_link;
   }
 
+  RORobot::Pachev::Pachev(RORobot *robot):
+    btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL))
+  {
+    btVector3 inertia;
+    shape.calculateLocalInertia(0.01, inertia);
+    setupRigidBody( btRigidBodyConstructionInfo(0.01,NULL,&shape,inertia) );
+    this->robot = robot;
+  }
+
+  RORobot::Pachev::~Pachev()
+  {
+    //TODO remove constraints (?)
+  }
+
+  bool RORobot::Pachev::checkCollideWithOverride(btCollisionObject *co)
+  {
+    if( co == robot )
+      return false;
+    btRigidBody *o = btRigidBody::upcast(co);
+    if( o )
+    {
+      switch( robot->pachev_state )
+      {
+        case PACHEV_RELEASE:
+          {
+            if( btVector2(this->getCenterOfMassPosition() -
+                  o->getCenterOfMassPosition()).length() <= width/2 )
+              return false;
+          }
+          break;
+
+        case PACHEV_GRAB:
+          {
+            btVector3 diff = this->getCenterOfMassPosition() -
+              o->getCenterOfMassPosition();
+            if( btVector2(diff).length() <= width/2 && diff.z() < height/2 )
+            {
+              // Check if object is already constrained
+              for(int i=0; i < getNumConstraintRefs(); i++)
+                if( &getConstraintRef(i)->getRigidBodyB() == o )
+                  return false;
+
+              btGeneric6DofConstraint *constraint = new btGeneric6DofConstraint(
+                  *this, *o, btTransform::getIdentity(),
+                  o->getCenterOfMassTransform().inverseTimes(this->getCenterOfMassTransform()),
+                  false);
+              for(int i=0; i<6; i++)
+                constraint->setLimit(i, 0, 0);
+              physics->getWorld()->addConstraint(constraint, true);
+              return false;
+            }
+          }
+          break;
+
+        case PACHEV_EJECT:
+          //TODO
+          break;
+      }
+    }
+    
+    return btRigidBody::checkCollideWithOverride(co);
+  }
+
   void RORobot::addToWorld(Physics *physics)
   {
     Robot::addToWorld(physics);
@@ -238,14 +307,17 @@ namespace eurobot2009
     physics->getWorld()->addConstraint(pachev_link, true);
   }
 
-
   void RORobot::draw()
   {
-    glColor4fv(match->getColor(getTeam()));
+    // Use a darker color to constrat with game elements
+    glColor4fv(match->getColor(getTeam()) * 0.5);
 
-    //XXX draw the pachev
-    Object::drawShape(pachev->getCenterOfMassTransform(), &pachev_shape);
-    
+    glPushMatrix();
+    drawTransform(pachev->getCenterOfMassTransform());
+    btglScale(Pachev::width, Pachev::width, Pachev::height);
+    glutWireCube(1.0);
+    glPopMatrix();
+
     glPushMatrix();
     drawTransform();
 
@@ -344,14 +416,57 @@ namespace eurobot2009
     drawDirection();
   }
 
-  void RORobot::do_update()
+
+  void RORobot::do_asserv()
   {
-    /*XXX
-    btTransform tr = pachev->getCenterOfMassTransform();
-    tr.setBasis(this->m_worldTransform.getBasis());
-    pachev->setWorldTransform(tr);
-    */
-    RBasic::do_update();
+    RBasic::do_asserv();
+
+    if( order & ORDER_PACHEV_MOVE )
+    {
+      if( btFabs(get_pachev_pos()-target_pachev_pos) < threshold_pachev )
+      {
+        pachev_link->setTargetLinMotorVelocity(0);
+        pachev_link->setLowerLinLimit( target_pachev_pos );
+        pachev_link->setUpperLinLimit( target_pachev_pos );
+
+        order &= ~ORDER_PACHEV_MOVE;
+      }
+    }
+  }
+
+  void RORobot::order_pachev_move(btScalar h)
+  {
+    target_pachev_pos = CLAMP(h,0,RORobot::Pachev::z_max);
+    LOG->trace("PACHEV MOVE  %f (%f)", target_pachev_pos, h);
+
+    pachev_link->setLowerLinLimit( 1 );
+    pachev_link->setUpperLinLimit( 0 );
+    pachev_link->setTargetLinMotorVelocity(
+        (h > get_pachev_pos()) ? pachev_v : -pachev_v
+        );
+
+    order |= ORDER_PACHEV_MOVE;
+  }
+
+  void RORobot::order_pachev_release()
+  {
+    LOG->trace("PACHEV RELEASE");
+    for(int i=0; i < pachev->getNumConstraintRefs(); i++)
+    {
+      btTypedConstraint *constraint = pachev->getConstraintRef(i);
+      if( &constraint->getRigidBodyA() != this )
+      {
+        physics->getWorld()->removeConstraint(constraint);
+        delete constraint;
+      }
+    }
+    pachev_state = PACHEV_RELEASE;
+  }
+
+  void RORobot::order_pachev_grab()
+  {
+    LOG->trace("PACHEV GRAB");
+    pachev_state = PACHEV_GRAB;
   }
 
 
@@ -477,10 +592,24 @@ namespace eurobot2009
       return 0;
     }
 
+    LUA_DEFINE_SET1(order_pachev_move, order_pachev_move, LARG_scaled)
+    LUA_DEFINE_SET0(order_pachev_release, order_pachev_release)
+    LUA_DEFINE_SET0(order_pachev_grab,    order_pachev_grab)
+
+    LUA_DEFINE_GET_SCALED(get_pachev_pos, get_pachev_pos)
+    LUA_DEFINE_SET1(set_pachev_v, set_pachev_v, LARG_scaled)
+    LUA_DEFINE_SET1(set_threshold_pachev, set_threshold_pachev, LARG_scaled)
+
   public:
     LuaRORobot()
     {
       LUA_REGFUNC(_ctor);
+      LUA_REGFUNC(order_pachev_move);
+      LUA_REGFUNC(order_pachev_release);
+      LUA_REGFUNC(order_pachev_grab);
+      LUA_REGFUNC(get_pachev_pos);
+      LUA_REGFUNC(set_pachev_v);
+      LUA_REGFUNC(set_threshold_pachev);
     }
   };
 }

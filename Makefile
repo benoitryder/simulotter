@@ -6,7 +6,7 @@ BULLET_LIBS = -lBulletDynamics -lBulletCollision -lLinearMath
 ifeq ($(OS),Windows_NT)
 LDFLAGS = -mconsole -lfreeglut -mwindows -lSDL -lm $(BULLET_LIBS) -lopengl32 -lglu32 -lwinmm -llua
 else
-LDFLAGS = -lm $(BULLET_LIBS) -lGL -llua5.1 -lglut
+LDFLAGS = -lm $(BULLET_LIBS) -lGL -llua5.1 -lglut -lSDL
 endif
 
 OBJS = main.o config.o physics.o display.o object.o robot.o match.o log.o

@@ -8,6 +8,7 @@
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
+#define CLAMP(v,a,b) (((v)<(a))?(a):((v)>(b)?(b):(v)))
 
 #ifdef BT_USE_DOUBLE_PRECISION
 inline btScalar btFmod(btScalar x, btScalar y) { return fmod(x,y);  }

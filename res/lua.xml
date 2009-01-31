@@ -320,6 +320,16 @@
       <arg name="mass" type="float"/>
     </constructor>
 
+    <function name="get_pachev_pos"><return type="float"/></function>
+    <function name="set_pachev_v"><arg type="float"/>Set pàchev slider velocity.</function>
+    <function name="set_threshold_pachev"><arg type="float"/>Set distance precision for pàchev moves.</function>
+
+    <function name="order_pachev_move">
+      <arg name="h" type="float"/>
+    </function>
+    <function name="order_pachev_release"/>
+    <function name="order_pachev_grab"/>
+
   </class>
 
 </lua>

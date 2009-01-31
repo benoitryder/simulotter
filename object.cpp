@@ -143,25 +143,14 @@ const btScalar OGround::size_start = scale(0.5);
 btBoxShape OGround::shape( scale(btVector3(3.0/2, 2.1/2, 0.1/2)) );
 
 
-OGround::OGround(const Color4 color, const Color4 color_t1, const Color4 color_t2)
+OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2)
 {
   setShape( &shape );
   setPos( btVector3(0, 0, -shape.getHalfExtentsWithMargin().getZ()) );
 
-  this->color[0] = color[0];
-  this->color[1] = color[1];
-  this->color[2] = color[2];
-  this->color[3] = 0.0;
-
-  this->color_t1[0] = color_t1[0];
-  this->color_t1[1] = color_t1[1];
-  this->color_t1[2] = color_t1[2];
-  this->color_t1[3] = 0.0;
-
-  this->color_t2[0] = color_t2[0];
-  this->color_t2[1] = color_t2[1];
-  this->color_t2[2] = color_t2[2];
-  this->color_t2[3] = 0.0;
+  this->color = color;
+  this->color_t1 = color_t1;
+  this->color_t2 = color_t2;
 }
 
 OGround::~OGround()
