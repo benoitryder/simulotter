@@ -42,7 +42,7 @@ void LuaManager::do_file(const char *filename)
   if( ret != 0 )
     throw(LuaError(L, ret));
 
-  ret = lua_pcall((lua_State *)L, 0, LUA_MULTRET, 0);
+  ret = lua_pcall(L, 0, LUA_MULTRET, 0);
   if( ret != 0 )
     throw(LuaError(L, ret));
 }

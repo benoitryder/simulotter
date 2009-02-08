@@ -27,11 +27,6 @@ public:
    */
   void matchRegister(unsigned int team=TEAM_INVALID);
 
-  virtual void draw();
-
-  /// Draw a small direction cone above the robot
-  void drawDirection();
-
   /** @brief Init robot for the match.
    *
    * Get and cache update, asserv and strategy Lua functions, if any. This
@@ -113,24 +108,48 @@ protected:
 
 /** @brief Basic robot
  *
- * A robot with a simple asserv.
+ * A robot with a simple asserv and a basic shape.
+ * It is intended to be used as a base class for robots at first design stage
+ * since it provides basic move and order features.
  *
  * @note Asserv moves the robot by setting velocity at each step (using
  * set_v()) which may cause odd behaviors.
+ *
+ * @todo Add a setPosAbove() function.
+ * @todo Add a setPosStart() function
  */
 class RBasic: public Robot
 {
   friend class LuaRBasic;
-public:
-  RBasic();
-
-  /** @brief Convenient constructor
-   *
-   * Create a default box robot with given size and mass.
+protected:
+  /** @brief Empty constructor, for derivative classes only
+   * Accessors does not check whether body is null or not.
+   * Subclasses should create the body as soon as possible to prevent errors.
    */
-  RBasic(const btVector3 &halfExtents, btScalar m);
+  RBasic();
+public:
+
+  RBasic(btCollisionShape *shape, btScalar m);
+
+  /** @brief Setup function
+   * This function may be called in subclasses constructors to initialize the
+   * main body.
+   *
+   * @note Shape is not freed by destructor.
+   */
+  void setup(btCollisionShape *shape, btScalar m);
 
   ~RBasic();
+
+  virtual void addToWorld(Physics *physics);
+
+  virtual void draw();
+
+  /// Draw a small direction cone above the robot
+  void drawDirection();
+
+  virtual const btTransform &getTrans() const { return body->getCenterOfMassTransform(); }
+  virtual void setTrans(const btTransform &tr) { body->setCenterOfMassTransform(tr); }
 
   /** @brief Update position and velocity values
    */
@@ -166,10 +185,8 @@ public:
   void set_threshold_xy(btScalar t) { this->threshold_xy = t; }
   void set_threshold_a(btScalar t)  { this->threshold_a  = t; }
 
-private:
-  btCollisionShape *shape;
-
 protected:
+  btRigidBody *body;
 
   /** @name Position and velocity values
    *

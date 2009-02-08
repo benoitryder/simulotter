@@ -1,7 +1,7 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
 
-#include <vector>
+#include <set>
 #include "global.h"
 
 
@@ -28,7 +28,7 @@ public:
 
   btDynamicsWorld *getWorld() { return this->world; }
 
-  std::vector<Object*> &getObjs() { return this->objs; }
+  std::set<Object*> &getObjs() { return this->objs; }
 
   /// Common static rigid body for constraints
   static btRigidBody static_body;
@@ -41,7 +41,7 @@ private:
   btCollisionConfiguration *col_config;
 
   /// All match objects
-  std::vector<Object*> objs;
+  std::set<Object*> objs;
 
   /// Simulation pause state
   bool pause_state;

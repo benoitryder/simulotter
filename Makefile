@@ -2,7 +2,11 @@ CXX = g++
 
 CFLAGS = -g -Wall -I/usr/local/include/lua5.1 -I/usr/include/lua5.1
 
+# If Bullet has been built using autotools or Jam
+#BULLET_LIBS = -lbulletdynamics -lbulletcollision -lbulletmath
+# If Bullet has been built using cmake
 BULLET_LIBS = -lBulletDynamics -lBulletCollision -lLinearMath
+
 ifeq ($(OS),Windows_NT)
 LDFLAGS = -mconsole -lfreeglut -mwindows -lSDL -lm $(BULLET_LIBS) -lopengl32 -lglu32 -lwinmm -llua
 else

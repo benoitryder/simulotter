@@ -71,8 +71,47 @@
 
   </class>
   
+
   <class name="Object">
-    Basic object.
+    Basic object.<br/>
+
+    <function name="get_pos">
+      Return x, y and z position.
+      <return type="float"/>
+      <return type="float"/>
+      <return type="float"/>
+    </function>
+
+    <function name="get_rot">
+      Return rotation Euler angles (yaw, pitch, roll ie. Z, Y, X).
+      <return type="float"/>
+      <return type="float"/>
+      <return type="float"/>
+    </function>
+
+    <function name="set_pos">
+      Set position.
+      <arg name="x" type="float"/>
+      <arg name="y" type="float"/>
+      <arg name="z" type="float"/>
+    </function>
+
+    <function name="set_rot">
+      Set rotation from Euler angles (yaw, pitch, roll).
+      <arg name="z" type="float"/>
+      <arg name="y" type="float"/>
+      <arg name="x" type="float"/>
+    </function>
+
+    <function name="add_to_world">
+      Add an object in a physical world.
+    </function>
+
+  </class>
+
+
+  <class name="OSimple" base="Object">
+    One-part colored object.
 
     <constructor></constructor>
 
@@ -94,19 +133,8 @@
       <return type="bool"/>
     </function>
 
-    <function name="get_pos">
-      Return x, y and z position.
-      <return type="float"/>
-      <return type="float"/>
-      <return type="float"/>
-    </function>
-
-    <function name="get_rot">
-      Return rotation quaternion (a, b, c, w).
-      <return type="float"/>
-      <return type="float"/>
-      <return type="float"/>
-      <return type="float"/>
+    <function name="set_color">
+      <arg type="Color"/>
     </function>
 
     <function name="set_pos">
@@ -116,36 +144,6 @@
       <arg name="z" type="float" required="0"/>
     </function>
 
-    <function name="set_rot">
-      Set rotation from a quaternion.
-      <arg name="a" type="float"/>
-      <arg name="b" type="float"/>
-      <arg name="c" type="float"/>
-      <arg name="w" type="float"/>
-    </function>
-
-    <function name="set_rot">
-      Set rotation from Euler angles.
-      <arg name="z" type="float"/>
-      <arg name="y" type="float"/>
-      <arg name="x" type="float"/>
-    </function>
-
-    <function name="add_to_world">
-      Add an object in a physical world.
-    </function>
-
-  </class>
-
-
-  <class name="ObjectColor" base="Object">
-    Colored object.
-
-    <constructor></constructor>
-
-    <function name="set_color">
-      <arg type="Color"/>
-    </function>
   </class>
 
   <class name="OGround" base="Object">
@@ -157,10 +155,8 @@
     </constructor>
   </class>
 
-  <class name="Robot" base="ObjectDynamic">
+  <class name="Robot" base="Object">
     Robot base class without asserv and strategy implementation.
-
-    <constructor></constructor>
 
     <function name="get_team">
       Return robot's team, or nil if not set.
@@ -190,17 +186,15 @@
 
   </class>
 
+
   <class name="RBasic" base="Robot">
     Basic robot.<br/>
     Default values are null, including maximum velocities.
     They should be set, otherwise the robot will not move.
 
-    <constructor></constructor>
     <constructor>
-      Create a default box robot with given <b>half</b> lengths and mass.
-      <arg name="lx" type="float"/>
-      <arg name="ly" type="float"/>
-      <arg name="lz" type="float"/>
+      Create a robot with given shape and mass.
+      <arg name="shape" type="Shape"/>
       <arg name="mass" type="float"/>
     </constructor>
 
@@ -261,17 +255,17 @@
 
   <!-- Classes defined in eurobot2009 -->
 
-  <class name="OColElem" base="ObjectColor">
+  <class name="OColElem" base="OSimple">
     Column element.
     <constructor></constructor>
   </class>
 
-  <class name="OLintel" base="ObjectColor">
+  <class name="OLintel" base="OSimple">
     Lintel.
     <constructor></constructor>
   </class>
 
-  <class name="ODispenser" base="ObjectColor">
+  <class name="ODispenser" base="OSimple">
     Dispenser for column elements.
     <constructor></constructor>
 
@@ -294,7 +288,7 @@
     </function>
   </class>
 
-  <class name="OLintelStorage" base="ObjectColor">
+  <class name="OLintelStorage" base="OSimple">
     Lintel storage.
     <constructor></constructor>
 
@@ -313,6 +307,7 @@
       <arg name="o" type="OLintel"/>
     </function>
   </class>
+
 
   <class name="RORobot" base="RBasic">
     Rob'Otter robot for Eurobot 2009.

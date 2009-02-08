@@ -141,8 +141,8 @@ void Display::update()
       0.0, 0.0, up);
 
   // Draw objects
-  std::vector<Object*> &objs = physics->getObjs();
-  std::vector<Object*>::iterator it;
+  std::set<Object*> &objs = physics->getObjs();
+  std::set<Object*>::iterator it;
   for( it = objs.begin(); it != objs.end(); ++it )
     (*it)->draw();
 
@@ -238,8 +238,7 @@ void Display::getCameraPos(btVector3 &eye_pos, btVector3 &target_pos) const
   else if( camera_mode & CAM_EYE_OBJECT )
   {
     // Convert offset in global coordinates and add it
-    eye_pos = camera_eye.obj->getPos() +
-      quatRotate(camera_eye.obj->getRot(), camera_eye.cart);
+    eye_pos = camera_eye.obj->getTrans() * camera_eye.cart;
   }
 
   if( camera_mode & CAM_TARGET_FIXED )
@@ -249,8 +248,7 @@ void Display::getCameraPos(btVector3 &eye_pos, btVector3 &target_pos) const
   else if( camera_mode & CAM_TARGET_OBJECT )
   {
     // Convert offset in global coordinates and add it
-    target_pos = camera_target.obj->getPos() +
-      quatRotate(camera_target.obj->getRot(), camera_target.cart);
+    target_pos = camera_target.obj->getTrans() * camera_target.cart;
   }
 
   if( camera_mode & CAM_EYE_REL )
@@ -260,7 +258,7 @@ void Display::getCameraPos(btVector3 &eye_pos, btVector3 &target_pos) const
     // Object relative coordinates are in object coordinates
     // Convert them to global coordinates
     if( camera_mode & CAM_TARGET_OBJECT )
-      eye_pos = quatRotate(camera_target.obj->getRot(), eye_pos);
+      eye_pos = quatRotate(camera_target.obj->getTrans().getRotation(), eye_pos);
 
     eye_pos += target_pos;
   }
@@ -271,7 +269,7 @@ void Display::getCameraPos(btVector3 &eye_pos, btVector3 &target_pos) const
     // Object relative coordinates are in object coordinates
     // Convert them to global coordinates
     if( camera_mode & CAM_EYE_OBJECT )
-      target_pos = quatRotate(camera_eye.obj->getRot(), target_pos);
+      target_pos = quatRotate(camera_eye.obj->getTrans().getRotation(), target_pos);
 
     target_pos += eye_pos;
   }

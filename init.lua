@@ -55,7 +55,7 @@ trace("------ SCRIPT START ------")
 --r1 = RBasic(.2, .2, .1, 10)
 r1 = RORobot(10)
 r1:add_to_world()
-r1:set_pos(-(3.0-.5)/2, (2.1-.5)/2)
+r1:set_pos(-(3.0-.5)/2, (2.1-.5)/2, 0.1001)
 
 x,y,z = r1:get_pos()
 trace("R1: "..x..","..y..","..z)

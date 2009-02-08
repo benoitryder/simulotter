@@ -29,7 +29,7 @@ Physics::Physics()
 
 Physics::~Physics()
 {
-  std::vector<Object*>::iterator it;
+  std::set<Object*>::iterator it;
   for( it = objs.begin(); it != objs.end(); ++it )
     delete *it;
   objs.clear();

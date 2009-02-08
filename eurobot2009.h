@@ -11,7 +11,7 @@
 namespace eurobot2009
 {
   /// Column element
-  class OColElem: public ObjectColor
+  class OColElem: public OSimple
   {
   public:
     OColElem();
@@ -20,7 +20,7 @@ namespace eurobot2009
   };
 
   /// Lintels
-  class OLintel: public ObjectColor
+  class OLintel: public OSimple
   {
   public:
     OLintel();
@@ -30,7 +30,7 @@ namespace eurobot2009
 
 
   /// Column dispenser
-  class ODispenser: public ObjectColor
+  class ODispenser: public OSimple
   {
   public:
     ODispenser();
@@ -70,7 +70,7 @@ namespace eurobot2009
   };
 
   /// Lintel storage
-  class OLintelStorage: public ObjectColor
+  class OLintelStorage: public OSimple
   {
   public:
     OLintelStorage();
@@ -100,7 +100,7 @@ namespace eurobot2009
    * Triangular holonomic robot with a so called <em>pàchev</em> (<em>pince à
    * cheveux</em>, means <em>hair grip</em>) to carry column elements.
    */
-  class RORobot: public RBasic //XXX
+  class RORobot: public RBasic
   {
     friend class LuaRORobot;
   public:

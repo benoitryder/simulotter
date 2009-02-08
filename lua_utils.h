@@ -81,7 +81,7 @@ public:
         delete[] a;
         luaL_argerror(L, narg, "invalid type in table");
       }
-      a[i] = *(T*)lua_touserdata(L, -2);
+      a[i] = *dynamic_cast<T*>(lua_touserdata(L, -2));
       lua_pop(L, 2);
     }
     lua_pop(L, 2);
@@ -180,6 +180,13 @@ public:
       lua_rawseti(L, -2, i+1);
     }
   }
+  static void push(lua_State *L, const btMatrix3x3 &m)
+  {
+    // Push Euler angles, YPR/YXZ order
+    btScalar y, p, r;
+    m.getEulerYPR(y,p,r);
+    push(L, y); push(L, p); push(L, r);
+  }
   template<typename T, int n> static void push(lua_State *L, const T t[n]) { for( int i=0; i<n; i++ ) push(L, t[i]); }
   static void push(lua_State *L, const btVector3 &v) { push<btScalar,3>(L,v); }
   static void push(lua_State *L, const btQuaternion &q) { push<btScalar,4>(L,q); }
@@ -241,6 +248,7 @@ protected:
   {
     lua_getfield(L, 1, "_ud");
     lua_replace(L, 1);
+
     return *(T**)lua_touserdata(L, 1);
   }
 

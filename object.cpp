@@ -4,52 +4,6 @@
 #include "object.h"
 
 
-Object::Object(): btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL))
-{
-}
-
-void Object::setShape(btCollisionShape *shape)
-{
-  if( getCollisionShape() != NULL )
-    throw(Error("cannot reassign shape"));
-  setCollisionShape(shape);
-}
-
-void Object::setMass(btScalar mass)
-{
-  if( getCollisionShape() == NULL )
-    throw(Error("object shape must be set to set its mass"));
-
-  btVector3 inertia(0,0,0);
-  if( mass )
-    getCollisionShape()->calculateLocalInertia(mass, inertia);
-
-  setMassProps(mass, inertia);
-  updateInertiaTensor();
-}
-
-void Object::addToWorld(Physics *physics)
-{
-  if( !isInitialized() )
-    throw(Error("object must be initialized to be added to a world"));
-  physics->getWorld()->addRigidBody(this);
-  physics->getObjs().push_back(this);
-}
-
-
-void Object::setPos(const btVector2 &pos)
-{
-  btVector3 aabbMin, aabbMax;
-  this->getAabb(aabbMin, aabbMax);
-  setPos( btVector3(pos.x, pos.y, (aabbMax.z()-aabbMin.z())/2 + cfg->drop_epsilon) );
-}
-
-
-void Object::draw()
-{
-  drawShape(m_worldTransform, m_collisionShape);
-}
-
 void Object::drawTransform(const btTransform &transform)
 {
   btScalar m[16];
@@ -136,19 +90,69 @@ void Object::drawShape(const btTransform &transform, const btCollisionShape *sha
   glPopMatrix();
 }
 
+void Object::addToWorld(Physics *physics)
+{
+  if( physics->getObjs().insert(this).second == false )
+    throw(Error("object added to the world twice"));
+}
+
+
+OSimple::OSimple(): btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL))
+{
+}
+
+void OSimple::setShape(btCollisionShape *shape)
+{
+  if( getCollisionShape() != NULL )
+    throw(Error("cannot reassign shape"));
+  setCollisionShape(shape);
+}
+
+void OSimple::setMass(btScalar mass)
+{
+  if( getCollisionShape() == NULL )
+    throw(Error("object shape must be set to set its mass"));
+
+  btVector3 inertia(0,0,0);
+  if( mass )
+    getCollisionShape()->calculateLocalInertia(mass, inertia);
+
+  setMassProps(mass, inertia);
+  updateInertiaTensor();
+}
+
+void OSimple::addToWorld(Physics *physics)
+{
+  if( !isInitialized() )
+    throw(Error("object must be initialized to be added to a world"));
+  physics->getWorld()->addRigidBody(this);
+  Object::addToWorld(physics);
+}
+
+
+void OSimple::setPosAbove(const btVector2 &pos)
+{
+  btVector3 aabbMin, aabbMax;
+  this->getAabb(aabbMin, aabbMax);
+  setPos( btVector3(pos.x, pos.y, (aabbMax.z()-aabbMin.z())/2 + cfg->drop_epsilon) );
+}
+
+
+void OSimple::draw()
+{
+  glColor4fv(color);
+  drawShape(m_worldTransform, m_collisionShape);
+}
 
 
 const btScalar OGround::size_start = scale(0.5);
-
 btBoxShape OGround::shape( scale(btVector3(3.0/2, 2.1/2, 0.1/2)) );
-
 
 OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2)
 {
   setShape( &shape );
   setPos( btVector3(0, 0, -shape.getHalfExtentsWithMargin().getZ()) );
-
-  this->color = color;
+  setColor(color);
   this->color_t1 = color_t1;
   this->color_t2 = color_t2;
 }
@@ -162,14 +166,14 @@ void OGround::draw()
 {
   glPushMatrix();
 
-  drawTransform();
+  drawTransform(m_worldTransform);
   const btVector3 &size = shape.getHalfExtentsWithMargin();
 
   // Ground
 
   glPushMatrix();
 
-  glColor3fv(color);
+  glColor4fv(color);
   btglScale(2*size[0], 2*size[1], 2*size[2]);
   glutSolidCube(1.0);
 
@@ -180,7 +184,7 @@ void OGround::draw()
 
   glPushMatrix();
 
-  glColor3fv(color_t1);
+  glColor4fv(color_t1);
   btglTranslate(-size[0]+size_start/2, size[1]-size_start/2, size[2]);
   btglScale(size_start, size_start, 2*cfg->draw_epsilon);
   glutSolidCube(1.0f);
@@ -189,7 +193,7 @@ void OGround::draw()
 
   glPushMatrix();
 
-  glColor3fv(color_t2);
+  glColor4fv(color_t2);
   btglTranslate(size[0]-size_start/2, size[1]-size_start/2, size[2]);
   btglScale(size_start, size_start, 2*cfg->draw_epsilon);
   glutSolidCube(1.0f);
@@ -204,43 +208,24 @@ class LuaObject: public LuaClass<Object>
 {
   static int _ctor(lua_State *L)
   {
-    Object **ud = new_userdata(L);
-    *ud = new Object();
-    return 0;
+    return luaL_error(L, "Object class is abstract, no constructor");
   }
 
-  static int set_shape(lua_State *L)
-  {
-    btCollisionShape *shape;
-    shape = *(btCollisionShape **)luaL_checkudata(L, 2, "Shape");
-    get_ptr(L)->setShape(shape);
-    return 0;
-  }
-
-  LUA_DEFINE_SET1(set_mass, setMass, LARG_f);
-  LUA_DEFINE_GET(is_initialized, isInitialized);
   LUA_DEFINE_GETN(3, get_pos, getPos);
   LUA_DEFINE_GETN(4, get_rot, getRot);
 
   static int set_pos(lua_State *L)
   {
-    if( lua_isnone(L, 4) )
-      get_ptr(L)->setPos( btVector2(LARG_scaled(2), LARG_scaled(3)) );
-    else
-      get_ptr(L)->setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
+    get_ptr(L)->setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
     return 0;
   }
 
+
   static int set_rot(lua_State *L)
   {
-    if( lua_isnone(L, 4) )
-#ifdef BT_EULER_DEFAULT_ZYX
-      get_ptr(L)->setRot( btQuaternion(LARG_f(2), LARG_f(3), LARG_f(4)) );
-#else
-      get_ptr(L)->setRot( btQuaternion(LARG_f(4), LARG_f(2), LARG_f(3)) );
-#endif
-    else
-      get_ptr(L)->setRot( btQuaternion(LARG_f(2), LARG_f(3), LARG_f(4), LARG_f(5)) );
+    btMatrix3x3 m;
+    m.setEulerYPR(LARG_f(2), LARG_f(3), LARG_f(4));
+    get_ptr(L)->setRot( m );
     return 0;
   }
 
@@ -254,9 +239,6 @@ public:
   LuaObject()
   {
     LUA_REGFUNC(_ctor);
-    LUA_REGFUNC(set_shape);
-    LUA_REGFUNC(set_mass);
-    LUA_REGFUNC(is_initialized);
     LUA_REGFUNC(get_pos);
     LUA_REGFUNC(get_rot);
     LUA_REGFUNC(set_pos);
@@ -266,12 +248,32 @@ public:
 };
 
 
-class LuaObjectColor: public LuaClass<ObjectColor>
+class LuaOSimple: public LuaClass<OSimple>
 {
   static int _ctor(lua_State *L)
   {
-    ObjectColor **ud = new_userdata(L);
-    *ud = new ObjectColor();
+    OSimple **ud = new_userdata(L);
+    *ud = new OSimple();
+    return 0;
+  }
+
+  static int set_shape(lua_State *L)
+  {
+    btCollisionShape *shape;
+    shape = *(btCollisionShape **)luaL_checkudata(L, 2, "Shape");
+    get_ptr(L)->setShape(shape);
+    return 0;
+  }
+
+  LUA_DEFINE_SET1(set_mass, setMass, LARG_f);
+  LUA_DEFINE_GET(is_initialized, isInitialized);
+
+  static int set_pos(lua_State *L)
+  {
+    if( lua_isnone(L, 4) )
+      get_ptr(L)->setPosAbove( btVector2(LARG_scaled(2), LARG_scaled(3)) );
+    else
+      get_ptr(L)->setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
     return 0;
   }
 
@@ -284,9 +286,13 @@ class LuaObjectColor: public LuaClass<ObjectColor>
   }
 
 public:
-  LuaObjectColor()
+  LuaOSimple()
   {
     LUA_REGFUNC(_ctor);
+    LUA_REGFUNC(set_shape);
+    LUA_REGFUNC(set_mass);
+    LUA_REGFUNC(is_initialized);
+    LUA_REGFUNC(set_pos);
     LUA_REGFUNC(set_color);
   }
 };
@@ -315,6 +321,6 @@ public:
 
 
 LUA_REGISTER_BASE_CLASS(Object);
-LUA_REGISTER_SUB_CLASS(ObjectColor,Object);
-LUA_REGISTER_SUB_CLASS(OGround,Object);
+LUA_REGISTER_SUB_CLASS(OSimple,Object);
+LUA_REGISTER_SUB_CLASS(OGround,OSimple);
 

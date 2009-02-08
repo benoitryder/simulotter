@@ -42,29 +42,6 @@ void Robot::matchRegister(unsigned int team)
 }
 
 
-void Robot::draw()
-{
-  // Use a darker color to constrat with game elements
-  glColor4fv(match->getColor(team) * 0.5);
-  Object::draw();
-  drawDirection();
-}
-
-void Robot::drawDirection()
-{
-  glPushMatrix();
-  drawTransform(m_worldTransform);
-
-  btVector3 aabb_min, aabb_max;
-  getAabb(aabb_min, aabb_max);
-
-  btglTranslate(0, 0, aabb_max.getZ()-getPos().getZ()+cfg->draw_direction_r+cfg->draw_epsilon);
-  btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
-  glutSolidCone(cfg->draw_direction_r, cfg->draw_direction_h, cfg->draw_div, cfg->draw_div);
-
-  glPopMatrix();
-}
-
 void Robot::matchInit()
 {
   if( ref_obj == LUA_NOREF )
@@ -145,23 +122,62 @@ void Robot::strategy()
 
 RBasic::RBasic()
 {
-  this->shape = NULL;
+  this->body = NULL;
   this->order = ORDER_NONE;
 }
 
-RBasic::RBasic(const btVector3 &halfExtents, btScalar m)
+RBasic::RBasic(btCollisionShape *shape, btScalar m)
 {
-  shape = new btBoxShape( halfExtents );
-  setShape(shape);
-  setMass(m);
-
+  setup(shape, m);
   this->order = ORDER_NONE;
+}
+
+void RBasic::setup(btCollisionShape *shape, btScalar m)
+{
+  btVector3 inertia;
+  shape->calculateLocalInertia(m, inertia);
+  this->body = new btRigidBody(
+      btRigidBody::btRigidBodyConstructionInfo(m,NULL,shape,inertia)
+      );
 }
 
 RBasic::~RBasic()
 {
-  if( shape != NULL )
-    delete shape;
+  //TODO remove from the world
+  if( body != NULL )
+    delete body;
+}
+
+void RBasic::addToWorld(Physics *physics)
+{
+  physics->getWorld()->addRigidBody(body);
+  Robot::addToWorld(physics);
+}
+
+void RBasic::draw()
+{
+  // Use a darker color to constrat with game elements
+  glColor4fv(match->getColor(getTeam()) * 0.5);
+  drawShape(
+      body->getCenterOfMassTransform(),
+      body->getCollisionShape()
+      );
+  drawDirection();
+}
+
+void RBasic::drawDirection()
+{
+  glPushMatrix();
+  drawTransform(getTrans());
+
+  btVector3 aabb_min, aabb_max;
+  body->getAabb(aabb_min, aabb_max);
+
+  btglTranslate(0, 0, aabb_max.getZ()-getPos().getZ()+cfg->draw_direction_r+cfg->draw_epsilon);
+  btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
+  glutSolidCone(cfg->draw_direction_r, cfg->draw_direction_h, cfg->draw_div, cfg->draw_div);
+
+  glPopMatrix();
 }
 
 
@@ -258,28 +274,25 @@ void RBasic::order_back(btScalar d)
 
 void RBasic::do_update()
 {
-  //XXX robot may not be exactly aligned with Z axis
   xy = this->getPos();
-  const btQuaternion &rot = this->getRot();
-  a = rot.getAngle();
-  if( rot.getZ() < 0 )
-    a = -a;
+  btScalar p, r;
+  this->getRot().getEulerYPR(a,p,r);
 
-  v = btVector2(this->getLinearVelocity()).length();
-  av = this->getAngularVelocity().getZ();
+  v = btVector2(body->getLinearVelocity()).length();
+  av = body->getAngularVelocity().getZ();
 }
 
 
 inline void RBasic::set_v(btScalar v)
 {
   btVector2 vxy = btVector2(v,0).rotate(a);
-  this->setLinearVelocity( btVector3(vxy.x, vxy.y,
-        this->getLinearVelocity().z()) );
+  body->setLinearVelocity( btVector3(vxy.x, vxy.y,
+        body->getLinearVelocity().z()) );
 }
 
 inline void RBasic::set_av(btScalar v)
 {
-  this->setAngularVelocity( btVector3(0,0,v) );
+  body->setAngularVelocity( btVector3(0,0,v) );
 }
 
 
@@ -288,12 +301,7 @@ class LuaRobot: public LuaClass<Robot>
 {
   static int _ctor(lua_State *L)
   {
-    Robot **ud = new_userdata(L);
-    *ud = new Robot();
-
-    lua_pushvalue(L, 1);
-    (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
-    return 0;
+    return luaL_error(L, "Robot class is abstract, no constructor");
   }
 
   static int get_team(lua_State *L)
@@ -335,7 +343,9 @@ class LuaRBasic: public LuaClass<RBasic>
     RBasic **ud = new_userdata(L);
     LOG->trace("LuaRBasic: BEGIN [%p]", ud);
 
-    *ud = new RBasic( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)), LARG_f(5));
+    btCollisionShape *shape;
+    shape = *(btCollisionShape **)luaL_checkudata(L, 2, "Shape");
+    *ud = new RBasic( shape, LARG_f(3));
     lua_pushvalue(L, 1);
     (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
 

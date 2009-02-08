@@ -48,8 +48,7 @@ namespace eurobot2009
       default:
         throw(Error("invalid value for dispenser side"));
     }
-    //XXX gcc does not find the matching method by itself :(
-    ObjectColor::setPos( v + offset );
+    Object::setPos( v + offset );
   }
 
   void ODispenser::fill(Object *o, btScalar z)
@@ -63,7 +62,7 @@ namespace eurobot2009
   {
     glColor4fv(color);
     glPushMatrix();
-    drawTransform();
+    drawTransform(m_worldTransform);
     glTranslatef(0, 0, -height/2);
     glutWireCylinder(radius, height, cfg->draw_div, 10);
     glPopMatrix();
@@ -78,7 +77,7 @@ namespace eurobot2009
         return false;
     }
     
-    return Object::checkCollideWithOverride(co);
+    return btRigidBody::checkCollideWithOverride(co);
   }
 
 
@@ -123,9 +122,7 @@ namespace eurobot2009
       default:
         throw(Error("invalid value for lintel storage side"));
     }
-
-    //XXX gcc does not find the matching method by itself :(
-    ObjectColor::setPos( btVector3(x, y, scale(0.070)+WALL_HALF_WIDTH) );
+    OSimple::setPos( btVector3(x, y, scale(0.070)+WALL_HALF_WIDTH) );
   }
 
   void OLintelStorage::fill(OLintel *o)
@@ -158,11 +155,6 @@ namespace eurobot2009
 
   RORobot::RORobot(btScalar m)
   {
-    LOG->trace("d_wheel: %f, d_side: %f, radius: %f\n", d_wheel, d_side, radius);
-    LOG->trace("dw: %f , ds: %f\n",
-        btSqrt(side*side+d_side*d_side),
-        btSqrt(r_wheel*r_wheel+d_wheel*d_wheel)
-        );
     // First instance: initialize shape
     if( shape.getNumChildShapes() == 0 )
     {
@@ -199,9 +191,7 @@ namespace eurobot2009
       shape.addChildShape(tr, &wheel_shape);
     }
 
-    setShape( &shape );
-    setMass(m);
-
+    this->setup(&shape, m);
 
     // Pàchev
     pachev = new Pachev(this);
@@ -216,7 +206,7 @@ namespace eurobot2009
     tr_b.getBasis().setEulerZYX(0, -M_PI_2, 0);
     tr_a.setOrigin( btVector3(-d_side, 0, -height/2) );
     tr_b.setOrigin( btVector3(scale(0.04), 0, -Pachev::height/2) );
-    pachev_link = new btSliderConstraint(*this, *pachev, tr_a, tr_b, true);
+    pachev_link = new btSliderConstraint(*body, *pachev, tr_a, tr_b, true);
     pachev_link->setLowerAngLimit(0);
     pachev_link->setUpperAngLimit(0);
 
@@ -253,7 +243,7 @@ namespace eurobot2009
 
   bool RORobot::Pachev::checkCollideWithOverride(btCollisionObject *co)
   {
-    if( co == robot )
+    if( co == robot->body )
       return false;
     btRigidBody *o = btRigidBody::upcast(co);
     if( o )
@@ -302,7 +292,7 @@ namespace eurobot2009
 
   void RORobot::addToWorld(Physics *physics)
   {
-    Robot::addToWorld(physics);
+    RBasic::addToWorld(physics);
     physics->getWorld()->addRigidBody(pachev);
     physics->getWorld()->addConstraint(pachev_link, true);
   }
@@ -319,7 +309,7 @@ namespace eurobot2009
     glPopMatrix();
 
     glPushMatrix();
-    drawTransform();
+    drawTransform(body->getCenterOfMassTransform());
 
     btglTranslate(0, 0, -height/2);
 
@@ -454,7 +444,7 @@ namespace eurobot2009
     for(int i=0; i < pachev->getNumConstraintRefs(); i++)
     {
       btTypedConstraint *constraint = pachev->getConstraintRef(i);
-      if( &constraint->getRigidBodyA() != this )
+      if( &constraint->getRigidBodyA() != body )
       {
         physics->getWorld()->removeConstraint(constraint);
         delete constraint;
@@ -514,9 +504,9 @@ namespace eurobot2009
     static int set_pos(lua_State *L)
     {
       if( lua_isnone(L, 4) )
-        get_ptr(L)->ObjectColor::setPos( btVector3(LARG_scaled(2), LARG_scaled(3), 0.0) );
+        get_ptr(L)->setPosAbove( btVector2(LARG_scaled(2), LARG_scaled(3)) );
       else if( lua_isnone(L, 5) )
-        get_ptr(L)->ObjectColor::setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
+        get_ptr(L)->Object::setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
       else
         get_ptr(L)->setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)), LARG_i(5));
       return 0;
@@ -552,12 +542,12 @@ namespace eurobot2009
 
     static int set_pos(lua_State *L)
     {
-      // override ObjectColor::set_pos(dReal,dReal)
-      // with OLintelStorageset_pos(dReal,int)
+      // override OSimple::set_pos(dReal,dReal)
+      // with OLintelStorage::set_pos(dReal,int)
       if( lua_isnone(L, 4) )
         get_ptr(L)->setPos(LARG_scaled(2), LARG_i(3));
       else
-        get_ptr(L)->ObjectColor::setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
+        get_ptr(L)->Object::setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
       return 0;
     }
 
@@ -616,10 +606,10 @@ namespace eurobot2009
 
 using namespace eurobot2009;
 
-LUA_REGISTER_SUB_CLASS(OColElem,ObjectColor);
-LUA_REGISTER_SUB_CLASS(OLintel,ObjectColor);
-LUA_REGISTER_SUB_CLASS(ODispenser,ObjectColor);
-LUA_REGISTER_SUB_CLASS(OLintelStorage,ObjectColor);
+LUA_REGISTER_SUB_CLASS(OColElem,OSimple);
+LUA_REGISTER_SUB_CLASS(OLintel,OSimple);
+LUA_REGISTER_SUB_CLASS(ODispenser,OSimple);
+LUA_REGISTER_SUB_CLASS(OLintelStorage,OSimple);
 
 LUA_REGISTER_SUB_CLASS(RORobot,RBasic);
 
