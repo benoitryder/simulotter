@@ -18,6 +18,7 @@ public:
 
   /// Init physics (using configuration values)
   void init();
+  bool isInitialized() { return step_dt > 0; }
 
   /// Advance simulation and update robots
   void step();

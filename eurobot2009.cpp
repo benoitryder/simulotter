@@ -195,9 +195,6 @@ namespace eurobot2009
 
     // Pàchev
     pachev = new Pachev(this);
-    btTransform tr_pachev;
-    tr_pachev.setIdentity();
-    tr_pachev.setOrigin( scale(btVector3(-d_side-Pachev::width/2, 0, Pachev::height/2)) );
 
     btTransform tr_a, tr_b;
     tr_a.setIdentity();
@@ -213,7 +210,7 @@ namespace eurobot2009
     pachev_link->setPoweredLinMotor(true);
     pachev_link->setTargetLinMotorVelocity(0);
     // always move at full speed: do not limit acceleration
-    pachev_link->setMaxLinMotorForce(scale(100));
+    pachev_link->setMaxLinMotorForce(scale(100.0));
     pachev_link->setLowerLinLimit(0);
     pachev_link->setUpperLinLimit(0);
 
@@ -234,6 +231,7 @@ namespace eurobot2009
     shape.calculateLocalInertia(0.01, inertia);
     setupRigidBody( btRigidBodyConstructionInfo(0.01,NULL,&shape,inertia) );
     this->robot = robot;
+    this->resetTrans();
   }
 
   RORobot::Pachev::~Pachev()
@@ -404,6 +402,21 @@ namespace eurobot2009
     glPopMatrix();
 
     drawDirection();
+  }
+
+
+  void RORobot::setTrans(const btTransform &tr)
+  {
+    body->setCenterOfMassTransform(tr);
+    pachev->resetTrans();
+  }
+
+  void RORobot::Pachev::resetTrans()
+  {
+    btTransform tr;
+    tr.setIdentity();
+    tr.setOrigin( btVector3(-RORobot::d_side-width/2, 0, height/2) );
+    this->setCenterOfMassTransform(robot->body->getCenterOfMassTransform()*tr);
   }
 
 

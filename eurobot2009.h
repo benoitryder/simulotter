@@ -116,6 +116,8 @@ namespace eurobot2009
      */
     void draw();
 
+    virtual void setTrans(const btTransform &tr);
+
     void do_asserv();
 
     /** @name Strategy functions and orders
@@ -183,6 +185,9 @@ namespace eurobot2009
       static const btScalar width;
       static const btScalar height;
       static const btScalar z_max; ///< Maximum Z position
+    protected:
+      /// Reset pàchev's transform according to robot's transform
+      void resetTrans();
     private:
       static btBoxShape shape;
       RORobot *robot;

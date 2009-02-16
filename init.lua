@@ -4,6 +4,7 @@
 config.gravity_z = -9.81
 config.step_dt = 0.002
 config.time_scale =  1
+config.match_fconf = -1
 config.drop_epsilon = 0.001
 
 config.draw_epsilon = 0.0005
@@ -23,36 +24,12 @@ config.fps = 60
 config.bg_color = { 0.8, 0.8, 0.8 }
 config.log_flush = true
 
-
---
--- Debug trace functions
---
-
-function tracet(o)
-  for k,v in pairs(o) do
-    trace("  "..tostring(k)..": "..type(v))
-  end
-end
-
-function traceo(o)
-  t = type(o)
-  trace("trace o ("..t.."):")
-  if t == 'table' then
-    tracet(o)
-  elseif t == 'userdata' then
-    tracemt(o)
-  end
-end
-
-function tracemt(o)
-  trace("trace mt:")
-  tracet(getmetatable(o))
-end
+physics = Physics()
+display = Display()
 
 
 trace("------ SCRIPT START ------")
 
---r1 = RBasic(.2, .2, .1, 10)
 r1 = RORobot(10)
 r1:add_to_world()
 r1:set_pos(-(3.0-.5)/2, (2.1-.5)/2, 0.1001)
@@ -67,6 +44,7 @@ r1:set_threshold_a(0.005)
 r1:set_pachev_v(0.05)
 r1:set_threshold_pachev(0.001)
 
+config.match_fconf = 0x03
 function r1:strategy()
 
   self:order_pachev_move( 0.050 )

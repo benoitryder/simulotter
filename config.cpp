@@ -7,6 +7,7 @@ Config::Config()
   gravity_z = scale(-CONST_EARTH_GRAVITY);
   step_dt = 0.001;
   time_scale = 1.0;
+  match_fconf = -1;
   drop_epsilon = scale(0.001);
 
   draw_epsilon = scale(0.0001);
@@ -66,6 +67,7 @@ int Config::lua_index(lua_State *L)
   CONFIG_INDEX_VAL_SCALED(gravity_z);
   CONFIG_INDEX_VAL(step_dt);
   CONFIG_INDEX_VAL(time_scale);
+  CONFIG_INDEX_VAL(match_fconf);
   CONFIG_INDEX_VAL_SCALED(drop_epsilon);
   CONFIG_INDEX_VAL_SCALED(draw_epsilon);
   CONFIG_INDEX_VAL(draw_div);
@@ -103,6 +105,7 @@ int Config::lua_newindex(lua_State *L)
   CONFIG_NEWINDEX_VAL(gravity_z,        LARG_scaled);
   CONFIG_NEWINDEX_VAL(step_dt,          LARG_f);
   CONFIG_NEWINDEX_VAL(time_scale,       LARG_f);
+  CONFIG_NEWINDEX_VAL(match_fconf,      LARG_i);
   CONFIG_NEWINDEX_VAL(drop_epsilon,     LARG_scaled);
   CONFIG_NEWINDEX_VAL(draw_epsilon,     LARG_scaled);
   CONFIG_NEWINDEX_VAL(draw_div,         LARG_i);

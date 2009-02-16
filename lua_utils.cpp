@@ -1,3 +1,4 @@
+#include <time.h>
 #include "global.h"
 
 
@@ -19,6 +20,12 @@ LuaManager::LuaManager()
 	lua_pushcfunction(L, luaopen_math);   lua_call(L, 0, 0);
 	lua_pushcfunction(L, luaopen_string); lua_call(L, 0, 0);
 	lua_pushcfunction(L, luaopen_table);  lua_call(L, 0, 0);
+
+  // Initialize random seed
+  lua_getfield(L, LUA_GLOBALSINDEX, "math");
+  lua_getfield(L, -1, "randomseed");
+  lua_pushinteger(L, ::time(NULL));
+  lua_pcall(L, 1, 0, 0);
 
   // Register global functions
   LUA_REG_GLOBAL(trace, lua_trace);

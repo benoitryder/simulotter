@@ -41,12 +41,19 @@ Physics::~Physics()
   delete broadphase;
 }
 
-
 void Physics::init()
 {
-  this->step_dt = cfg->step_dt;
-  physics->getWorld()->setGravity(btVector3(0,0,cfg->gravity_z));
+  if( isInitialized() )
+  {
+    LOG->trace("physics already initialized, init() call skipped");
+    return;
+  }
+  if( cfg->step_dt <= 0 )
+    throw(Error("invalid step_dt value for Physics initialization"));
+  step_dt = cfg->step_dt;
+  world->setGravity(btVector3(0,0,cfg->gravity_z));
 }
+
 
 void Physics::step()
 {
@@ -71,6 +78,34 @@ void Physics::step()
 
 btRigidBody Physics::static_body( btRigidBody::btRigidBodyConstructionInfo(0,NULL,NULL) );
 
+
+/** @name Lua Physics class
+ * The constructor is a factory and returns the singleton.
+ */
+class LuaPhysics: public LuaClass<Physics>
+{
+  static int _ctor(lua_State *L)
+  {
+    if( physics == NULL )
+      physics = new Physics();
+    Physics **ud = new_userdata(L);
+    *ud = physics;
+    return 0;
+  }
+
+  LUA_DEFINE_SET0(init, init);
+  LUA_DEFINE_GET(is_initialized, isInitialized);
+
+public:
+  LuaPhysics()
+  {
+    LUA_REGFUNC(_ctor);
+    LUA_REGFUNC(init);
+    LUA_REGFUNC(is_initialized);
+  }
+};
+
+LUA_REGISTER_BASE_CLASS(Physics);
 
 
 /** @name Lua collision shapes

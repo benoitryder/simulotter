@@ -29,6 +29,46 @@
 
   </globals>
 
+  <class name="Physics">
+    Physics environment, used as a singleton.<br/>
+    It must be created.
+
+    <constructor>
+      Create or get physics singleton.
+    </constructor>
+
+    <function name="init">
+      Init physics (using configuration values).<br/>
+      If not called explicitely, it is called before the simulation starts.
+    </function>
+
+    <function name="is_initialized">
+      Returns whether physics is initialized.
+      <return type="bool"/>
+    </function>
+
+  </class>
+
+  <class name="Display">
+    Video display, used as a singleton.<br/>
+    It is not needed: if not created, simulation is run at full speed.
+
+    <constructor>
+      Create or get physics singleton.
+    </constructor>
+
+    <function name="init">
+      Init display (using configuration values).<br/>
+      If not called explicitely, it is called before the simulation starts.
+    </function>
+
+    <function name="is_initialized">
+      Returns whether display is initialized.
+      <return type="bool"/>
+    </function>
+
+  </class>
+
   <class name="Shape">
     Create collision shapes. There are no constructor, use creation methods
     instead.<br/>
@@ -129,7 +169,7 @@
     </function>
 
     <function name="is_initialized">
-      Returns wether the object is initialized.
+      Returns whether the object is initialized.
       <return type="bool"/>
     </function>
 
@@ -248,6 +288,13 @@
       Get color of a given team.
       <arg name="team" type="int"/>
       <return type="Color"/>
+    </function>
+
+    <function name="init" user="1">
+      Called before the match starts to create and initialize game objects.
+      Negative values are reserved for random values (note: LUA random seed is
+      automatically initialized at startup).
+      <arg name="fconf" type="int" required="0"/>
     </function>
 
   </class>

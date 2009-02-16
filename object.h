@@ -12,9 +12,6 @@ class Physics;
 
 
 /** @brief Object abstract class
- *
- * Objects have to be added to the world (after initialization) using
- * Physics::addObject().
  */
 class Object
 {

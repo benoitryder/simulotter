@@ -23,17 +23,15 @@ colors = {
 match = Match( { colors.ral_6018, colors.ral_3020 } )
 
 function match:init(fconf)
-  --TODO: init random seed
-
-  -- Field configuration
+  -- Field configuration:
   --   columns: 1 to 10
   --   dispensers: (1 or 2) * 16
-  local conf_col, conf_disp
-  if fonc == nil or fconf < 0 then
+  -- Can be defined as 2-digit hexadecimal value: 0x<disp><col>
+  if fconf == nil or fconf < 0 then
     conf_col  = math.random(10)
     conf_disp = math.random(2)
   else
-    conf_col  = fconf % 10 + 1
+    conf_col  = fconf % 16 + 1
     conf_disp = math.floor(fconf/16) + 1
   end
   if conf_col < 1 or conf_col > 10 or conf_disp < 1 or conf_disp > 2 then
@@ -41,6 +39,7 @@ function match:init(fconf)
   end
   trace("Atlantis rules, columns: "..tostring(conf_col)..", dispensers: "..tostring(conf_disp))
 
+  trace(">>> "..tostring(iii))
 
   -- Various variables
 
@@ -195,7 +194,7 @@ function match:init(fconf)
   -- Random
   od = ODispenser()
   od:add_to_world()
-  od:set_pos(table_size_x/2-wall_width/2, conf_disp==0 and disp_offset_y or -disp_offset_y, disp_offset_z, 1)
+  od:set_pos(table_size_x/2-wall_width/2, conf_disp==1 and disp_offset_y or -disp_offset_y, disp_offset_z, 1)
   for i = 1,5 do
     o = OColElem()
     o:add_to_world()
@@ -204,7 +203,7 @@ function match:init(fconf)
   end
   od = ODispenser()
   od:add_to_world()
-  od:set_pos(-table_size_x/2+wall_width/2, conf_disp==0 and disp_offset_y or -disp_offset_y, disp_offset_z, 3)
+  od:set_pos(-table_size_x/2+wall_width/2, conf_disp==1 and disp_offset_y or -disp_offset_y, disp_offset_z, 3)
   for i = 1,5 do
     o = OColElem()
     o:add_to_world()

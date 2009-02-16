@@ -231,6 +231,8 @@ class LuaObject: public LuaClass<Object>
 
   static int add_to_world(lua_State *L)
   {
+    if( physics == NULL )
+      return luaL_error(L, "physics is not created, no world to add");
     get_ptr(L)->addToWorld(physics);
     return 0;
   }

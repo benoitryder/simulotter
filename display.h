@@ -10,6 +10,8 @@
 
 
 /** @brief Display and interface events
+ *
+ * Display is not needed for the simulation to run.
  */
 class Display
 {
@@ -17,14 +19,16 @@ public:
   Display();
   ~Display();
 
-  /// Init and start video display
-  void init()
-  {
-    windowInit();
-  }
+  /// Init video display (using configuration values)
+  void init();
+  bool isInitialized() { return SDL_WasInit(SDL_INIT_VIDEO) != 0; }
 
-  /// Resize the screen
-  void resize(int width, int height);
+  /** @brief Resize the screen and/or toggle fullscreen
+   * @param width   window width
+   * @param height  window height
+   * @param mode    window if 0, fullscreen if >0, current state if <0
+   */
+  void resize(int width, int height, int mode=-1);
 
   /// Update display
   void update();

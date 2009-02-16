@@ -10,6 +10,9 @@
 
 Display::Display()
 {
+  //TODO check on Linux
+  //glutInit(&argc, argv);
+
   this->screen = NULL;
 
   camera_mode = CAM_FIXED;
@@ -82,13 +85,33 @@ Display::~Display()
   sceneDestroy();
 }
 
-
-void Display::resize(int width, int height)
+void Display::init()
 {
-  LOG->trace("Display resize: %d x %d", width, height);
+  if( isInitialized() )
+  {
+    LOG->trace("display already initialized, init() call skipped");
+    return;
+  }
+  this->fullscreen = cfg->fullscreen;
+  windowInit();
+}
+
+
+void Display::resize(int width, int height, int mode)
+{
+  bool fullscreen;
+  if( mode == 0 )
+    fullscreen = false;
+  else if( mode > 0 )
+    fullscreen = true;
+  else
+    fullscreen = this->fullscreen;
+
+  LOG->trace("Display resize: %d x %d, %s mode",
+      width, height, fullscreen ? "fullscreen" : "window");
 
   Uint32 flags = SDL_OPENGL;
-  flags |= this->fullscreen ? SDL_FULLSCREEN : SDL_RESIZABLE;
+  flags |= fullscreen ? SDL_FULLSCREEN : SDL_RESIZABLE;
 
   if( (screen = SDL_SetVideoMode(width, height, 0, flags)) == NULL )
   {
@@ -98,6 +121,7 @@ void Display::resize(int width, int height)
 
   this->screen_x = width;
   this->screen_y = height;
+  this->fullscreen = fullscreen;
 
   sceneInit();
 }
@@ -178,7 +202,7 @@ void Display::windowInit()
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
   this->fullscreen = cfg->fullscreen;
-  resize(cfg->screen_x, cfg->screen_y);
+  resize(cfg->screen_x, cfg->screen_y, cfg->fullscreen);
 }
 
 void Display::windowDestroy()
@@ -501,4 +525,35 @@ void Display::handlerCamDown(Display *d, const SDL_Event &event)
   else if( d->camera_mode & CAM_TARGET_REL )
     d->camera_target.spheric.theta += cfg->camera_step_angle;
 }
+
+
+
+/** @name Lua Display class
+ * The constructor is a factory and returns the singleton.
+ */
+class LuaDisplay: public LuaClass<Display>
+{
+  static int _ctor(lua_State *L)
+  {
+    if( display == NULL )
+      display = new Display();
+    Display **ud = new_userdata(L);
+    *ud = display;
+    return 0;
+  }
+
+  LUA_DEFINE_SET0(init, init);
+  LUA_DEFINE_GET(is_initialized, isInitialized);
+
+public:
+  LuaDisplay()
+  {
+    LUA_REGFUNC(_ctor);
+    LUA_REGFUNC(init);
+    LUA_REGFUNC(is_initialized);
+  }
+};
+
+LUA_REGISTER_BASE_CLASS(Display);
+
 
