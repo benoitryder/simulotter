@@ -151,6 +151,7 @@ void Log::trace(const char *fmt, ...)
   fprintf(stdout, "%s\n", s);
   if( cfg != NULL && cfg->log_flush )
     fflush(stdout);
+  free(s);
 }
 
 
