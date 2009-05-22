@@ -267,10 +267,12 @@ namespace eurobot2009
                 if( &getConstraintRef(i)->getRigidBodyB() == o )
                   return false;
 
+              // Move object on pàchev axis
+              btTransform tr = o->getCenterOfMassTransform().inverseTimes(this->getCenterOfMassTransform());
+              tr.setOrigin( btVector3(0,0,tr.getOrigin().getZ()) );
+
               btGeneric6DofConstraint *constraint = new btGeneric6DofConstraint(
-                  *this, *o, btTransform::getIdentity(),
-                  o->getCenterOfMassTransform().inverseTimes(this->getCenterOfMassTransform()),
-                  false);
+                  *this, *o, btTransform::getIdentity(), tr, false);
               for(int i=0; i<6; i++)
                 constraint->setLimit(i, 0, 0);
               physics->getWorld()->addConstraint(constraint, true);
@@ -280,7 +282,21 @@ namespace eurobot2009
           break;
 
         case PACHEV_EJECT:
-          //TODO
+          {
+            // Push colliding objects outside
+            if( !co->isStaticOrKinematicObject() )
+            {
+              if( btRigidBody::checkCollideWithOverride(co) )
+              {
+                btVector2 v = this->robot->pachev_link->getFrameOffsetB()
+                  * this->getCenterOfMassPosition();
+                v.normalize();
+                //TODO use proper coeff with pachev_eject_v
+                o->translate( -this->robot->pachev_eject_v * v );
+              }
+              return false;
+            }
+          }
           break;
       }
     }
@@ -454,7 +470,7 @@ namespace eurobot2009
   void RORobot::order_pachev_release()
   {
     LOG->trace("PACHEV RELEASE");
-    for(int i=0; i < pachev->getNumConstraintRefs(); i++)
+    for(int i=pachev->getNumConstraintRefs()-1; i>=0; i--)
     {
       btTypedConstraint *constraint = pachev->getConstraintRef(i);
       if( &constraint->getRigidBodyA() != body )
@@ -470,6 +486,15 @@ namespace eurobot2009
   {
     LOG->trace("PACHEV GRAB");
     pachev_state = PACHEV_GRAB;
+  }
+
+  void RORobot::order_pachev_eject()
+  {
+    if( pachev_state != PACHEV_RELEASE )
+      order_pachev_release();
+
+    LOG->trace("PACHEV EJECT");
+    pachev_state = PACHEV_EJECT;
   }
 
 
@@ -598,9 +623,11 @@ namespace eurobot2009
     LUA_DEFINE_SET1(order_pachev_move, order_pachev_move, LARG_scaled)
     LUA_DEFINE_SET0(order_pachev_release, order_pachev_release)
     LUA_DEFINE_SET0(order_pachev_grab,    order_pachev_grab)
+    LUA_DEFINE_SET0(order_pachev_eject,   order_pachev_eject)
 
     LUA_DEFINE_GET_SCALED(get_pachev_pos, get_pachev_pos)
     LUA_DEFINE_SET1(set_pachev_v, set_pachev_v, LARG_scaled)
+    LUA_DEFINE_SET1(set_pachev_eject_v, set_pachev_eject_v, LARG_scaled)
     LUA_DEFINE_SET1(set_threshold_pachev, set_threshold_pachev, LARG_scaled)
 
   public:
@@ -610,9 +637,11 @@ namespace eurobot2009
       LUA_REGFUNC(order_pachev_move);
       LUA_REGFUNC(order_pachev_release);
       LUA_REGFUNC(order_pachev_grab);
+      LUA_REGFUNC(order_pachev_eject);
       LUA_REGFUNC(get_pachev_pos);
       LUA_REGFUNC(set_pachev_v);
       LUA_REGFUNC(set_threshold_pachev);
+      LUA_REGFUNC(set_pachev_eject_v);
     }
   };
 }

@@ -10,8 +10,8 @@
 
 Display::Display()
 {
-  //TODO check on Linux
-  //glutInit(&argc, argv);
+  int argc = 1;
+  glutInit(&argc, NULL);
 
   this->screen = NULL;
 

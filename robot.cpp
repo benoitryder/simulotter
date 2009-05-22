@@ -217,8 +217,8 @@ void RBasic::do_asserv()
       }
       else
       {
-        set_av( btFsel(da, av_max, -av_max) );
         set_v(0);
+        set_av( btFsel(da, av_max, -av_max) );
       }
       return;
     }
@@ -285,6 +285,8 @@ void RBasic::do_update()
 
 inline void RBasic::set_v(btScalar v)
 {
+  //XXX we have to force activation, is it a Bullet bug?
+  body->activate();
   btVector2 vxy = btVector2(v,0).rotate(a);
   body->setLinearVelocity( btVector3(vxy.x, vxy.y,
         body->getLinearVelocity().z()) );
@@ -292,6 +294,8 @@ inline void RBasic::set_v(btScalar v)
 
 inline void RBasic::set_av(btScalar v)
 {
+  //XXX we have to force activation, is it a Bullet bug?
+  body->activate();
   body->setAngularVelocity( btVector3(0,0,v) );
 }
 

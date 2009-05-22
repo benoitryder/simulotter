@@ -170,7 +170,13 @@ public:
   static void push(lua_State *L, const char *s) { lua_pushstring(L, s); }
   static void push(lua_State *L, unsigned int    n) { lua_pushinteger(L, n); }
   static void push(lua_State *L, unsigned long   n) { lua_pushinteger(L, n); }
-  static void push(lua_State *L, const btVector2 &v) { lua_pushnumber(L, v.x); lua_pushnumber(L, v.y); }
+  static void push(lua_State *L, const btVector2 &v) { lua_pushnumber(L, unscale(v.x)); lua_pushnumber(L, unscale(v.y)); }
+  static void push(lua_State *L, const btVector3 &v)
+  {
+    lua_pushnumber(L, unscale(v[0]));
+    lua_pushnumber(L, unscale(v[1]));
+    lua_pushnumber(L, unscale(v[2]));
+  }
   static void push(lua_State *L, const Color4 &c)
   {
     lua_createtable(L, 0, 4);
@@ -188,8 +194,6 @@ public:
     push(L, y); push(L, p); push(L, r);
   }
   template<typename T, int n> static void push(lua_State *L, const T t[n]) { for( int i=0; i<n; i++ ) push(L, t[i]); }
-  static void push(lua_State *L, const btVector3 &v) { push<btScalar,3>(L,v); }
-  static void push(lua_State *L, const btQuaternion &q) { push<btScalar,4>(L,q); }
   //@}
 
 protected:

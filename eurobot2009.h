@@ -118,7 +118,7 @@ namespace eurobot2009
 
     virtual void setTrans(const btTransform &tr);
 
-    void do_asserv();
+    virtual void do_asserv();
 
     /** @name Strategy functions and orders
      */
@@ -128,6 +128,7 @@ namespace eurobot2009
     void order_pachev_move(btScalar h);
     void order_pachev_release();
     void order_pachev_grab();
+    void order_pachev_eject();
 
     btScalar target_pachev_pos;
 
@@ -136,6 +137,7 @@ namespace eurobot2009
     };
 
     void set_pachev_v(btScalar v)  { this->pachev_v  = v; }
+    void set_pachev_eject_v(btScalar f)  { this->pachev_eject_v = f; }
     void set_threshold_pachev(btScalar t) { this->threshold_pachev = t; }
 
     //@}
@@ -177,8 +179,6 @@ namespace eurobot2009
        *
        * Checks assume that the dispenser is not rotated (pàchev axis aligned
        * with Z axis).
-       *
-       * @todo Eject state.
        */
       virtual bool checkCollideWithOverride(btCollisionObject *co);
 
@@ -208,6 +208,8 @@ namespace eurobot2009
 
     /// Pàchev slider velocity
     btScalar pachev_v;
+    /// Velocity of ejected object
+    btScalar pachev_eject_v;
     /// Asserv pàchev threshold
     btScalar threshold_pachev;
   };
