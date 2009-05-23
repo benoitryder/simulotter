@@ -170,6 +170,11 @@ void Display::update()
   for( it = objs.begin(); it != objs.end(); ++it )
     (*it)->draw();
 
+  //XXX:test
+  // Draw text
+  glutBitmapCharacter(GLUT_BITMAP_9_BY_15, 'B');
+  //XXX:test end
+
   glDisable(GL_LIGHTING);
   glDisable(GL_LIGHT0);
   glMatrixMode(GL_PROJECTION);
