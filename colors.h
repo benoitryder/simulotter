@@ -48,9 +48,4 @@ inline Color4 operator*(const GLfloat &f, const Color4 &c) { return c*f; }
 
 #define COLOR_PLEXI  Color4(.70, .90, .95, 0.5)
 
-#define COLOR_RAL_6018  Color4(0x4f, 0xa8, 0x33)  // yellow green
-#define COLOR_RAL_3020  Color4(0xc7, 0x17, 0x12)  // traffic red
-#define COLOR_RAL_5015  Color4(0x17, 0x61, 0xab)  // sky blue
-#define COLOR_RAL_8017  Color4(0x2e, 0x1c, 0x1c)  // chocolate brown
-
 #endif

@@ -24,20 +24,26 @@ TARGET := simulotter
 ifeq ($(OS),Windows_NT)
 CFLAGS += -I$(dir $(shell $(CXX) -print-file-name=liblua.a))/../include/lua5.1/
 CFLAGS += -DWIN32 -DFREEGLUT_STATIC
+RES := $(TARGET).res
 TARGET := $(TARGET).exe
 endif
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
-	$(CXX) $(CFLAGS) $(OBJS) -o $@ $(LDFLAGS)
+$(TARGET): $(OBJS) $(RES)
+	$(CXX) $(CFLAGS) $(OBJS) $(RES) -o $@ $(LDFLAGS)
 
 %.o: %.cpp global.h
 	$(CXX) $(CFLAGS) -c $< -o $@
+
+ifneq ($(RES),)
+%.res: %.rc
+	windres $< -O coff -o $@
+endif
 
 clean: distclean
 	rm -f $(TARGET)
 
 distclean:
-	rm -f $(OBJS)
+	rm -f $(OBJS) $(RES)
 
