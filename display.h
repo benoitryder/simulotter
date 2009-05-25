@@ -33,6 +33,12 @@ public:
   /// Update display
   void update();
 
+public:
+  /** @brief Draw a text string using given font
+   * @note y=0 is the top of the screen
+   */
+  void drawString(const char *s, int x, int y, Color4 color, void *font);
+
 private:
   SDL_Surface *screen;
 

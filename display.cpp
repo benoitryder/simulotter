@@ -2,6 +2,7 @@
 #include <SDL/SDL_opengl.h>
 #include <GL/freeglut.h>
 #include <math.h>
+#include <string.h>
 #include <vector>
 #include "global.h"
 #include "icon.h"
@@ -170,19 +171,27 @@ void Display::update()
   for( it = objs.begin(); it != objs.end(); ++it )
     (*it)->draw();
 
-  //XXX:test
-  // Draw text
-  glutBitmapCharacter(GLUT_BITMAP_9_BY_15, 'B');
-  //XXX:test end
-
   glDisable(GL_LIGHTING);
   glDisable(GL_LIGHT0);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluOrtho2D(0.0, screen_x, 0.0, screen_y);
 
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  //TODO draw OSD
+
   SDL_GL_SwapBuffers();
   glFlush();
+}
+
+void Display::drawString(const char *s, int x, int y, Color4 color, void *font)
+{
+  y = screen_y - y;
+  glRasterPos2f(x,y);
+  glColor4fv(color);
+  for( unsigned int i=0; i<strlen(s); i++)
+    glutBitmapCharacter(font, s[i]);
 }
 
 
