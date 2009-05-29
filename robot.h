@@ -41,8 +41,6 @@ public:
    *
    * This function is called after each simulation step to update internal data
    * using simulation data (e.g. position).
-   *
-   * @todo Remove it (and use Bullet handlers instead)?
    */
   void update();
 
@@ -98,6 +96,8 @@ private:
   int ref_strategy;
   /// Strategy thread state
   lua_State *L_strategy;
+  /// Strategy thread reference
+  int ref_strategy_thread;
 
 protected:
   /// Lua instance reference
@@ -116,7 +116,7 @@ protected:
  * set_v()) which may cause odd behaviors.
  *
  * @todo Add a setPosAbove() function.
- * @todo Add a setPosStart() function
+ * @todo Add a setPosStart() function.
  */
 class RBasic: public Robot
 {

@@ -10,8 +10,7 @@ extern "C"
 }
 #include <vector>
 
-#include "colors.h"
-#include "log.h"
+#include "global.h"
 
 
 class LuaClassBase;
@@ -108,6 +107,44 @@ public:
       lua_error(L);
   }
 
+  /** @name Push functions
+   */
+  //@{
+  static void push(lua_State *L) { lua_pushnil(L); }
+  static void push(lua_State *L, int    n) { lua_pushinteger(L, n); }
+  static void push(lua_State *L, long   n) { lua_pushinteger(L, n); }
+  static void push(lua_State *L, float  n) { lua_pushnumber (L, n); }
+  static void push(lua_State *L, double n) { lua_pushnumber (L, n); }
+  static void push(lua_State *L, bool   b) { lua_pushboolean(L, b); }
+  static void push(lua_State *L, const char *s) { lua_pushstring(L, s); }
+  static void push(lua_State *L, unsigned int    n) { lua_pushinteger(L, n); }
+  static void push(lua_State *L, unsigned long   n) { lua_pushinteger(L, n); }
+  static void push(lua_State *L, const btVector2 &v) { lua_pushnumber(L, unscale(v.x)); lua_pushnumber(L, unscale(v.y)); }
+  static void push(lua_State *L, const btVector3 &v)
+  {
+    lua_pushnumber(L, unscale(v[0]));
+    lua_pushnumber(L, unscale(v[1]));
+    lua_pushnumber(L, unscale(v[2]));
+  }
+  static void push(lua_State *L, const Color4 &c)
+  {
+    lua_createtable(L, 0, 4);
+    for( int i=0; i<4; i++ )
+    {
+      LuaManager::push(L, c[i]);
+      lua_rawseti(L, -2, i+1);
+    }
+  }
+  static void push(lua_State *L, const btMatrix3x3 &m)
+  {
+    // Push Euler angles, YPR/YXZ order
+    btScalar y, p, r;
+    m.getEulerYPR(y,p,r);
+    push(L, y); push(L, p); push(L, r);
+  }
+  template<typename T, int n> static void push(lua_State *L, const T t[n]) { for( int i=0; i<n; i++ ) push(L, t[i]); }
+  //@}
+
 private:
 
   lua_State *L;
@@ -124,7 +161,7 @@ private:
  * Instances are tables.
  * Instances of (or which inherit from) predefined classes store their
  * userdata in the \e _ud field. If it is modified, results are unexpected.
- *
+ * 
  * Predefined classes may store Lua objects (e.g. instances) using references
  * in the registry. Thus, they can be associated to C++ instances.
  * 
@@ -156,45 +193,6 @@ public:
 
   virtual const char *get_name() = 0;
   virtual const char *get_base_name() = 0;
-
-  /** @name Push functions
-   * @todo Should not be here
-   */
-  //@{
-  static void push(lua_State *L) { lua_pushnil(L); }
-  static void push(lua_State *L, int    n) { lua_pushinteger(L, n); }
-  static void push(lua_State *L, long   n) { lua_pushinteger(L, n); }
-  static void push(lua_State *L, float  n) { lua_pushnumber (L, n); }
-  static void push(lua_State *L, double n) { lua_pushnumber (L, n); }
-  static void push(lua_State *L, bool   b) { lua_pushboolean(L, b); }
-  static void push(lua_State *L, const char *s) { lua_pushstring(L, s); }
-  static void push(lua_State *L, unsigned int    n) { lua_pushinteger(L, n); }
-  static void push(lua_State *L, unsigned long   n) { lua_pushinteger(L, n); }
-  static void push(lua_State *L, const btVector2 &v) { lua_pushnumber(L, unscale(v.x)); lua_pushnumber(L, unscale(v.y)); }
-  static void push(lua_State *L, const btVector3 &v)
-  {
-    lua_pushnumber(L, unscale(v[0]));
-    lua_pushnumber(L, unscale(v[1]));
-    lua_pushnumber(L, unscale(v[2]));
-  }
-  static void push(lua_State *L, const Color4 &c)
-  {
-    lua_createtable(L, 0, 4);
-    for( int i=0; i<4; i++ )
-    {
-      LuaClassBase::push(L, c[i]);
-      lua_rawseti(L, -2, i+1);
-    }
-  }
-  static void push(lua_State *L, const btMatrix3x3 &m)
-  {
-    // Push Euler angles, YPR/YXZ order
-    btScalar y, p, r;
-    m.getEulerYPR(y,p,r);
-    push(L, y); push(L, p); push(L, r);
-  }
-  template<typename T, int n> static void push(lua_State *L, const T t[n]) { for( int i=0; i<n; i++ ) push(L, t[i]); }
-  //@}
 
 protected:
   /// Method list, with their name
@@ -231,29 +229,35 @@ private:
 
 
 /** @brief Class inherited by classes which provide a Lua class.
+ *
+ * Userdata are raw pointers.
+ * Refcount is increased in store_ptr() and decreased in _gc() to to count the
+ * pointer held by Lua.
  */
 template<class T>
 class LuaClass: public LuaClassBase
 {
 public:
+  typedef T data_type;
+  typedef T *data_ptr;
+
   const char *get_name() { return this->name; }
   const char *get_base_name() { return this->base_name; }
 
 protected:
-  /** @brief Retrieve a pointer from userdata
+  /** @brief Retrieve userdata pointer
    *
-   * Get the C++ instance pointer from an instance table.
+   * Get the C++ pointer from an instance table.
    * Replace the instance table by the userdata.
    *
    * @todo Cannot check using checkudata since derived classes does not have
    * the correct type. Find another way to check (metatable+inheritance, ...).
    */
-  static T *get_ptr(lua_State *L)
+  static data_ptr get_ptr(lua_State *L)
   {
     lua_getfield(L, 1, "_ud");
     lua_replace(L, 1);
-
-    return *(T**)lua_touserdata(L, 1);
+    return *(data_ptr *)lua_touserdata(L, 1);
   }
 
   /// Create the class
@@ -278,6 +282,10 @@ protected:
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
 
+    // Define garbage collector metamethod
+    lua_pushcfunction(L, _gc);
+    lua_setfield(L, -2, "__gc");
+
     // Add methods
     std::vector<LuaRegFunc>::iterator it;
     for( it=functions.begin(); it!=functions.end(); it++ )
@@ -290,23 +298,33 @@ protected:
     lua_setfield(L, LUA_REGISTRYINDEX, get_name());
   }
 
-  /** @brief Get a new userdata object
+  /// Garbage collector method
+  static int _gc(lua_State *L)
+  {
+    data_ptr *ud = (data_ptr *)luaL_checkudata(L, 1, name);
+    SmartPtr_release( *ud );
+    return 0;
+  }
+
+  /** @brief Store a new userdata object
    *
    * Create a new userdata, set its metatable, set the \e _ud field of the
-   * first argument.
-   *
-   * @return A pointer to the userdata memory block.
+   * first argument and store the given pointer in it.
    *
    * @note This function should be called by any constructor.
    */
-  static T **new_userdata(lua_State *L)
+  static void store_ptr(lua_State *L, data_ptr p)
   {
-    push(L, "_ud");
-    T **ud = (T **)lua_newuserdata(L, sizeof(T *));
+    // Create userdata
+    LuaManager::push(L, "_ud");
+    data_ptr *ud = (data_ptr *)lua_newuserdata(L, sizeof(data_ptr));
     lua_getfield(L, LUA_REGISTRYINDEX, name);
     lua_setmetatable(L, -2);
     lua_rawset(L, 1);
-    return ud;
+
+    *ud = p;
+    // Increase ref count and store the pointer
+    SmartPtr_add_ref(p);
   }
 
   /// Class name
@@ -352,9 +370,9 @@ protected:
 //@{
 
 #define LUA_DEFINE_GETN(i,n,f) \
-  static int n(lua_State *L) { push(L, get_ptr(L)->f()); return i; }
+  static int n(lua_State *L) { LuaManager::push(L, get_ptr(L)->f()); return i; }
 #define LUA_DEFINE_GETN_SCALED(i,n,f) \
-  static int n(lua_State *L) { push(L, unscale(get_ptr(L)->f())); return i; }
+  static int n(lua_State *L) { LuaManager::push(L, unscale(get_ptr(L)->f())); return i; }
 #define LUA_DEFINE_GET(n,f)  LUA_DEFINE_GETN(1,n,f)
 #define LUA_DEFINE_GET_SCALED(n,f) LUA_DEFINE_GETN_SCALED(1,n,f)
 

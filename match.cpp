@@ -23,9 +23,7 @@ Match::Match(const Color4 colors[], unsigned int team_nb, int duration)
 Match::~Match()
 {
   lua_State *L = lm->get_L();
-  if( ref_obj != LUA_NOREF )
-    luaL_unref(L, LUA_REGISTRYINDEX, ref_obj);
-
+  luaL_unref(L, LUA_REGISTRYINDEX, ref_obj);
   delete[] colors;
 }
 
@@ -109,11 +107,11 @@ class LuaMatch: public LuaClass<Match>
       lua_pop(L, 1);
     }
 
-    Match **ud = new_userdata(L);
+    Match *m;
     if( lua_isnone(L, 3) )
-      *ud = new Match(colors, nb);
+      m = new Match(colors, nb);
     else if( lua_isnumber(L, 3) )
-      *ud = new Match(colors, nb, lua_tointeger(L, 3));
+      m = new Match(colors, nb, lua_tointeger(L, 3));
     else
     {
       delete[] colors;
@@ -122,8 +120,9 @@ class LuaMatch: public LuaClass<Match>
 
     delete[] colors;
 
+    store_ptr(L, m);
     lua_pushvalue(L, 1);
-    (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
+    m->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
 
     LOG->trace("LuaMatch: END");
     return 0;
@@ -133,7 +132,7 @@ class LuaMatch: public LuaClass<Match>
 
   static int get_color(lua_State *L)
   {
-    push(L, get_ptr(L)->getColor(LARG_i(2)));
+    LuaManager::push(L, get_ptr(L)->getColor(LARG_i(2)));
     return 1;
   }
 

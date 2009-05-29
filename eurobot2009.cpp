@@ -9,29 +9,29 @@ namespace eurobot2009
   static const btScalar WALL_HALF_WIDTH  = scale(0.011);
 
 
-  btCylinderShapeZ OColElem::shape( scale(btVector3(0.035,0.035,0.015)) );
+  SmartPtr<btCylinderShapeZ> OColElem::shape(new btCylinderShapeZ(scale(btVector3(0.035,0.035,0.015))));
 
   OColElem::OColElem()
   {
-    setShape( &shape );
+    setShape( shape );
     setMass( 0.100 );
   }
 
-  btBoxShape OLintel::shape( scale(btVector3(0.100,0.035,0.015)) );
+  SmartPtr<btBoxShape> OLintel::shape(new btBoxShape(scale(btVector3(0.100,0.035,0.015))));
   OLintel::OLintel()
   {
-    setShape( &shape );
+    setShape( shape );
     setMass( 0.300 );
   }
 
 
   const btScalar ODispenser::radius = scale(0.040);
   const btScalar ODispenser::height = scale(0.150);
-  btCylinderShapeZ ODispenser::shape( btVector3(radius,radius,height/2) );
+  SmartPtr<btCylinderShapeZ> ODispenser::shape(new btCylinderShapeZ(btVector3(radius,radius,height/2)));
 
   ODispenser::ODispenser()
   {
-    setShape( &shape );
+    setShape( shape );
     setColor(COLOR_PLEXI);
     m_checkCollideWith = true;
   }
@@ -81,7 +81,7 @@ namespace eurobot2009
   }
 
 
-  btCompoundShape OLintelStorage::shape;
+  SmartPtr<btCompoundShape> OLintelStorage::shape;
   btBoxShape OLintelStorage::arm_shape( btVector3(WALL_HALF_WIDTH,scale(0.035),WALL_HALF_WIDTH) );
   btBoxShape OLintelStorage::back_shape( btVector3(scale(0.100),WALL_HALF_WIDTH,scale(0.030)) );
   btBoxShape OLintelStorage::bottom_shape( btVector3(scale(0.100),WALL_HALF_WIDTH,scale(0.035)) );
@@ -89,24 +89,25 @@ namespace eurobot2009
   OLintelStorage::OLintelStorage()
   {
     // First instance: initialize shape
-    if( shape.getNumChildShapes() == 0 )
+    if( shape == NULL )
     {
+      shape = new btCompoundShape();
       btTransform tr = btTransform::getIdentity();
       // Bottom
       tr.setOrigin( btVector3(0, 3*WALL_HALF_WIDTH-scale(0.035), WALL_HALF_WIDTH-scale(0.035)) );
-      shape.addChildShape(tr, &bottom_shape);
+      shape->addChildShape(tr, &bottom_shape);
       // Back
       tr.setOrigin( btVector3(0, scale(0.035)+WALL_HALF_WIDTH, scale(0.030)-WALL_HALF_WIDTH) );
-      shape.addChildShape(tr, &back_shape);
+      shape->addChildShape(tr, &back_shape);
       // Left arm
       tr.setOrigin( btVector3(scale(0.100)-WALL_HALF_WIDTH, 0, 0) );
-      shape.addChildShape(tr, &arm_shape);
+      shape->addChildShape(tr, &arm_shape);
       // Right arm
       tr.setOrigin( btVector3( -(scale(0.100)-WALL_HALF_WIDTH), 0, 0) );
-      shape.addChildShape(tr, &arm_shape);
+      shape->addChildShape(tr, &arm_shape);
     }
 
-    setShape( &shape );
+    setShape( shape );
     setColor(Color4::black());
   }
 
@@ -148,7 +149,7 @@ namespace eurobot2009
   const btScalar RORobot::a_wheel  = 2*btAtan2( r_wheel, d_wheel );
   const btScalar RORobot::radius   = btSqrt(side*side+d_side*d_side);
 
-  btCompoundShape RORobot::shape;
+  SmartPtr<btCompoundShape> RORobot::shape;
   btConvexHullShape RORobot::body_shape;
   btBoxShape RORobot::wheel_shape( btVector3(h_wheel/2,r_wheel,r_wheel) );
   btBoxShape RORobot::Pachev::shape( 0.5*btVector3(width,width,height) );
@@ -156,8 +157,9 @@ namespace eurobot2009
   RORobot::RORobot(btScalar m)
   {
     // First instance: initialize shape
-    if( shape.getNumChildShapes() == 0 )
+    if( shape == NULL )
     {
+      shape = new btCompoundShape();
       // Triangular body
       if( body_shape.getNumPoints() == 0 )
       {
@@ -172,26 +174,26 @@ namespace eurobot2009
           p = p.rotate(a_side);
         }
       }
-      shape.addChildShape(btTransform::getIdentity(), &body_shape);
+      shape->addChildShape(btTransform::getIdentity(), &body_shape);
 
       // Wheels (use boxes instead of cylinders)
       btTransform tr = btTransform::getIdentity();
       btVector2 vw( d_wheel+h_wheel/2, 0 );
       tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - r_wheel)) );
-      shape.addChildShape(tr, &wheel_shape);
+      shape->addChildShape(tr, &wheel_shape);
 
       vw = vw.rotate(2*M_PI/3);
       tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - r_wheel)) );
       tr.setRotation( btQuaternion(btVector3(0,0,1), 2*M_PI/3) );
-      shape.addChildShape(tr, &wheel_shape);
+      shape->addChildShape(tr, &wheel_shape);
 
       vw = vw.rotate(-4*M_PI/3);
       tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - r_wheel)) );
       tr.setRotation( btQuaternion(btVector3(0,0,1), -2*M_PI/3) );
-      shape.addChildShape(tr, &wheel_shape);
+      shape->addChildShape(tr, &wheel_shape);
     }
 
-    this->setup(&shape, m);
+    this->setup(shape, m);
 
     // Pàchev
     pachev = new Pachev(this);
@@ -502,8 +504,7 @@ namespace eurobot2009
   {
     static int _ctor(lua_State *L)
     {
-      OColElem **ud = new_userdata(L);
-      *ud = new OColElem();
+      store_ptr(L, new OColElem());
       return 0;
     }
 
@@ -518,8 +519,7 @@ namespace eurobot2009
   {
     static int _ctor(lua_State *L)
     {
-      OLintel **ud = new_userdata(L);
-      *ud = new OLintel();
+      store_ptr(L, new OLintel());
       return 0;
     }
 
@@ -534,8 +534,7 @@ namespace eurobot2009
   {
     static int _ctor(lua_State *L)
     {
-      ODispenser **ud = new_userdata(L);
-      *ud = new ODispenser();
+      store_ptr(L, new ODispenser());
       return 0;
     }
 
@@ -573,8 +572,7 @@ namespace eurobot2009
   {
     static int _ctor(lua_State *L)
     {
-      OLintelStorage **ud = new_userdata(L);
-      *ud = new OLintelStorage();
+      store_ptr(L, new OLintelStorage());
       return 0;
     }
 
@@ -612,10 +610,10 @@ namespace eurobot2009
   {
     static int _ctor(lua_State *L)
     {
-      RORobot **ud = new_userdata(L);
-      *ud = new RORobot(LARG_f(2));
+      RORobot *r = new RORobot(LARG_f(2));
+      store_ptr(L, r);
       lua_pushvalue(L, 1);
-      (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
+      r->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
 
       return 0;
     }

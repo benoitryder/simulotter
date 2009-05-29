@@ -30,11 +30,11 @@ unsigned long millitime(void)
 
 
 Config  *cfg     = NULL;
-Physics *physics = NULL;
-Display *display = NULL;
-Match   *match   = NULL;
 LuaManager *lm   = NULL;
 Log *LOG         = NULL;
+SmartPtr<Physics> physics;
+SmartPtr<Display> display;
+SmartPtr<Match>  match;
 
 
 int main(int argc, char **argv)
@@ -43,6 +43,7 @@ int main(int argc, char **argv)
   cfg = new Config();
   lm = new LuaManager();
 
+  int ret = 0;
   try
   {
     if( argc > 1 )
@@ -57,10 +58,10 @@ int main(int argc, char **argv)
     }
     LOG->trace("Lua script loaded, prepare simulation");
 
-    if( physics == NULL )
+    if( !physics )
       throw(Error("physics not created"));
 
-    if( match == NULL )
+    if( !match )
       throw(Error("no created match"));
 
     if( !physics->isInitialized() )
@@ -75,8 +76,8 @@ int main(int argc, char **argv)
 
 
     LOG->trace("init robots");
-    std::map<unsigned int,Robot*> &robots = match->getRobots();
-    std::map<unsigned int,Robot*>::iterator itr;
+    std::map<unsigned int, SmartPtr<Robot> > &robots = match->getRobots();
+    std::map<unsigned int, SmartPtr<Robot> >::iterator itr;
     for( itr=robots.begin(); itr!=robots.end(); ++itr )
       (*itr).second->matchInit();
 
@@ -139,28 +140,22 @@ int main(int argc, char **argv)
   catch(int i)
   {
     LOG->trace("EXIT");
-    return i;
+    ret = i;
   }
   catch(Error e)
   {
     fprintf(stderr,"%s\n", e.what());
-    delete physics;
-    delete display;
-    delete match;
-    delete lm;
-    delete cfg;
-    delete LOG;
-    return 1;
+    ret = 1;
   }
 
-  delete physics;
-  delete display;
-  delete match;
+  match = NULL;
+  display = NULL;
+  physics = NULL;
   delete lm;
   delete cfg;
   delete LOG;
 
-  return 0;
+  return ret;
 }
 
 

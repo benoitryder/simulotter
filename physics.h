@@ -4,17 +4,19 @@
 #include <set>
 #include "global.h"
 
+class Object;
+
 
 ///@file
 
 
 /** @brief Physics environment
  */
-class Physics
+class Physics: public SmartObject
 {
 public:
   Physics();
-  ~Physics();
+  virtual ~Physics();
 
   /// Init physics (using configuration values)
   void init();
@@ -29,7 +31,7 @@ public:
 
   btDynamicsWorld *getWorld() { return this->world; }
 
-  std::set<Object*> &getObjs() { return this->objs; }
+  std::set<SmartPtr<Object> > &getObjs() { return this->objs; }
 
   /// Common static rigid body for constraints
   static btRigidBody static_body;
@@ -42,7 +44,7 @@ private:
   btCollisionConfiguration *col_config;
 
   /// All match objects
-  std::set<Object*> objs;
+  std::set<SmartPtr<Object> > objs;
 
   /// Simulation pause state
   bool pause_state;

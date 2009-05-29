@@ -166,8 +166,8 @@ void Display::update()
       0.0, 0.0, up);
 
   // Draw objects
-  std::set<Object*> &objs = physics->getObjs();
-  std::set<Object*>::iterator it;
+  std::set< SmartPtr<Object> > &objs = physics->getObjs();
+  std::set< SmartPtr<Object> >::iterator it;
   for( it = objs.begin(); it != objs.end(); ++it )
     (*it)->draw();
 
@@ -409,7 +409,7 @@ void Display::handlerCamMode(Display *d, const SDL_Event &event)
     case CAM_FREE:
       {
         //TODO allow other objects
-        std::map<unsigned int,Robot*> &robots = match->getRobots();
+        std::map<unsigned int, SmartPtr<Robot> > &robots = match->getRobots();
         if( !robots.empty() )
         {
           d->camera_target.obj = (*robots.begin()).second;
@@ -420,7 +420,7 @@ void Display::handlerCamMode(Display *d, const SDL_Event &event)
     case CAM_LOOK:
       {
         //TODO allow other objects
-        std::map<unsigned int,Robot*> &robots = match->getRobots();
+        std::map<unsigned int, SmartPtr<Robot> > &robots = match->getRobots();
         if( !robots.empty() )
         {
           d->camera_target.obj = (*robots.begin()).second;
@@ -547,12 +547,13 @@ void Display::handlerCamDown(Display *d, const SDL_Event &event)
  */
 class LuaDisplay: public LuaClass<Display>
 {
+  typedef Display *data_ptr;
+
   static int _ctor(lua_State *L)
   {
     if( display == NULL )
       display = new Display();
-    Display **ud = new_userdata(L);
-    *ud = display;
+    store_ptr(L, display);
     return 0;
   }
 

@@ -16,7 +16,7 @@ namespace eurobot2009
   public:
     OColElem();
   private:
-    static btCylinderShapeZ shape;
+    static SmartPtr<btCylinderShapeZ> shape;
   };
 
   /// Lintels
@@ -25,7 +25,7 @@ namespace eurobot2009
   public:
     OLintel();
   private:
-    static btBoxShape shape;
+    static SmartPtr<btBoxShape> shape;
   };
 
 
@@ -66,7 +66,7 @@ namespace eurobot2009
     static const btScalar radius;
     static const btScalar height;
   private:
-    static btCylinderShapeZ shape;
+    static SmartPtr<btCylinderShapeZ> shape;
   };
 
   /// Lintel storage
@@ -88,7 +88,7 @@ namespace eurobot2009
     void fill(OLintel *o);
 
   private:
-    static btCompoundShape shape;
+    static SmartPtr<btCompoundShape> shape;
     static btBoxShape arm_shape;
     static btBoxShape back_shape;
     static btBoxShape bottom_shape;
@@ -154,7 +154,7 @@ namespace eurobot2009
     static const btScalar radius;   ///< outer circle radius
 
   private:
-    static btCompoundShape shape;
+    static SmartPtr<btCompoundShape> shape;
     static btConvexHullShape body_shape;
     static btBoxShape wheel_shape;
 

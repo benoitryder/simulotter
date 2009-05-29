@@ -21,7 +21,7 @@ class Robot;
  * Only one match can be created and is automatically assigned to the global
  * \e match variable. It is required to allow match creation in Lua.
  */
-class Match
+class Match: public SmartObject
 {
   friend class LuaMatch;
 public:
@@ -52,7 +52,7 @@ public:
    */
   unsigned int registerRobot(Robot *r, unsigned int team=TEAM_INVALID);
 
-  std::map<unsigned int, Robot*> &getRobots() { return robots; }
+  std::map<unsigned int, SmartPtr<Robot> > &getRobots() { return robots; }
 
   /// Get color of a given team
   const Color4 getColor(unsigned int team) const { return colors[team]; }
@@ -79,7 +79,7 @@ private:
   /** @brief Registered robots
    * Robots are indexed by their team.
    */
-  std::map<unsigned int, Robot*> robots;
+  std::map<unsigned int, SmartPtr<Robot> > robots;
 
   /// Team colors
   Color4 *colors;

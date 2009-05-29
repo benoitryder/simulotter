@@ -60,9 +60,9 @@ int Config::lua_index(lua_State *L)
   const char *name = luaL_checkstring(L, 2);
 
 #define CONFIG_INDEX_VAL(n) \
-  if( strcmp(name, #n) == 0 ) {LuaClassBase::push(L, config->n); return 1;}
+  if( strcmp(name, #n) == 0 ) {LuaManager::push(L, config->n); return 1;}
 #define CONFIG_INDEX_VAL_SCALED(n) \
-  if( strcmp(name, #n) == 0 ) {LuaClassBase::push(L, unscale(config->n)); return 1;}
+  if( strcmp(name, #n) == 0 ) {LuaManager::push(L, unscale(config->n)); return 1;}
 
   CONFIG_INDEX_VAL_SCALED(gravity_z);
   CONFIG_INDEX_VAL(step_dt);
@@ -87,7 +87,7 @@ int Config::lua_index(lua_State *L)
 
   if( strcmp(name, "bg_color") == 0 )
   {
-    LuaClassBase::push(L, config->bg_color);
+    LuaManager::push(L, config->bg_color);
     return 1;
   }
 

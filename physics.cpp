@@ -16,7 +16,6 @@ Physics::Physics()
       100
       );
 
-  // Parralel solver pour du multithread (?)
   solver = new btSequentialImpulseConstraintSolver();
 
   world = new btDiscreteDynamicsWorld(
@@ -29,11 +28,7 @@ Physics::Physics()
 
 Physics::~Physics()
 {
-  std::set<Object*>::iterator it;
-  for( it = objs.begin(); it != objs.end(); ++it )
-    delete *it;
   objs.clear();
-
   delete world;
   delete solver;
   delete dispatcher;
@@ -65,8 +60,8 @@ void Physics::step()
   world->stepSimulation(step_dt, 1, step_dt);
 
   // Update robot values, do asserv and strategy
-  std::map<unsigned int,Robot*> &robots = match->getRobots();
-  std::map<unsigned int,Robot*>::iterator itr;
+  std::map<unsigned int, SmartPtr<Robot> > &robots = match->getRobots();
+  std::map<unsigned int, SmartPtr<Robot> >::iterator itr;
   for( itr=robots.begin(); itr!=robots.end(); ++itr )
   {
     (*itr).second->update();
@@ -88,8 +83,7 @@ class LuaPhysics: public LuaClass<Physics>
   {
     if( physics == NULL )
       physics = new Physics();
-    Physics **ud = new_userdata(L);
-    *ud = physics;
+    store_ptr(L, physics);
     return 0;
   }
 
@@ -105,36 +99,39 @@ public:
   }
 };
 
+
 LUA_REGISTER_BASE_CLASS(Physics);
 
 
 /** @name Lua collision shapes
  *
  * Shapes is not a usual class: instances are created using a specific method
- * for each shape.
- * Instances are not tables with an \e _ud fields be userdata.
- * new_userdata() and get_ptr() are redefined for this purpose.
+ * for each shape, there are no constructor.
+ * Instances are not tables with an \e _ud fields but userdata.
+ * store_ptr() and get_ptr() are redefined for this purpose.
  *
- * @todo Garbage collection, object deletion, ...
  * @todo Compound shapes
  */
 //@{
 
 class LuaShape: public LuaClass<btCollisionShape>
 {
-  static btCollisionShape **new_userdata(lua_State *L)
+  static void store_ptr(lua_State *L, btCollisionShape *p)
   {
     // check that we use Class:method and not Class.method
     luaL_checktype(L, 1, LUA_TUSERDATA);
-    btCollisionShape **ud = (btCollisionShape **)lua_newuserdata(L, sizeof(btCollisionShape *));
+    data_ptr *ud = (data_ptr *)lua_newuserdata(L, sizeof(data_ptr));
     lua_getfield(L, LUA_REGISTRYINDEX, name);
     lua_setmetatable(L, -2);
-    return ud;
+
+    *ud = p;
+    // Increase ref count and store the pointer
+    SmartPtr_add_ref(p);
   }
 
-  static btCollisionShape *get_ptr(lua_State *L)
+  static data_ptr get_ptr(lua_State *L)
   {
-    return *(btCollisionShape **)luaL_checkudata(L, 1, name);
+    return *(data_ptr *)luaL_checkudata(L, 1, name);
   }
 
   static int _ctor(lua_State *L)
@@ -144,66 +141,46 @@ class LuaShape: public LuaClass<btCollisionShape>
 
   static int sphere(lua_State *L)
   {
-    btCollisionShape **ud = new_userdata(L);
-    *ud = new btSphereShape(LARG_scaled(2));
+    store_ptr(L, new btSphereShape(LARG_scaled(2)));
     return 1;
   }
 
   static int box(lua_State *L)
   {
-    btCollisionShape **ud = new_userdata(L);
-    *ud = new btBoxShape( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
+    store_ptr(L, new btBoxShape( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) ));
     return 1;
   }
 
   static int capsuleX(lua_State *L)
   {
-    btCollisionShape **ud = new_userdata(L);
-    *ud = new btCapsuleShapeX(LARG_scaled(2), LARG_scaled(3));
+    store_ptr(L, new btCapsuleShapeX(LARG_scaled(2), LARG_scaled(3)));
     return 1;
   }
   static int capsuleY(lua_State *L)
   {
-    btCollisionShape **ud = new_userdata(L);
-    *ud = new btCapsuleShape(LARG_scaled(2), LARG_scaled(3));
+    store_ptr(L, new btCapsuleShape(LARG_scaled(2), LARG_scaled(3)));
     return 1;
   }
   static int capsuleZ(lua_State *L)
   {
-    btCollisionShape **ud = new_userdata(L);
-    *ud = new btCapsuleShapeZ(LARG_scaled(2), LARG_scaled(3));
+    store_ptr(L, new btCapsuleShapeZ(LARG_scaled(2), LARG_scaled(3)));
     return 1;
   }
 
   static int cylinderX(lua_State *L)
   {
-    btCollisionShape **ud = new_userdata(L);
-    *ud = new btCylinderShapeX( btVector3(LARG_scaled(3), LARG_scaled(2), LARG_scaled(2)) );
+    store_ptr(L, new btCylinderShapeX( btVector3(LARG_scaled(3), LARG_scaled(2), LARG_scaled(2)) ));
     return 1;
   }
   static int cylinderY(lua_State *L)
   {
-    btCollisionShape **ud = new_userdata(L);
-    *ud = new btCylinderShape( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(2)) );
+    store_ptr(L, new btCylinderShape( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(2)) ));
     return 1;
   }
   static int cylinderZ(lua_State *L)
   {
-    btCollisionShape **ud = new_userdata(L);
-    *ud = new btCylinderShapeZ( btVector3(LARG_scaled(2), LARG_scaled(2), LARG_scaled(3)) );
+    store_ptr(L, new btCylinderShapeZ( btVector3(LARG_scaled(2), LARG_scaled(2), LARG_scaled(3)) ));
     return 1;
-  }
-
-  // Garbage collector
-  static int gc(lua_State *L)
-  {
-    /*TODO
-    btCollisionShape *shape = get_ptr(L);
-    // Don't destroy used geoms (should not happen, just in case)
-    if( dGeomGetSpace(geom) == 0 )
-      dGeomDestroy( geom );
-      */
-    return 0;
   }
 
 public:
@@ -218,7 +195,6 @@ public:
     LUA_REGFUNC(cylinderX);
     LUA_REGFUNC(cylinderY);
     LUA_REGFUNC(cylinderZ);
-    functions.push_back((LuaRegFunc){"__gc", gc});
   }
 };
 

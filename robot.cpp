@@ -13,6 +13,7 @@ Robot::Robot()
   this->ref_asserv = LUA_NOREF;
   this->ref_strategy = LUA_NOREF;
   this->L_strategy = NULL;
+  this->ref_strategy_thread = LUA_NOREF;
 
   this->team = TEAM_INVALID;
 }
@@ -20,14 +21,12 @@ Robot::Robot()
 Robot::~Robot()
 {
   lua_State *L = lm->get_L();
-  if( ref_obj != LUA_NOREF )
-    luaL_unref(L, LUA_REGISTRYINDEX, ref_obj);
-  if( ref_update != LUA_NOREF )
-    luaL_unref(L, LUA_REGISTRYINDEX, ref_update);
-  if( ref_asserv != LUA_NOREF )
-    luaL_unref(L, LUA_REGISTRYINDEX, ref_asserv);
-  if( ref_strategy != LUA_NOREF )
-    luaL_unref(L, LUA_REGISTRYINDEX, ref_strategy);
+  // luaL_unref has no effect on LUA_NOREF, so it's ok
+  luaL_unref(L, LUA_REGISTRYINDEX, ref_obj);
+  luaL_unref(L, LUA_REGISTRYINDEX, ref_update);
+  luaL_unref(L, LUA_REGISTRYINDEX, ref_asserv);
+  luaL_unref(L, LUA_REGISTRYINDEX, ref_strategy);
+  luaL_unref(L, LUA_REGISTRYINDEX, ref_strategy_thread);
 }
 
 void Robot::matchRegister(unsigned int team)
@@ -35,7 +34,7 @@ void Robot::matchRegister(unsigned int team)
   if( getTeam() != TEAM_INVALID )
     throw(Error("robot is already registered"));
 
-  if( match == NULL )
+  if( !match )
     throw(Error("no match to register the robot in"));
 
   this->team = match->registerRobot(this, team);
@@ -64,6 +63,7 @@ void Robot::matchInit()
   {
     ref_strategy = luaL_ref(L, LUA_REGISTRYINDEX);
     L_strategy = lua_newthread(L);
+    ref_strategy_thread = luaL_ref(L, LUA_REGISTRYINDEX);
   }
   else
     lua_pop(L, 1);
@@ -110,7 +110,8 @@ void Robot::strategy()
   int ret = lua_resume(L_strategy, 1);
   if( ret == 0 )
   {
-    lua_close(L_strategy);
+    luaL_unref(L_strategy, LUA_REGISTRYINDEX, ref_strategy_thread);
+    ref_strategy_thread = LUA_NOREF;
     L_strategy = NULL;
   }
   else if( ret == LUA_YIELD )
@@ -134,18 +135,24 @@ RBasic::RBasic(btCollisionShape *shape, btScalar m)
 
 void RBasic::setup(btCollisionShape *shape, btScalar m)
 {
+  if( this->body != NULL )
+    throw(Error("robot already setup"));
   btVector3 inertia;
   shape->calculateLocalInertia(m, inertia);
   this->body = new btRigidBody(
       btRigidBody::btRigidBodyConstructionInfo(m,NULL,shape,inertia)
       );
+  SmartPtr_add_ref(shape);
 }
 
 RBasic::~RBasic()
 {
   //TODO remove from the world
   if( body != NULL )
+  {
+    SmartPtr_release(body->getCollisionShape());
     delete body;
+  }
 }
 
 void RBasic::addToWorld(Physics *physics)
@@ -314,7 +321,7 @@ class LuaRobot: public LuaClass<Robot>
     if( team == TEAM_INVALID )
       lua_pushnil(L);
     else
-      push(L, team);
+      LuaManager::push(L, team);
     return 1;
   }
 
@@ -344,16 +351,12 @@ class LuaRBasic: public LuaClass<RBasic>
 {
   static int _ctor(lua_State *L)
   {
-    RBasic **ud = new_userdata(L);
-    LOG->trace("LuaRBasic: BEGIN [%p]", ud);
-
     btCollisionShape *shape;
     shape = *(btCollisionShape **)luaL_checkudata(L, 2, "Shape");
-    *ud = new RBasic( shape, LARG_f(3));
+    RBasic *r = new RBasic( shape, LARG_f(3));
+    store_ptr(L, r);
     lua_pushvalue(L, 1);
-    (*ud)->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
-
-    LOG->trace("LuaRBasic: END");
+    r->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
     return 0;
   }
 

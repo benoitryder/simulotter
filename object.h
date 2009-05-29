@@ -5,15 +5,13 @@
 #include <vector>
 #include "global.h"
 
-class Physics;
-
 
 ///@file
 
 
 /** @brief Object abstract class
  */
-class Object
+class Object: public SmartObject
 {
 protected:
   Object() {}
@@ -77,7 +75,7 @@ public:
   OSimple();
   OSimple(const btRigidBodyConstructionInfo &info): btRigidBody(info) {}
 
-  virtual ~OSimple() {}
+  virtual ~OSimple();
 
   /** @brief Set object shape
    *
@@ -99,6 +97,7 @@ public:
 
   /** @brief Add an object in a physics world.
    * Object has to be initialized before being added to a world.
+   * @todo Define Physics::addObject() instead.
    */
   virtual void addToWorld(Physics *physics);
 
@@ -164,7 +163,7 @@ protected:
   Color4 color_t2;
 
 private:
-  static btBoxShape shape;
+  static SmartPtr<btBoxShape> shape;
 };
 
 

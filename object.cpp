@@ -97,8 +97,17 @@ void Object::addToWorld(Physics *physics)
 }
 
 
-OSimple::OSimple(): btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL))
+OSimple::OSimple():
+  btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL))
 {
+}
+
+OSimple::~OSimple()
+{
+  // release shape held by Bullet
+  btCollisionShape *sh = getCollisionShape();
+  if( sh != NULL )
+    SmartPtr_release(sh);
 }
 
 void OSimple::setShape(btCollisionShape *shape)
@@ -106,6 +115,8 @@ void OSimple::setShape(btCollisionShape *shape)
   if( getCollisionShape() != NULL )
     throw(Error("cannot reassign shape"));
   setCollisionShape(shape);
+  // count shape reference held by Bullet
+  SmartPtr_add_ref(shape);
 }
 
 void OSimple::setMass(btScalar mass)
@@ -146,12 +157,12 @@ void OSimple::draw()
 
 
 const btScalar OGround::size_start = scale(0.5);
-btBoxShape OGround::shape( scale(btVector3(3.0/2, 2.1/2, 0.1/2)) );
+SmartPtr<btBoxShape> OGround::shape( new btBoxShape( scale(btVector3(3.0/2, 2.1/2, 0.1/2)) ) );
 
 OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2)
 {
-  setShape( &shape );
-  setPos( btVector3(0, 0, -shape.getHalfExtentsWithMargin().getZ()) );
+  setShape( shape );
+  setPos( btVector3(0, 0, -shape->getHalfExtentsWithMargin().getZ()) );
   setColor(color);
   this->color_t1 = color_t1;
   this->color_t2 = color_t2;
@@ -167,7 +178,7 @@ void OGround::draw()
   glPushMatrix();
 
   drawTransform(m_worldTransform);
-  const btVector3 &size = shape.getHalfExtentsWithMargin();
+  const btVector3 &size = shape->getHalfExtentsWithMargin();
 
   // Ground
 
@@ -231,7 +242,7 @@ class LuaObject: public LuaClass<Object>
 
   static int add_to_world(lua_State *L)
   {
-    if( physics == NULL )
+    if( !physics )
       return luaL_error(L, "physics is not created, no world to add");
     get_ptr(L)->addToWorld(physics);
     return 0;
@@ -254,15 +265,13 @@ class LuaOSimple: public LuaClass<OSimple>
 {
   static int _ctor(lua_State *L)
   {
-    OSimple **ud = new_userdata(L);
-    *ud = new OSimple();
+    store_ptr(L, new OSimple());
     return 0;
   }
 
   static int set_shape(lua_State *L)
   {
-    btCollisionShape *shape;
-    shape = *(btCollisionShape **)luaL_checkudata(L, 2, "Shape");
+    btCollisionShape *shape = *(btCollisionShape **)luaL_checkudata(L, 2, "Shape"); //XXX
     get_ptr(L)->setShape(shape);
     return 0;
   }
@@ -304,13 +313,11 @@ class LuaOGround: public LuaClass<OGround>
 {
   static int _ctor(lua_State *L)
   {
-    OGround **ud = new_userdata(L);
-
     Color4 color, color_t1, color_t2;
     LuaManager::checkcolor(L, 2, color);
     LuaManager::checkcolor(L, 3, color_t1);
     LuaManager::checkcolor(L, 4, color_t2);
-    *ud = new OGround(color, color_t1, color_t2);
+    store_ptr(L, new OGround(color, color_t1, color_t2));
     return 0;
   }
 

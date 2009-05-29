@@ -13,11 +13,11 @@
  *
  * Display is not needed for the simulation to run.
  */
-class Display
+class Display: public SmartObject
 {
 public:
   Display();
-  ~Display();
+  virtual ~Display();
 
   /// Init video display (using configuration values)
   void init();
