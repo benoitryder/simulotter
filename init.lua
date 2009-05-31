@@ -30,6 +30,7 @@ display = Display()
 
 trace("------ SCRIPT START ------")
 
+
 r1 = RORobot(10)
 r1:add_to_world()
 r1:set_pos(-(3.0-.5)/2, (2.1-.5)/2, 0.1001)
@@ -44,6 +45,17 @@ r1:set_threshold_a(0.005)
 r1:set_pachev_v(0.1)
 r1:set_pachev_eject_v(0.001)
 r1:set_threshold_pachev(0.001)
+
+osd = OSD()
+osd.x, osd.y = 10, 20
+osd.color = {0, 0, 0}
+function osd.text()
+  x,y,z = r1:get_pos()
+  a,_,_ = r1:get_rot()
+  return string.format("R1: %+1.3f , %+1.3f  %+1.3f", x,y,a)
+end
+osd:show()
+
 
 config.match_fconf = 0x03
 function r1:strategy()
@@ -87,6 +99,7 @@ function r1:strategy()
 
   trace("END: stop robot")
   self:order_stop()
+
   return
 end
 

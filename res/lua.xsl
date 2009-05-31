@@ -161,6 +161,7 @@
         </xsl:if>
       </h3>
       <p class="class desc"><xsl:call-template name="xhtml" /></p>
+      <xsl:call-template name="values"/>
       <xsl:apply-templates select="constructor"/>
       <xsl:apply-templates select="function"/>
     </div>

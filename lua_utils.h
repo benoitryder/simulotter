@@ -14,6 +14,7 @@ extern "C"
 
 
 class LuaClassBase;
+class LuaError;
 
 
 /** @brief Lua state and various functions.
@@ -255,8 +256,13 @@ protected:
    */
   static data_ptr get_ptr(lua_State *L)
   {
-    lua_getfield(L, 1, "_ud");
-    lua_replace(L, 1);
+    if( lua_istable(L, 1) )
+    {
+      lua_getfield(L, 1, "_ud");
+      lua_replace(L, 1);
+    }
+    if( !lua_isuserdata(L, 1) )
+      throw(LuaError("invalid type, userdata expected"));
     return *(data_ptr *)lua_touserdata(L, 1);
   }
 
@@ -306,6 +312,19 @@ protected:
     return 0;
   }
 
+  /** @brief Return pointer to a new userdata object
+   */
+  static data_ptr *new_ptr(lua_State *L)
+  {
+    // Create userdata
+    LuaManager::push(L, "_ud");
+    data_ptr *ud = (data_ptr *)lua_newuserdata(L, sizeof(data_ptr));
+    lua_getfield(L, LUA_REGISTRYINDEX, name);
+    lua_setmetatable(L, -2);
+    lua_rawset(L, 1);
+    return ud;
+  }
+
   /** @brief Store a new userdata object
    *
    * Create a new userdata, set its metatable, set the \e _ud field of the
@@ -315,13 +334,7 @@ protected:
    */
   static void store_ptr(lua_State *L, data_ptr p)
   {
-    // Create userdata
-    LuaManager::push(L, "_ud");
-    data_ptr *ud = (data_ptr *)lua_newuserdata(L, sizeof(data_ptr));
-    lua_getfield(L, LUA_REGISTRYINDEX, name);
-    lua_setmetatable(L, -2);
-    lua_rawset(L, 1);
-
+    data_ptr *ud = new_ptr(L);
     *ud = p;
     // Increase ref count and store the pointer
     SmartPtr_add_ref(p);
@@ -400,9 +413,9 @@ public:
   LuaError(): err(0) {}
   LuaError(const char *msg): Error("LUA: %s", msg), err(0) {}
   LuaError(lua_State *L, int err=0):
-    Error("LUA: %s", lua_tostring(L,-1)), err(err) { lua_pop(L,-1); }
+    Error("LUA: %s", lua_tostring(L,-1)), err(err) { lua_pop(L,1); }
   LuaError(lua_State *L, const char *msg, int err=0):
-    Error("LUA: %s: %s", msg, lua_tostring(L,-1)), err(err) { lua_pop(L,-1); }
+    Error("LUA: %s: %s", msg, lua_tostring(L,-1)), err(err) { lua_pop(L,1); }
   ~LuaError() throw() {}
   LuaError(const LuaError &e): Error(e) {}
 

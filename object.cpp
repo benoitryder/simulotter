@@ -223,7 +223,7 @@ class LuaObject: public LuaClass<Object>
   }
 
   LUA_DEFINE_GETN(3, get_pos, getPos);
-  LUA_DEFINE_GETN(4, get_rot, getRot);
+  LUA_DEFINE_GETN(3, get_rot, getRot);
 
   static int set_pos(lua_State *L)
   {

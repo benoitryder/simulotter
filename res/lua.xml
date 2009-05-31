@@ -69,6 +69,21 @@
 
   </class>
 
+  <class name="OSD">
+    Display text messages on the screen.<br/>
+    Instance field listed below can be fixed values or function returning the
+    expected value.<br/>
+    <tt>(0,0)</tt> position is the top left corner.
+    <constructor></constructor>
+    <value name="text" type="string"/>
+    <value name="x" type="int"/>
+    <value name="y" type="int"/>
+    <value name="color" type="Color"/>
+    <function name="show"/>
+    <function name="hide"/>
+
+  </class>
+
   <class name="Shape">
     Create collision shapes. There are no constructor, use creation methods
     instead.<br/>

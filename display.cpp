@@ -167,9 +167,9 @@ void Display::update()
 
   // Draw objects
   std::set< SmartPtr<Object> > &objs = physics->getObjs();
-  std::set< SmartPtr<Object> >::iterator it;
-  for( it = objs.begin(); it != objs.end(); ++it )
-    (*it)->draw();
+  std::set< SmartPtr<Object> >::iterator it_obj;
+  for( it_obj = objs.begin(); it_obj != objs.end(); ++it_obj )
+    (*it_obj)->draw();
 
   glDisable(GL_LIGHTING);
   glDisable(GL_LIGHT0);
@@ -179,7 +179,13 @@ void Display::update()
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  //TODO draw OSD
+  // OSD
+  std::set< SmartPtr<OSDMessage> >::iterator it_osd;
+  for( it_osd = osds.begin(); it_osd != osds.end(); ++it_osd )
+    drawString( (*it_osd)->getText(),
+        (*it_osd)->getX(), (*it_osd)->getY(),
+        (*it_osd)->getColor(), GLUT_BITMAP_8_BY_13
+        );
 
   SDL_GL_SwapBuffers();
   glFlush();
@@ -188,8 +194,8 @@ void Display::update()
 void Display::drawString(const char *s, int x, int y, Color4 color, void *font)
 {
   y = screen_y - y;
-  glRasterPos2f(x,y);
   glColor4fv(color);
+  glRasterPos2f(x,y);
   for( unsigned int i=0; i<strlen(s); i++)
     glutBitmapCharacter(font, s[i]);
 }
@@ -542,13 +548,91 @@ void Display::handlerCamDown(Display *d, const SDL_Event &event)
 
 
 
-/** @name Lua Display class
+OSDLua::OSDLua(int ref_obj): ref_obj(ref_obj), ref_text(LUA_NOREF)
+{
+  if( this->ref_obj == LUA_NOREF || this->ref_obj == LUA_REFNIL )
+    throw(LuaError("invalid object reference for OSDLua"));
+}
+
+OSDLua::~OSDLua()
+{
+  lua_State *L = lm->get_L();
+  luaL_unref(L, LUA_REGISTRYINDEX, ref_obj);
+  luaL_unref(L, LUA_REGISTRYINDEX, ref_text);
+}
+
+const char *OSDLua::getText()
+{
+  lua_State *L = lm->get_L();
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
+  lua_remove(L, -2);
+  lua_getfield(L, -1, "text");
+  if( lua_isfunction(L, -1) )
+    LuaManager::pcall(L, 0, 1);
+  const char *s = lua_tostring(L, -1);
+  if( s == NULL )
+    throw(LuaError("OSDLua: invalid 'text' field value"));
+
+  // Hold a reference to avoid returned string to be collected
+  if( ref_text != LUA_NOREF )
+    luaL_unref(L, LUA_REGISTRYINDEX, ref_text);
+  ref_text = luaL_ref(L, LUA_REGISTRYINDEX);
+
+  return s;
+}
+
+int OSDLua::getX()
+{
+  lua_State *L = lm->get_L();
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
+  lua_remove(L, -2);
+  lua_getfield(L, -1, "x");
+  if( lua_isfunction(L, -1) )
+    LuaManager::pcall(L, 0, 1);
+  if( !lua_isnumber(L, -1) )
+    throw(LuaError("OSDLua: invalid 'x' field value"));
+  int i = lua_tointeger(L, -1);
+  lua_pop(L, 1);
+  return i;
+}
+
+int OSDLua::getY()
+{
+  lua_State *L = lm->get_L();
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
+  lua_remove(L, -2);
+  lua_getfield(L, -1, "y");
+  if( lua_isfunction(L, -1) )
+    LuaManager::pcall(L, 0, 1);
+  if( !lua_isnumber(L, -1) )
+    throw(LuaError("OSDLua: invalid 'y' field value"));
+  int i = lua_tointeger(L, -1);
+  lua_pop(L, 1);
+  return i;
+}
+
+Color4 OSDLua::getColor()
+{
+  lua_State *L = lm->get_L();
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
+  lua_remove(L, -2);
+  lua_getfield(L, -1, "color");
+  if( lua_isfunction(L, -1) )
+    LuaManager::pcall(L, 0, 1);
+  Color4 c;
+  if( LuaManager::tocolor(L, -1, c) != 0 )
+    throw(LuaError("OSDLua: invalid 'color' field value"));
+  lua_pop(L, 1);
+  return c;
+}
+
+
+
+/** @brief Lua Display class
  * The constructor is a factory and returns the singleton.
  */
 class LuaDisplay: public LuaClass<Display>
 {
-  typedef Display *data_ptr;
-
   static int _ctor(lua_State *L)
   {
     if( display == NULL )
@@ -571,4 +655,48 @@ public:
 
 LUA_REGISTER_BASE_CLASS(Display);
 
+
+/** @brief Lua OSD class
+ */
+class LuaOSD: public LuaClass<OSDLua>
+{
+  static int _ctor(lua_State *L)
+  {
+    data_ptr *ud = new_ptr(L);
+    lua_pushvalue(L, 1);
+    int ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    *ud = new OSDLua(ref);
+    SmartPtr_add_ref(*ud);
+    return 0;
+  }
+
+  static int show(lua_State *L)
+  {
+    if( !display )
+      throw(LuaError("OSD:show(): no display")); //XXX luaL_error() doesn't work, why? :(
+    SmartPtr<OSDMessage> osd = get_ptr(L);
+    display->osds.insert( osd );
+    return 0;
+  }
+  static int hide(lua_State *L)
+  {
+    if( !display )
+      throw(LuaError("OSD:hide(): no display"));
+    display->osds.erase( SmartPtr<OSDMessage>(get_ptr(L)) );
+    return 0;
+  }
+
+
+public:
+  LuaOSD()
+  {
+    LUA_REGFUNC(_ctor);
+    LUA_REGFUNC(show);
+    LUA_REGFUNC(hide);
+  }
+};
+
+template<> const char *LuaClass<OSDLua>::name = "OSD";
+static LuaOSD register_LuaOSD;
+template<> const char *LuaClass<OSDLua>::base_name = NULL;
 

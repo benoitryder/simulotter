@@ -3,10 +3,13 @@
 
 #include <SDL/SDL.h>
 #include <map>
+#include <set>
 #include "global.h"
 
 
 ///@file
+
+class OSDMessage;
 
 
 /** @brief Display and interface events
@@ -32,12 +35,6 @@ public:
 
   /// Update display
   void update();
-
-public:
-  /** @brief Draw a text string using given font
-   * @note y=0 is the top of the screen
-   */
-  void drawString(const char *s, int x, int y, Color4 color, void *font);
 
 private:
   SDL_Surface *screen;
@@ -177,6 +174,89 @@ private:
 
   //@}
 
+
+  /** @name On Screen Display
+   */
+  //@{
+
+public:
+
+  /** @brief Draw a text string using given font
+   * @note y=0 is the top of the screen
+   */
+  void drawString(const char *s, int x, int y, Color4 color, void *font);
+
+  /// Displayed OSDs
+  std::set< SmartPtr<OSDMessage> > osds;
+
+  //@}
+
+};
+
+
+/** @brief OSD messages interface
+ * Base class for text messages displayed on screen.
+ */
+class OSDMessage: public SmartObject
+{
+public:
+  OSDMessage() {}
+  virtual ~OSDMessage() {}
+
+  /** @namme Common accessors
+   */
+  //@{
+  virtual const char *getText() = 0;
+  virtual int getX() = 0;
+  virtual int getY() = 0;
+  virtual Color4 getColor() = 0;
+  //@}
+};
+
+/** @brief Simple OSD
+ * Simple OSD implementation with public access to OSD properties.
+ * This is the base OSD class used in Lua bindings.
+ */
+class OSDSimple: public OSDMessage
+{
+public:
+  OSDSimple(): text(NULL), x(0),y(0), color(Color4::black()) {}
+  virtual ~OSDSimple() {}
+
+  virtual const char *getText() { return text; }
+  virtual int getX() { return x; }
+  virtual int getY() { return y; }
+  virtual Color4 getColor() { return color; }
+
+public:
+  const char *text;
+  int x, y;
+  Color4 color;
+};
+
+/** @brief OSD for Lua bindings
+ * Attributes associated to OSD properties may be static values or functions.
+ */
+class OSDLua: public OSDMessage
+{
+public:
+  OSDLua(int ref_obj);
+  virtual ~OSDLua();
+
+  /** @namme Common accessors
+   */
+  //@{
+  virtual const char *getText();
+  virtual int getX();
+  virtual int getY();
+  virtual Color4 getColor();
+  //@}
+
+protected:
+  /// Lua instance reference
+  int ref_obj;
+  /// Lua text reference
+  int ref_text;
 };
 
 
