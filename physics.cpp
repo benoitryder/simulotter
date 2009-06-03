@@ -89,6 +89,9 @@ class LuaPhysics: public LuaClass<Physics>
 
   LUA_DEFINE_SET0(init, init);
   LUA_DEFINE_GET(is_initialized, isInitialized);
+  LUA_DEFINE_SET0(pause, pause);
+  LUA_DEFINE_SET0(unpause, unpause);
+  LUA_DEFINE_SET0(toggle_pause, togglePause);
 
 public:
   LuaPhysics()
@@ -96,6 +99,9 @@ public:
     LUA_REGFUNC(_ctor);
     LUA_REGFUNC(init);
     LUA_REGFUNC(is_initialized);
+    LUA_REGFUNC(pause);
+    LUA_REGFUNC(unpause);
+    LUA_REGFUNC(toggle_pause);
   }
 };
 

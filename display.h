@@ -18,6 +18,7 @@ class OSDMessage;
  */
 class Display: public SmartObject
 {
+  friend class LuaDisplay;
 public:
   Display();
   virtual ~Display();

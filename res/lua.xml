@@ -47,6 +47,10 @@
       <return type="bool"/>
     </function>
 
+    <function name="pause">Pause the simulation.</function>
+    <function name="unpause">Unpause the simulation.</function>
+    <function name="toggle_pause">Toggle pause state.</function>
+
   </class>
 
   <class name="Display">
@@ -67,13 +71,35 @@
       <return type="bool"/>
     </function>
 
+    <function name="set_camera_mode">
+      Set camera mode. <tt>mode</tt> is an integer (as defined in
+      <tt>display.h</tt>) or one of the following string: <tt>FREE</tt>,
+      <tt>FIXED</tt>, <tt>FOLLOW</tt>, <tt>ONBOARD</tt>, <tt>LOOK</tt>.
+      <arg type="int|string" name="mode" />
+    </function>
+
+    <function name="set_camera_eye">
+      Set camera eye, point from which the scene is viewed.<br/>
+      <tt>params</tt> is a table with eye coordinates. The following fields are
+      recognized: <tt>x</tt>, <tt>y</tt>, <tt>z</tt>, <tt>r</tt>,
+      <tt>theta</tt>, <tt>phi</tt>.<br/>
+      <b>Note:</b> invalid values are silently ignored.
+      <arg type="table" name="params" />
+    </function>
+
+    <function name="set_camera_target">
+      Set camera target, point which the camera look at.<br/>
+      See <tt>set_camera_eye()</tt> for details on <tt>params</tt>.
+      <arg type="table" name="params" />
+    </function>
+
   </class>
 
   <class name="OSD">
     Display text messages on the screen.<br/>
     Instance field listed below can be fixed values or function returning the
     expected value.<br/>
-    <tt>(0,0)</tt> position is the top left corner.
+    <tt>(0,0)</tt> is the top left corner.
     <constructor></constructor>
     <value name="text" type="string"/>
     <value name="x" type="int"/>

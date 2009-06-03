@@ -347,6 +347,8 @@ void Display::setCameraMode(int mode)
         throw(Error("object must be set before setting an object camera mode"));
       camera_eye.cart = btVector3(0,0,0);
       break;
+    default:
+      throw(Error("invalid camera mode"));
   }
 
   switch( mode & CAM_TARGET_MASK )
@@ -363,6 +365,8 @@ void Display::setCameraMode(int mode)
         throw(Error("object must be set before setting an object camera mode."));
       camera_target.cart = btVector3(0,0,0);
       break;
+    default:
+      throw(Error("invalid camera mode"));
   }
 
   camera_mode = mode;
@@ -644,12 +648,90 @@ class LuaDisplay: public LuaClass<Display>
   LUA_DEFINE_SET0(init, init);
   LUA_DEFINE_GET(is_initialized, isInitialized);
 
+  static int set_camera_mode(lua_State *L)
+  {
+    int mode = 0;
+    if( lua_isnumber(L, 2) )
+    {
+      mode = lua_tointeger(L, 2);
+    }
+    else
+    {
+      const char *smode = luaL_checkstring(L, 2);
+      if( strcmp(smode, "FREE")==0 )
+        mode = Display::CAM_FREE;
+      else if( strcmp(smode, "FREE")==0 )
+        mode = Display::CAM_FREE;
+      else if( strcmp(smode, "FIXED")==0 )
+        mode = Display::CAM_FIXED;
+      else if( strcmp(smode, "FOLLOW")==0 )
+        mode = Display::CAM_FOLLOW;
+      else if( strcmp(smode, "ONBOARD")==0 )
+        mode = Display::CAM_ONBOARD;
+      else if( strcmp(smode, "LOOK")==0 )
+        mode = Display::CAM_LOOK;
+    }
+    get_ptr(L)->setCameraMode( mode );
+    return 0;
+  }
+
+  static int set_camera_eye(lua_State *L)
+  {
+    getCameraPointInfo(L, 2, &get_ptr(L)->camera_eye);
+    return 0;
+  }
+
+  static int set_camera_target(lua_State *L)
+  {
+    getCameraPointInfo(L, 2, &get_ptr(L)->camera_target);
+    return 0;
+  }
+
+protected:
+  /** @brief Get camera point info from a table.
+   * Parsed fields are: x, y, z, r, theta, phi.
+   * Invalid values are silently ignored.
+   *
+   * @note Argument is assumed to be a table.
+   * @todo Accept \e obj field, require to type checking.
+   */
+  static void getCameraPointInfo(lua_State *L, int narg, Display::CameraPoint *camera_point)
+  {
+    lua_getfield(L, narg, "x");
+    if( lua_isnumber(L, -1) )
+      camera_point->cart[0] = scale(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+    lua_getfield(L, narg, "y");
+    if( lua_isnumber(L, -1) )
+      camera_point->cart[1] = scale(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+    lua_getfield(L, narg, "z");
+    if( lua_isnumber(L, -1) )
+      camera_point->cart[2] = scale(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+    lua_getfield(L, narg, "r");
+    if( lua_isnumber(L, -1) )
+      camera_point->spheric.r = scale(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+    lua_getfield(L, narg, "theta");
+    if( lua_isnumber(L, -1) )
+      camera_point->spheric.theta = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+    lua_getfield(L, narg, "phi");
+    if( lua_isnumber(L, -1) )
+      camera_point->spheric.phi = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+  }
+
 public:
   LuaDisplay()
   {
     LUA_REGFUNC(_ctor);
     LUA_REGFUNC(init);
     LUA_REGFUNC(is_initialized);
+    LUA_REGFUNC(set_camera_mode);
+    LUA_REGFUNC(set_camera_eye);
+    LUA_REGFUNC(set_camera_target);
   }
 };
 

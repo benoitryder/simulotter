@@ -60,6 +60,9 @@ osd:show()
 config.match_fconf = 0x03
 function r1:strategy()
 
+  display:set_camera_mode('FREE')
+  display:set_camera_eye({ x=-0.4, y=-0.5, z=1.5 })
+
   -- Collect
   for i = 0, 3 do
     trace("collect elem "..tostring(i))
@@ -80,6 +83,11 @@ function r1:strategy()
     repeat coroutine.yield() until self:is_waiting()
   end
   trace("all collected")
+
+  display:set_camera_mode('FIXED')
+  display:set_camera_eye({ r=1.2, theta=1.2, phi=-0.5 })
+  display:set_camera_target({ x=0, y=0, z=0.1 })
+
 
   self:order_xya( -0.4, 0, math.pi, false )
   self:order_pachev_move( 0.100 )
