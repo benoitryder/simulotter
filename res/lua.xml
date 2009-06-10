@@ -82,7 +82,7 @@
       Set camera eye, point from which the scene is viewed.<br/>
       <tt>params</tt> is a table with eye coordinates. The following fields are
       recognized: <tt>x</tt>, <tt>y</tt>, <tt>z</tt>, <tt>r</tt>,
-      <tt>theta</tt>, <tt>phi</tt>.<br/>
+      <tt>theta</tt>, <tt>phi</tt>, <tt>obj</tt>.<br/>
       <b>Note:</b> invalid values are silently ignored.
       <arg type="table" name="params" />
     </function>

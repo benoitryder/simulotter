@@ -98,6 +98,7 @@ public:
   int getCameraMode() const { return camera_mode;   }
 
   /** @brief Compute eye and target cartesian global positions
+   *
    * getCameraEye() and getCameraTarget() return values which may be relative
    * to each other, this method returns global positions.
    */
@@ -186,7 +187,9 @@ public:
    * @note y=0 is the top of the screen
    */
   void drawString(const char *s, int x, int y, Color4 color, void *font);
+  std::set< SmartPtr<OSDMessage> > &getOsds() { return osds; }
 
+private:
   /// Displayed OSDs
   std::set< SmartPtr<OSDMessage> > osds;
 
@@ -196,6 +199,7 @@ public:
 
 
 /** @brief OSD messages interface
+ *
  * Base class for text messages displayed on screen.
  */
 class OSDMessage: public SmartObject
@@ -215,6 +219,7 @@ public:
 };
 
 /** @brief Simple OSD
+ *
  * Simple OSD implementation with public access to OSD properties.
  * This is the base OSD class used in Lua bindings.
  */
@@ -236,6 +241,7 @@ public:
 };
 
 /** @brief OSD for Lua bindings
+ *
  * Attributes associated to OSD properties may be static values or functions.
  */
 class OSDLua: public OSDMessage

@@ -77,6 +77,7 @@ private:
   unsigned int team_nb;
 
   /** @brief Registered robots
+   *
    * Robots are indexed by their team.
    */
   std::map<unsigned int, SmartPtr<Robot> > robots;

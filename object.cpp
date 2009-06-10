@@ -227,7 +227,7 @@ class LuaObject: public LuaClass<Object>
 
   static int set_pos(lua_State *L)
   {
-    get_ptr(L)->setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
+    get_ptr(L,1)->setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
     return 0;
   }
 
@@ -236,7 +236,7 @@ class LuaObject: public LuaClass<Object>
   {
     btMatrix3x3 m;
     m.setEulerYPR(LARG_f(2), LARG_f(3), LARG_f(4));
-    get_ptr(L)->setRot( m );
+    get_ptr(L,1)->setRot( m );
     return 0;
   }
 
@@ -244,7 +244,7 @@ class LuaObject: public LuaClass<Object>
   {
     if( !physics )
       return luaL_error(L, "physics is not created, no world to add");
-    get_ptr(L)->addToWorld(physics);
+    get_ptr(L,1)->addToWorld(physics);
     return 0;
   }
 
@@ -272,7 +272,7 @@ class LuaOSimple: public LuaClass<OSimple>
   static int set_shape(lua_State *L)
   {
     btCollisionShape *shape = *(btCollisionShape **)luaL_checkudata(L, 2, "Shape"); //XXX
-    get_ptr(L)->setShape(shape);
+    get_ptr(L,1)->setShape(shape);
     return 0;
   }
 
@@ -282,9 +282,9 @@ class LuaOSimple: public LuaClass<OSimple>
   static int set_pos(lua_State *L)
   {
     if( lua_isnone(L, 4) )
-      get_ptr(L)->setPosAbove( btVector2(LARG_scaled(2), LARG_scaled(3)) );
+      get_ptr(L,1)->setPosAbove( btVector2(LARG_scaled(2), LARG_scaled(3)) );
     else
-      get_ptr(L)->setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
+      get_ptr(L,1)->setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
     return 0;
   }
 
@@ -292,7 +292,7 @@ class LuaOSimple: public LuaClass<OSimple>
   {
     Color4 color;
     LuaManager::checkcolor(L, 2, color);
-    get_ptr(L)->setColor( color );
+    get_ptr(L,1)->setColor( color );
     return 0;
   }
 

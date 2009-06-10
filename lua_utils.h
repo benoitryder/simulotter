@@ -245,27 +245,27 @@ public:
   const char *get_name() { return this->name; }
   const char *get_base_name() { return this->base_name; }
 
-protected:
   /** @brief Retrieve userdata pointer
    *
-   * Get the C++ pointer from an instance table.
-   * Replace the instance table by the userdata.
+   * Get the C++ pointer from an instance.
    *
    * @todo Cannot check using checkudata since derived classes does not have
    * the correct type. Find another way to check (metatable+inheritance, ...).
    */
-  static data_ptr get_ptr(lua_State *L)
+  static data_ptr get_ptr(lua_State *L, int narg)
   {
-    if( lua_istable(L, 1) )
-    {
-      lua_getfield(L, 1, "_ud");
-      lua_replace(L, 1);
-    }
-    if( !lua_isuserdata(L, 1) )
+    if( lua_istable(L, narg) )
+      lua_getfield(L, narg, "_ud");
+    else
+      lua_pushvalue(L, narg);
+    if( !lua_isuserdata(L, -1) )
       throw(LuaError("invalid type, userdata expected"));
-    return *(data_ptr *)lua_touserdata(L, 1);
+    data_ptr ptr = *(data_ptr *)lua_touserdata(L, -1);
+    lua_pop(L, 1);
+    return ptr;
   }
 
+protected:
   /// Create the class
   void create(lua_State *L)
   {
@@ -313,6 +313,9 @@ protected:
   }
 
   /** @brief Return pointer to a new userdata object
+   *
+   * Create a new userdata, set its metatable, set the \e _ud field of the
+   * first argument and return a pointer to the userdata.
    */
   static data_ptr *new_ptr(lua_State *L)
   {
@@ -326,9 +329,6 @@ protected:
   }
 
   /** @brief Store a new userdata object
-   *
-   * Create a new userdata, set its metatable, set the \e _ud field of the
-   * first argument and store the given pointer in it.
    *
    * @note This function should be called by any constructor.
    */
@@ -383,9 +383,9 @@ protected:
 //@{
 
 #define LUA_DEFINE_GETN(i,n,f) \
-  static int n(lua_State *L) { LuaManager::push(L, get_ptr(L)->f()); return i; }
+  static int n(lua_State *L) { LuaManager::push(L, get_ptr(L,1)->f()); return i; }
 #define LUA_DEFINE_GETN_SCALED(i,n,f) \
-  static int n(lua_State *L) { LuaManager::push(L, unscale(get_ptr(L)->f())); return i; }
+  static int n(lua_State *L) { LuaManager::push(L, unscale(get_ptr(L,1)->f())); return i; }
 #define LUA_DEFINE_GET(n,f)  LUA_DEFINE_GETN(1,n,f)
 #define LUA_DEFINE_GET_SCALED(n,f) LUA_DEFINE_GETN_SCALED(1,n,f)
 
@@ -395,15 +395,15 @@ protected:
 //@{
 
 #define LUA_DEFINE_SET0(n,f) \
-  static int n(lua_State *L) { get_ptr(L)->f( ); return 0; }
+  static int n(lua_State *L) { get_ptr(L,1)->f( ); return 0; }
 #define LUA_DEFINE_SET1(n,f,m1) \
-  static int n(lua_State *L) { get_ptr(L)->f( m1(2) ); return 0; }
+  static int n(lua_State *L) { get_ptr(L,1)->f( m1(2) ); return 0; }
 #define LUA_DEFINE_SET2(n,f,m1,m2) \
-  static int n(lua_State *L) { get_ptr(L)->f( m1(2), m2(3) ); return 0; }
+  static int n(lua_State *L) { get_ptr(L,1)->f( m1(2), m2(3) ); return 0; }
 #define LUA_DEFINE_SET3(n,f,m1,m2,m3) \
-  static int n(lua_State *L) { get_ptr(L)->f( m1(2), m2(3), m3(4) ); return 0; }
+  static int n(lua_State *L) { get_ptr(L,1)->f( m1(2), m2(3), m3(4) ); return 0; }
 #define LUA_DEFINE_SET4(n,f,m1,m2,m3,m4) \
-  static int n(lua_State *L) { get_ptr(L)->f( m1(2), m2(3), m3(4), m4(5) ); return 0; }
+  static int n(lua_State *L) { get_ptr(L,1)->f( m1(2), m2(3), m3(4), m4(5) ); return 0; }
 
 //@}
 

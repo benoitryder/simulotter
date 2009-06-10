@@ -317,7 +317,7 @@ class LuaRobot: public LuaClass<Robot>
 
   static int get_team(lua_State *L)
   {
-    unsigned int team = get_ptr(L)->getTeam();
+    unsigned int team = get_ptr(L,1)->getTeam();
     if( team == TEAM_INVALID )
       lua_pushnil(L);
     else
@@ -329,9 +329,9 @@ class LuaRobot: public LuaClass<Robot>
   {
     // Default team
     if( lua_isnone(L, 2) )
-      get_ptr(L)->matchRegister();
+      get_ptr(L,1)->matchRegister();
     else
-      get_ptr(L)->matchRegister(LARG_i(2));
+      get_ptr(L,1)->matchRegister(LARG_i(2));
 
     return 0;
   }
@@ -372,12 +372,12 @@ class LuaRBasic: public LuaClass<RBasic>
 
   static int order_xy(lua_State *L)
   {
-    get_ptr(L)->order_xy( btVector2(LARG_scaled(2), LARG_scaled(3)), LARG_bn(4) );
+    get_ptr(L,1)->order_xy( btVector2(LARG_scaled(2), LARG_scaled(3)), LARG_bn(4) );
     return 0;
   }
   static int order_xya(lua_State *L)
   {
-    get_ptr(L)->order_xya( btVector2(LARG_scaled(2), LARG_scaled(3)), LARG_f(4), LARG_bn(5) );
+    get_ptr(L,1)->order_xya( btVector2(LARG_scaled(2), LARG_scaled(3)), LARG_f(4), LARG_bn(5) );
     return 0;
   }
   LUA_DEFINE_SET2(order_a,    order_a,    LARG_f, LARG_bn)

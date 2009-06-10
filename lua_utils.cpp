@@ -20,6 +20,7 @@ LuaManager::LuaManager()
 	lua_pushcfunction(L, luaopen_math);   lua_call(L, 0, 0);
 	lua_pushcfunction(L, luaopen_string); lua_call(L, 0, 0);
 	lua_pushcfunction(L, luaopen_table);  lua_call(L, 0, 0);
+	lua_pushcfunction(L, luaopen_io);     lua_call(L, 0, 0);
 
   // Initialize random seed
   lua_getfield(L, LUA_GLOBALSINDEX, "math");

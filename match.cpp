@@ -132,7 +132,7 @@ class LuaMatch: public LuaClass<Match>
 
   static int get_color(lua_State *L)
   {
-    LuaManager::push(L, get_ptr(L)->getColor(LARG_i(2)));
+    LuaManager::push(L, get_ptr(L,1)->getColor(LARG_i(2)));
     return 1;
   }
 

@@ -43,7 +43,7 @@ private:
   btBroadphaseInterface    *broadphase;
   btCollisionConfiguration *col_config;
 
-  /// All match objects
+  /// All simulateed objects
   std::set<SmartPtr<Object> > objs;
 
   /// Simulation pause state

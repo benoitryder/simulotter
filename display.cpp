@@ -633,6 +633,7 @@ Color4 OSDLua::getColor()
 
 
 /** @brief Lua Display class
+ *
  * The constructor is a factory and returns the singleton.
  */
 class LuaDisplay: public LuaClass<Display>
@@ -671,29 +672,29 @@ class LuaDisplay: public LuaClass<Display>
       else if( strcmp(smode, "LOOK")==0 )
         mode = Display::CAM_LOOK;
     }
-    get_ptr(L)->setCameraMode( mode );
+    get_ptr(L,1)->setCameraMode( mode );
     return 0;
   }
 
   static int set_camera_eye(lua_State *L)
   {
-    getCameraPointInfo(L, 2, &get_ptr(L)->camera_eye);
+    getCameraPointInfo(L, 2, &get_ptr(L,1)->camera_eye);
     return 0;
   }
 
   static int set_camera_target(lua_State *L)
   {
-    getCameraPointInfo(L, 2, &get_ptr(L)->camera_target);
+    getCameraPointInfo(L, 2, &get_ptr(L,1)->camera_target);
     return 0;
   }
 
 protected:
   /** @brief Get camera point info from a table.
-   * Parsed fields are: x, y, z, r, theta, phi.
+   *
+   * Parsed fields are: x, y, z, r, theta, phi, obj.
    * Invalid values are silently ignored.
    *
    * @note Argument is assumed to be a table.
-   * @todo Accept \e obj field, require to type checking.
    */
   static void getCameraPointInfo(lua_State *L, int narg, Display::CameraPoint *camera_point)
   {
@@ -720,6 +721,10 @@ protected:
     lua_getfield(L, narg, "phi");
     if( lua_isnumber(L, -1) )
       camera_point->spheric.phi = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+    lua_getfield(L, narg, "obj");
+    if( !lua_isnil(L, -1) )
+      camera_point->obj = LuaClass<Object>::get_ptr(L,-1);
     lua_pop(L, 1);
   }
 
@@ -756,15 +761,15 @@ class LuaOSD: public LuaClass<OSDLua>
   {
     if( !display )
       throw(LuaError("OSD:show(): no display")); //XXX luaL_error() doesn't work, why? :(
-    SmartPtr<OSDMessage> osd = get_ptr(L);
-    display->osds.insert( osd );
+    SmartPtr<OSDMessage> osd = get_ptr(L,1);
+    display->getOsds().insert( osd );
     return 0;
   }
   static int hide(lua_State *L)
   {
     if( !display )
       throw(LuaError("OSD:hide(): no display"));
-    display->osds.erase( SmartPtr<OSDMessage>(get_ptr(L)) );
+    display->getOsds().erase( SmartPtr<OSDMessage>(get_ptr(L,1)) );
     return 0;
   }
 

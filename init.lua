@@ -60,7 +60,8 @@ osd:show()
 config.match_fconf = 0x03
 function r1:strategy()
 
-  display:set_camera_mode('FREE')
+  display:set_camera_target({ obj=r1 })
+  display:set_camera_mode('LOOK')
   display:set_camera_eye({ x=-0.4, y=-0.5, z=1.5 })
 
   -- Collect

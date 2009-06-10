@@ -123,6 +123,7 @@ class RBasic: public Robot
   friend class LuaRBasic;
 protected:
   /** @brief Empty constructor, for derivative classes only
+   *
    * Accessors does not check whether body is null or not.
    * Subclasses should create the body as soon as possible to prevent errors.
    */
@@ -132,6 +133,7 @@ public:
   RBasic(btCollisionShape *shape, btScalar m);
 
   /** @brief Setup function
+   *
    * This function may be called in subclasses constructors to initialize the
    * main body.
    *

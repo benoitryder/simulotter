@@ -160,6 +160,7 @@ namespace eurobot2009
 
     friend class Pachev;
     /** @brief Pàchev body class
+     *
      * A dedicated class is defined to override collision check.
      */
     class Pachev: public btRigidBody

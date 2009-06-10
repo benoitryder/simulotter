@@ -541,21 +541,18 @@ namespace eurobot2009
     static int set_pos(lua_State *L)
     {
       if( lua_isnone(L, 4) )
-        get_ptr(L)->setPosAbove( btVector2(LARG_scaled(2), LARG_scaled(3)) );
+        get_ptr(L,1)->setPosAbove( btVector2(LARG_scaled(2), LARG_scaled(3)) );
       else if( lua_isnone(L, 5) )
-        get_ptr(L)->Object::setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
+        get_ptr(L,1)->Object::setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
       else
-        get_ptr(L)->setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)), LARG_i(5));
+        get_ptr(L,1)->setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)), LARG_i(5));
       return 0;
     }
 
     static int fill(lua_State *L)
     {
-      lua_getfield(L, 2, "_ud");
-      //XXX check validity
-      Object *o = *(Object**)lua_touserdata(L, -1);
-      lua_pop(L, 1);
-      get_ptr(L)->fill(o, LARG_scaled(3));
+      Object *o = LuaClass<Object>::get_ptr(L,2);
+      get_ptr(L,1)->fill(o, LARG_scaled(3));
       return 0;
     }
 
@@ -581,19 +578,16 @@ namespace eurobot2009
       // override OSimple::set_pos(dReal,dReal)
       // with OLintelStorage::set_pos(dReal,int)
       if( lua_isnone(L, 4) )
-        get_ptr(L)->setPos(LARG_scaled(2), LARG_i(3));
+        get_ptr(L,1)->setPos(LARG_scaled(2), LARG_i(3));
       else
-        get_ptr(L)->Object::setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
+        get_ptr(L,1)->Object::setPos( btVector3(LARG_scaled(2), LARG_scaled(3), LARG_scaled(4)) );
       return 0;
     }
 
     static int fill(lua_State *L)
     {
-      lua_getfield(L, 2, "_ud");
-      //XXX check validity
-      OLintel *o = *(OLintel**)lua_touserdata(L, -1);
-      lua_pop(L, 1);
-      get_ptr(L)->fill(o);
+      OLintel *o = LuaClass<OLintel>::get_ptr(L,2);
+      get_ptr(L,1)->fill(o);
       return 0;
     }
 

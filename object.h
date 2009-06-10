@@ -96,6 +96,7 @@ public:
   void setMass(btScalar mass);
 
   /** @brief Add an object in a physics world.
+   *
    * Object has to be initialized before being added to a world.
    * @todo Define Physics::addObject() instead.
    */
@@ -104,6 +105,7 @@ public:
   bool isInitialized() { return getCollisionShape() != NULL; }
 
   /** @brief Set main color
+   *
    * Object color is used in default drawing function and may ignored by
    * subclass implementations.
    */
