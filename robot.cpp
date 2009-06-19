@@ -2,8 +2,6 @@
 #include <GL/freeglut.h>
 
 #include "global.h"
-#include "object.h"
-#include "maths.h"
 
 
 Robot::Robot()
@@ -163,7 +161,7 @@ void RBasic::addToWorld(Physics *physics)
 
 void RBasic::draw()
 {
-  // Use a darker color to constrat with game elements
+  // Use a darker color to contrast with game elements
   glColor4fv(match->getColor(getTeam()) * 0.5);
   drawShape(
       body->getCenterOfMassTransform(),

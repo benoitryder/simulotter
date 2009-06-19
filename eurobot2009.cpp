@@ -135,66 +135,14 @@ namespace eurobot2009
 
 
 
-  const btScalar RORobot::height   = scale(0.200);
-  const btScalar RORobot::side     = scale(0.110);
-  const btScalar RORobot::r_wheel  = scale(0.025);
-  const btScalar RORobot::h_wheel  = scale(0.020);
-  const btScalar RORobot::Pachev::width  = scale(0.080);
-  const btScalar RORobot::Pachev::height = scale(0.140);
-  const btScalar RORobot::Pachev::z_max  = scale(0.080);
+  const btScalar Galipeur2009::Pachev::width  = scale(0.080);
+  const btScalar Galipeur2009::Pachev::height = scale(0.140);
+  const btScalar Galipeur2009::Pachev::z_max  = scale(0.080);
 
-  const btScalar RORobot::d_side   = ( side + 2*r_wheel ) / btSqrt(3);
-  const btScalar RORobot::d_wheel  = ( r_wheel + 2*side ) / btSqrt(3);
-  const btScalar RORobot::a_side   = 2*btAtan2( side,    d_side  );
-  const btScalar RORobot::a_wheel  = 2*btAtan2( r_wheel, d_wheel );
-  const btScalar RORobot::radius   = btSqrt(side*side+d_side*d_side);
+  btBoxShape Galipeur2009::Pachev::shape( 0.5*btVector3(width,width,height) );
 
-  SmartPtr<btCompoundShape> RORobot::shape;
-  btConvexHullShape RORobot::body_shape;
-  btBoxShape RORobot::wheel_shape( btVector3(h_wheel/2,r_wheel,r_wheel) );
-  btBoxShape RORobot::Pachev::shape( 0.5*btVector3(width,width,height) );
-
-  RORobot::RORobot(btScalar m)
+  Galipeur2009::Galipeur2009(btScalar m): Galipeur(m)
   {
-    // First instance: initialize shape
-    if( shape == NULL )
-    {
-      shape = new btCompoundShape();
-      // Triangular body
-      if( body_shape.getNumPoints() == 0 )
-      {
-        btVector2 p = btVector2(radius,0).rotate(-a_wheel/2);
-        for( int i=0; i<3; i++ )
-        {
-          body_shape.addPoint( btVector3(p.x,p.y,+height/2) );
-          body_shape.addPoint( btVector3(p.x,p.y,-height/2) );
-          p = p.rotate(a_wheel);
-          body_shape.addPoint( btVector3(p.x,p.y,+height/2) );
-          body_shape.addPoint( btVector3(p.x,p.y,-height/2) );
-          p = p.rotate(a_side);
-        }
-      }
-      shape->addChildShape(btTransform::getIdentity(), &body_shape);
-
-      // Wheels (use boxes instead of cylinders)
-      btTransform tr = btTransform::getIdentity();
-      btVector2 vw( d_wheel+h_wheel/2, 0 );
-      tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - r_wheel)) );
-      shape->addChildShape(tr, &wheel_shape);
-
-      vw = vw.rotate(2*M_PI/3);
-      tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - r_wheel)) );
-      tr.setRotation( btQuaternion(btVector3(0,0,1), 2*M_PI/3) );
-      shape->addChildShape(tr, &wheel_shape);
-
-      vw = vw.rotate(-4*M_PI/3);
-      tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - r_wheel)) );
-      tr.setRotation( btQuaternion(btVector3(0,0,1), -2*M_PI/3) );
-      shape->addChildShape(tr, &wheel_shape);
-    }
-
-    this->setup(shape, m);
-
     // Pàchev
     pachev = new Pachev(this);
 
@@ -219,14 +167,14 @@ namespace eurobot2009
     pachev_state = PACHEV_RELEASE;
   }
 
-  RORobot::~RORobot()
+  Galipeur2009::~Galipeur2009()
   {
     //TODO remove elements from the world
     delete pachev;
     delete pachev_link;
   }
 
-  RORobot::Pachev::Pachev(RORobot *robot):
+  Galipeur2009::Pachev::Pachev(Galipeur2009 *robot):
     btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL))
   {
     btVector3 inertia;
@@ -236,12 +184,12 @@ namespace eurobot2009
     this->resetTrans();
   }
 
-  RORobot::Pachev::~Pachev()
+  Galipeur2009::Pachev::~Pachev()
   {
     //TODO remove constraints (?)
   }
 
-  bool RORobot::Pachev::checkCollideWithOverride(btCollisionObject *co)
+  bool Galipeur2009::Pachev::checkCollideWithOverride(btCollisionObject *co)
   {
     if( co == robot->body )
       return false;
@@ -306,141 +254,43 @@ namespace eurobot2009
     return btRigidBody::checkCollideWithOverride(co);
   }
 
-  void RORobot::addToWorld(Physics *physics)
+  void Galipeur2009::addToWorld(Physics *physics)
   {
-    RBasic::addToWorld(physics);
+    Galipeur::addToWorld(physics);
     physics->getWorld()->addRigidBody(pachev);
     physics->getWorld()->addConstraint(pachev_link, true);
   }
 
-  void RORobot::draw()
+  void Galipeur2009::draw()
   {
-    // Use a darker color to constrat with game elements
-    glColor4fv(match->getColor(getTeam()) * 0.5);
+    Galipeur::draw();
 
     glPushMatrix();
     drawTransform(pachev->getCenterOfMassTransform());
     btglScale(Pachev::width, Pachev::width, Pachev::height);
     glutWireCube(1.0);
     glPopMatrix();
-
-    glPushMatrix();
-    drawTransform(body->getCenterOfMassTransform());
-
-    btglTranslate(0, 0, -height/2);
-
-    glPushMatrix();
-
-    btglScale(radius, radius, height);
-    btVector2 v;
-
-    // Faces
-
-    glBegin(GL_QUADS);
-
-    v = btVector2(1,0).rotate(-a_wheel/2);
-    btVector2 n(1,0); // normal vector
-    for( int i=0; i<3; i++ )
-    {
-      // wheel side
-      btglNormal3(n.x, n.y, 0.0);
-      n = n.rotate(M_PI/3);
-
-      btglVertex3(v.x, v.y, 0.0);
-      btglVertex3(v.x, v.y, 1.0);
-      v = v.rotate(a_wheel);
-      btglVertex3(v.x, v.y, 1.0);
-      btglVertex3(v.x, v.y, 0.0);
-
-      // triangle side
-      btglNormal3(n.x, n.y, 0.0);
-      n = n.rotate(M_PI/3);
-
-      btglVertex3(v.x, v.y, 0.0);
-      btglVertex3(v.x, v.y, 1.0);
-      v = v.rotate(a_side);
-      btglVertex3(v.x, v.y, 1.0);
-      btglVertex3(v.x, v.y, 0.0);
-    }
-
-    glEnd();
-
-    // Bottom
-    glBegin(GL_POLYGON);
-    btglNormal3(0.0, 0.0, -1.0);
-    v = btVector2(1,0).rotate(-a_wheel/2);
-    for( int i=0; i<3; i++ )
-    {
-      btglVertex3(v.x, v.y, 0.0);
-      v = v.rotate(a_wheel);
-      btglVertex3(v.x, v.y, 0.0);
-      v = v.rotate(a_side);
-    }
-    glEnd();
-
-    // Top
-    glBegin(GL_POLYGON);
-    btglNormal3(0.0, 0.0, 1.0);
-    v = btVector2(1,0).rotate(-a_wheel/2);
-    for( int i=0; i<3; i++ )
-    {
-      btglVertex3(v.x, v.y, 1.0);
-      v = v.rotate(a_wheel);
-      btglVertex3(v.x, v.y, 1.0);
-      v = v.rotate(a_side);
-    }
-    glEnd();
-
-    glPopMatrix();
-
-    // Wheels (box shapes, but drawn using cylinders)
-    btglTranslate(0, 0, r_wheel);
-    btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
-    btVector2 vw( d_wheel, 0 );
-
-    glPushMatrix();
-    btglTranslate(0, vw.y, vw.x);
-    glutSolidCylinder(r_wheel, h_wheel, cfg->draw_div, cfg->draw_div);
-    glPopMatrix();
-
-    glPushMatrix();
-    vw = vw.rotate(2*M_PI/3);
-    btglTranslate(0, vw.y, vw.x);
-    btglRotate(-120.0f, 1.0f, 0.0f, 0.0f);
-    glutSolidCylinder(r_wheel, h_wheel, cfg->draw_div, cfg->draw_div);
-    glPopMatrix();
-
-    glPushMatrix();
-    vw = vw.rotate(-4*M_PI/3);
-    btglTranslate(0, vw.y, vw.x);
-    btglRotate(120.0f, 1.0f, 0.0f, 0.0f);
-    glutSolidCylinder(r_wheel, h_wheel, cfg->draw_div, cfg->draw_div);
-    glPopMatrix();
-
-    glPopMatrix();
-
-    drawDirection();
   }
 
 
-  void RORobot::setTrans(const btTransform &tr)
+  void Galipeur2009::setTrans(const btTransform &tr)
   {
     body->setCenterOfMassTransform(tr);
     pachev->resetTrans();
   }
 
-  void RORobot::Pachev::resetTrans()
+  void Galipeur2009::Pachev::resetTrans()
   {
     btTransform tr;
     tr.setIdentity();
-    tr.setOrigin( btVector3(-RORobot::d_side-width/2, 0, height/2) );
+    tr.setOrigin( btVector3(-Galipeur2009::d_side-width/2, 0, height/2) );
     this->setCenterOfMassTransform(robot->body->getCenterOfMassTransform()*tr);
   }
 
 
-  void RORobot::do_asserv()
+  void Galipeur2009::do_asserv()
   {
-    RBasic::do_asserv();
+    Galipeur::do_asserv();
 
     if( order & ORDER_PACHEV_MOVE )
     {
@@ -455,9 +305,9 @@ namespace eurobot2009
     }
   }
 
-  void RORobot::order_pachev_move(btScalar h)
+  void Galipeur2009::order_pachev_move(btScalar h)
   {
-    target_pachev_pos = CLAMP(h,0,RORobot::Pachev::z_max);
+    target_pachev_pos = CLAMP(h,0,Galipeur2009::Pachev::z_max);
     LOG->trace("PACHEV MOVE  %f (%f)", target_pachev_pos, h);
 
     pachev_link->setLowerLinLimit( 1 );
@@ -469,7 +319,7 @@ namespace eurobot2009
     order |= ORDER_PACHEV_MOVE;
   }
 
-  void RORobot::order_pachev_release()
+  void Galipeur2009::order_pachev_release()
   {
     LOG->trace("PACHEV RELEASE");
     for(int i=pachev->getNumConstraintRefs()-1; i>=0; i--)
@@ -484,13 +334,13 @@ namespace eurobot2009
     pachev_state = PACHEV_RELEASE;
   }
 
-  void RORobot::order_pachev_grab()
+  void Galipeur2009::order_pachev_grab()
   {
     LOG->trace("PACHEV GRAB");
     pachev_state = PACHEV_GRAB;
   }
 
-  void RORobot::order_pachev_eject()
+  void Galipeur2009::order_pachev_eject()
   {
     if( pachev_state != PACHEV_RELEASE )
       order_pachev_release();
@@ -600,11 +450,11 @@ namespace eurobot2009
     }
   };
 
-  class LuaRORobot: public LuaClass<RORobot>
+  class LuaGalipeur2009: public LuaClass<Galipeur2009>
   {
     static int _ctor(lua_State *L)
     {
-      RORobot *r = new RORobot(LARG_f(2));
+      Galipeur2009 *r = new Galipeur2009(LARG_f(2));
       store_ptr(L, r);
       lua_pushvalue(L, 1);
       r->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
@@ -623,7 +473,7 @@ namespace eurobot2009
     LUA_DEFINE_SET1(set_threshold_pachev, set_threshold_pachev, LARG_scaled)
 
   public:
-    LuaRORobot()
+    LuaGalipeur2009()
     {
       LUA_REGFUNC(_ctor);
       LUA_REGFUNC(order_pachev_move);
@@ -645,5 +495,5 @@ LUA_REGISTER_SUB_CLASS(OLintel,OSimple);
 LUA_REGISTER_SUB_CLASS(ODispenser,OSimple);
 LUA_REGISTER_SUB_CLASS(OLintelStorage,OSimple);
 
-LUA_REGISTER_SUB_CLASS(RORobot,RBasic);
+LUA_REGISTER_SUB_CLASS(Galipeur2009,Galipeur);
 

@@ -1,7 +1,8 @@
-#ifndef RULES2009_H
-#define RULES2009_H
+#ifndef EUROBOT2009_H
+#define EUROBOT2009_H
 
 #include "global.h"
+#include "galipeur.h"
 
 /** @file
  * @brief Implementation of Eurobot 2009 rules, Atlantis
@@ -97,21 +98,21 @@ namespace eurobot2009
 
   /** @brief Rob'Otter robot
    *
-   * Triangular holonomic robot with a so called <em>pàchev</em> (<em>pince à
-   * cheveux</em>, means <em>hair grip</em>) to carry column elements.
+   * Galipeur with a so called <em>pàchev</em> (<em>pince à cheveux</em>, means
+   * <em>hair grip</em>) to carry column elements.
    */
-  class RORobot: public RBasic
+  class Galipeur2009: public Galipeur
   {
-    friend class LuaRORobot;
+    friend class LuaGalipeur2009;
   public:
-    RORobot(btScalar m);
-    virtual ~RORobot();
+    Galipeur2009(btScalar m);
+    virtual ~Galipeur2009();
 
     virtual void addToWorld(Physics *physics);
 
     /** @brief Draw the robot
      *
-     * Assumes that the dispenser is not rotated (robot's Z axis aligned with
+     * Assumes that the robot is not rotated (robot's Z axis aligned with
      * world's Z axis).
      */
     void draw();
@@ -142,22 +143,7 @@ namespace eurobot2009
 
     //@}
 
-    static const btScalar height;
-    static const btScalar side;     ///< triangle side half size
-    static const btScalar r_wheel;  ///< wheel radius
-    static const btScalar h_wheel;  ///< wheel height (when laid flat)
-
-    static const btScalar d_side;   ///< distance center/triangle side
-    static const btScalar d_wheel;  ///< distance center/wheel side
-    static const btScalar a_side;   ///< center angle of triangle side
-    static const btScalar a_wheel;  ///< center angle of wheel side
-    static const btScalar radius;   ///< outer circle radius
-
   private:
-    static SmartPtr<btCompoundShape> shape;
-    static btConvexHullShape body_shape;
-    static btBoxShape wheel_shape;
-
     friend class Pachev;
     /** @brief Pàchev body class
      *
@@ -165,9 +151,9 @@ namespace eurobot2009
      */
     class Pachev: public btRigidBody
     {
-      friend class RORobot;
+      friend class Galipeur2009;
     public:
-      Pachev(RORobot *robot);
+      Pachev(Galipeur2009 *robot);
       ~Pachev();
 
       /** @brief Pàchev collision check
@@ -191,7 +177,7 @@ namespace eurobot2009
       void resetTrans();
     private:
       static btBoxShape shape;
-      RORobot *robot;
+      Galipeur2009 *robot;
     };
 
     Pachev *pachev;

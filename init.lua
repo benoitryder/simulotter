@@ -2,8 +2,8 @@
 -- Config
 
 config.gravity_z = -9.81
-config.step_dt = 0.002
-config.time_scale = 0.5
+config.step_dt = 0.003
+config.time_scale = 1
 config.match_fconf = -1
 config.drop_epsilon = 0.001
 
@@ -31,18 +31,18 @@ display = Display()
 trace("------ SCRIPT START ------")
 
 
-r1 = RORobot(10)
+r1 = Galipeur2009(10)
 r1:add_to_world()
 r1:set_pos(-(3.0-.5)/2, (2.1-.5)/2, 0.1001)
 
 x,y,z = r1:get_pos()
 trace("R1: "..x..","..y..","..z)
 
-r1:set_v_max(0.5)
+r1:set_v_max(0.8)
 r1:set_av_max(4)
 r1:set_threshold_xy(0.001)
 r1:set_threshold_a(0.005)
-r1:set_pachev_v(0.1)
+r1:set_pachev_v(0.2)
 r1:set_pachev_eject_v(0.001)
 r1:set_threshold_pachev(0.001)
 
@@ -71,12 +71,12 @@ function r1:strategy()
     self:order_xya( -1.2, 0.475-i*0.200, math.pi, false )
     repeat coroutine.yield() until self:is_waiting()
     self:set_v_max(0.2)
-    self:order_back( 0.200 )
+    self:order_xy( 0.200, 0, true )
     repeat coroutine.yield() until self:is_waiting()
-    for j = 0, 300 do coroutine.yield() end
+    for j = 0, 100 do coroutine.yield() end
     self:order_pachev_release()
     repeat coroutine.yield() until self:is_waiting()
-    self:set_v_max(0.5)
+    self:set_v_max(0.8)
     self:order_pachev_move( 0 )
     repeat coroutine.yield() until self:is_waiting()
     self:order_pachev_grab()
@@ -93,17 +93,17 @@ function r1:strategy()
   self:order_xya( -0.4, 0, math.pi, false )
   self:order_pachev_move( 0.100 )
   repeat coroutine.yield() until self:is_waiting()
-  self:order_back( 0.200 )
+  self:order_xy( 0.150, 0, true )
   repeat coroutine.yield() until self:is_waiting()
-  for i = 0, 500 do coroutine.yield() end
+  for i = 0, 200 do coroutine.yield() end
   self:order_pachev_release()
   for i = 0, 20 do coroutine.yield() end
   self:order_pachev_eject()
   repeat coroutine.yield() until self:is_waiting()
 
-  for i = 0, 500 do coroutine.yield() end
+  for i = 0, 200 do coroutine.yield() end
   trace("go away")
-  self:order_xy( -1.0, 0, true )
+  self:order_xy( -0.8, 0, true )
   repeat coroutine.yield() until self:is_waiting()
 
   trace("END: stop robot")
@@ -115,6 +115,26 @@ end
 dofile("2009.lua")
 
 r1:match_register()
+
+--XXX:test-galipeur
+
+r2 = Galipeur(10)
+r2:add_to_world()
+r2:set_pos((3.0-.5)/2, (2.1-.5)/2, 0.1001)
+r2:set_v_max(0.5)
+r2:set_av_max(4)
+r2:set_threshold_xy(0.001)
+r2:set_threshold_a(0.005)
+r2:match_register()
+
+function r2:update()
+  return
+end
+function r2:strategy()
+  return
+end
+
+
 
 trace("------ SCRIPT END ------")
 

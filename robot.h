@@ -196,7 +196,7 @@ protected:
    */
   //@{
   btVector2 xy; ///< Position
-  btScalar  a; ///< Position
+  btScalar  a;  ///< Angular position
   btScalar  v;  ///< Velocity
   btScalar  av; ///< Angular velocity (radians)
   //@}

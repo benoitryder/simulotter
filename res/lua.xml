@@ -341,6 +341,50 @@
   </class>
 
 
+  <class name="Galipeur" base="Robot">
+    Rob'Otter's robot, Galipeur.<br/>
+    Default values are null, including maximum velocities.
+    They should be set, otherwise the robot will not move.
+
+    <constructor>
+      <arg name="mass" type="float"/>
+    </constructor>
+
+    <function name="get_xy"><return type="float"/><return type="float"/></function>
+    <function name="get_v"><return type="float"/><return type="float"/></function>
+    <function name="get_a"><return type="float"/></function>
+    <function name="get_av"><return type="float"/></function>
+
+    <function name="set_v_max"><arg type="float"/>Set maximum linear velocity.</function>
+    <function name="set_av_max"><arg type="float"/>Set maximum angular velocity.</function>
+    <function name="set_threshold_xy"><arg type="float"/>Set distance precision for XY orders.</function>
+    <function name="set_threshold_a"><arg type="float"/>Set angle precision for angle orders.</function>
+
+    <function name="order_xy">
+      <arg name="x" type="float"/>
+      <arg name="y" type="float"/>
+      <arg name="rel" type="bool" required="0"/>
+    </function>
+    <function name="order_a">
+      <arg name="a" type="float"/>
+      <arg name="rel" type="bool" required="0"/>
+    </function>
+    <function name="order_xya">
+      <arg name="x" type="float"/>
+      <arg name="y" type="float"/>
+      <arg name="a" type="float"/>
+      <arg name="rel" type="bool" required="0"/>
+    </function>
+    <function name="order_stop">
+    </function>
+
+    <function name="is_waiting">
+      Returns true if the robot is waiting orders.
+      <return type="bool"/>
+    </function>
+  </class>
+
+
   <!-- Classes defined in eurobot2009 -->
 
   <class name="OColElem" base="OSimple">
@@ -397,8 +441,8 @@
   </class>
 
 
-  <class name="RORobot" base="RBasic">
-    Rob'Otter robot for Eurobot 2009.
+  <class name="Galipeur2009" base="Galipeur">
+    Galipeur for Eurobot 2009 rules.
     <constructor>
       <arg name="mass" type="float"/>
     </constructor>
@@ -406,12 +450,14 @@
     <function name="get_pachev_pos"><return type="float"/></function>
     <function name="set_pachev_v"><arg type="float"/>Set pàchev slider velocity.</function>
     <function name="set_threshold_pachev"><arg type="float"/>Set distance precision for pàchev moves.</function>
+    <function name="set_pachev_eject_v"><arg type="float"/>Set velocity of ejected elements.</function>
 
     <function name="order_pachev_move">
       <arg name="h" type="float"/>
     </function>
     <function name="order_pachev_release"/>
     <function name="order_pachev_grab"/>
+    <function name="order_pachev_eject"/>
 
   </class>
 

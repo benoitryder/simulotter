@@ -325,7 +325,7 @@ void Display::setCameraMode(int mode)
   if( camera_mode == mode )
     return;
 
-  if( (mode & CAM_EYE_OBJECT) && (mode & CAM_TARGET_OBJECT) )
+  if( (mode & CAM_EYE_REL) && (mode & CAM_TARGET_REL) )
     throw(Error("invalid camera mode"));
 
   // Set new coordinates
@@ -433,7 +433,7 @@ void Display::handlerCamMode(Display *d, const SDL_Event &event)
         std::map<unsigned int, SmartPtr<Robot> > &robots = match->getRobots();
         if( !robots.empty() )
         {
-          d->camera_target.obj = (*robots.begin()).second;
+          d->camera_eye.obj = (*robots.begin()).second;
           d->setCameraMode(CAM_ONBOARD);
           d->camera_target.spheric = btSpheric3(1.0, 3*M_PI/4, 0.0);//XXX
           d->camera_eye.cart = scale(btVector3(0.0, 0.0, 0.3));//XXX
@@ -460,94 +460,120 @@ void Display::handlerCamMouse(Display *d, const SDL_Event &event)
 
 void Display::handlerCamAhead(Display *d, const SDL_Event &event)
 {
-  if( d->camera_mode == CAM_FREE )
-    d->camera_eye.cart += btSpheric3(
-        cfg->camera_step_linear,
-        d->camera_target.spheric.theta,
-        d->camera_target.spheric.phi
-        );
-  else if( d->camera_mode & CAM_EYE_REL )
+  if( d->camera_mode & CAM_EYE_REL )
   {
     d->camera_eye.spheric.r -= cfg->camera_step_linear;
     if( d->camera_eye.spheric.r < 0 )
       d->camera_eye.spheric.r = 0;
   }
-  else if( d->camera_mode & CAM_TARGET_REL )
+  else
   {
-    d->camera_target.spheric.r -= cfg->camera_step_linear;
-    if( d->camera_target.spheric.r < 0 )
-      d->camera_target.spheric.r = 0;
+    btSpheric3 dir;
+    if( d->camera_mode & CAM_TARGET_FIXED )
+      dir = d->camera_target.cart - d->camera_eye.cart;
+    else if( d->camera_mode & CAM_TARGET_REL )
+      dir = d->camera_target.spheric;
+    else if( d->camera_mode & CAM_TARGET_OBJECT )
+      dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
+    dir.r = cfg->camera_step_linear;
+    d->camera_eye.cart += dir;
   }
 }
 
 void Display::handlerCamBack(Display *d, const SDL_Event &event)
 {
-  if( d->camera_mode == CAM_FREE )
-    d->camera_eye.cart += btSpheric3(
-        -cfg->camera_step_linear,
-        d->camera_target.spheric.theta,
-        d->camera_target.spheric.phi
-        );
-  else if( d->camera_mode & CAM_EYE_REL )
+  if( d->camera_mode & CAM_EYE_REL )
     d->camera_eye.spheric.r += cfg->camera_step_linear;
-  else if( d->camera_mode & CAM_TARGET_REL )
-    d->camera_target.spheric.r += cfg->camera_step_linear;
+  else
+  {
+    btSpheric3 dir;
+    if( d->camera_mode & CAM_TARGET_FIXED )
+      dir = d->camera_target.cart - d->camera_eye.cart;
+    else if( d->camera_mode & CAM_TARGET_REL )
+      dir = d->camera_target.spheric;
+    else if( d->camera_mode & CAM_TARGET_OBJECT )
+      dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
+    dir.r = -cfg->camera_step_linear;
+    d->camera_eye.cart += dir;
+  }
 }
 
 void Display::handlerCamLeft(Display *d, const SDL_Event &event)
 {
-  if( d->camera_mode == CAM_FREE )
-    d->camera_eye.cart += btSpheric3(
-        cfg->camera_step_linear,
-        M_PI_2,
-        d->camera_target.spheric.phi + M_PI_2
-        );
-  else if( d->camera_mode & CAM_EYE_REL )
+  if( d->camera_mode & CAM_EYE_REL )
     d->camera_eye.spheric.phi -= cfg->camera_step_angle;
-  else if( d->camera_mode & CAM_TARGET_REL )
-    d->camera_target.spheric.phi -= cfg->camera_step_angle;
+  else
+  {
+    btSpheric3 dir;
+    if( d->camera_mode & CAM_TARGET_FIXED )
+      dir = d->camera_target.cart - d->camera_eye.cart;
+    else if( d->camera_mode & CAM_TARGET_REL )
+      dir = d->camera_target.spheric;
+    else if( d->camera_mode & CAM_TARGET_OBJECT )
+      dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
+    dir.r = cfg->camera_step_linear;
+    dir.theta = M_PI_2;
+    dir.phi += M_PI_2;
+    d->camera_eye.cart += dir;
+  }
 }
 
 void Display::handlerCamRight(Display *d, const SDL_Event &event)
 {
-  if( d->camera_mode == CAM_FREE )
-    d->camera_eye.cart += btSpheric3(
-        -cfg->camera_step_linear,
-        M_PI_2,
-        d->camera_target.spheric.phi + M_PI_2
-        );
-  else if( d->camera_mode & CAM_EYE_REL )
+  if( d->camera_mode & CAM_EYE_REL )
     d->camera_eye.spheric.phi += cfg->camera_step_angle;
-  else if( d->camera_mode & CAM_TARGET_REL )
-    d->camera_target.spheric.phi += cfg->camera_step_angle;
+  else
+  {
+    btSpheric3 dir;
+    if( d->camera_mode & CAM_TARGET_FIXED )
+      dir = d->camera_target.cart - d->camera_eye.cart;
+    else if( d->camera_mode & CAM_TARGET_REL )
+      dir = d->camera_target.spheric;
+    else if( d->camera_mode & CAM_TARGET_OBJECT )
+      dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
+    dir.r = -cfg->camera_step_linear;
+    dir.theta = M_PI_2;
+    dir.phi += M_PI_2;
+    d->camera_eye.cart += dir;
+  }
 }
 
 void Display::handlerCamUp(Display *d, const SDL_Event &event)
 {
-  if( d->camera_mode == CAM_FREE )
-    d->camera_eye.cart += btSpheric3(
-        -cfg->camera_step_linear,
-        d->camera_target.spheric.theta - M_PI_2,
-        d->camera_target.spheric.phi
-        );
-  else if( d->camera_mode & CAM_EYE_REL )
+  if( d->camera_mode & CAM_EYE_REL )
     d->camera_eye.spheric.theta -= cfg->camera_step_angle;
-  else if( d->camera_mode & CAM_TARGET_REL )
-    d->camera_target.spheric.theta -= cfg->camera_step_angle;
+  else
+  {
+    btSpheric3 dir;
+    if( d->camera_mode & CAM_TARGET_FIXED )
+      dir = d->camera_target.cart - d->camera_eye.cart;
+    else if( d->camera_mode & CAM_TARGET_REL )
+      dir = d->camera_target.spheric;
+    else if( d->camera_mode & CAM_TARGET_OBJECT )
+      dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
+    dir.r = -cfg->camera_step_linear;
+    dir.theta -= M_PI_2;
+    d->camera_eye.cart += dir;
+  }
 }
 
 void Display::handlerCamDown(Display *d, const SDL_Event &event)
 {
-  if( d->camera_mode == CAM_FREE )
-    d->camera_eye.cart += btSpheric3(
-        cfg->camera_step_linear,
-        d->camera_target.spheric.theta - M_PI_2,
-        d->camera_target.spheric.phi
-        );
-  else if( d->camera_mode & CAM_EYE_REL )
+  if( d->camera_mode & CAM_EYE_REL )
     d->camera_eye.spheric.theta += cfg->camera_step_angle;
-  else if( d->camera_mode & CAM_TARGET_REL )
-    d->camera_target.spheric.theta += cfg->camera_step_angle;
+  else
+  {
+    btSpheric3 dir;
+    if( d->camera_mode & CAM_TARGET_FIXED )
+      dir = d->camera_target.cart - d->camera_eye.cart;
+    else if( d->camera_mode & CAM_TARGET_REL )
+      dir = d->camera_target.spheric;
+    else if( d->camera_mode & CAM_TARGET_OBJECT )
+      dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
+    dir.r = cfg->camera_step_linear;
+    dir.theta -= M_PI_2;
+    d->camera_eye.cart += dir;
+  }
 }
 
 
