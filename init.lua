@@ -116,8 +116,6 @@ dofile("2009.lua")
 
 r1:match_register()
 
---XXX:test-galipeur
-
 r2 = Galipeur(10)
 r2:add_to_world()
 r2:set_pos((3.0-.5)/2, (2.1-.5)/2, 0.1001)

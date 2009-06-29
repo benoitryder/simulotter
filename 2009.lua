@@ -39,8 +39,6 @@ function match:init(fconf)
   end
   trace("Atlantis rules, columns: "..tostring(conf_col)..", dispensers: "..tostring(conf_disp))
 
-  trace(">>> "..tostring(iii))
-
   -- Various variables
 
   local c1, c2

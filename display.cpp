@@ -93,7 +93,6 @@ void Display::init()
     LOG->trace("display already initialized, init() call skipped");
     return;
   }
-  this->fullscreen = cfg->fullscreen;
   windowInit();
 }
 
@@ -132,13 +131,6 @@ void Display::update()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  //glEnable(GL_RESCALE_NORMAL);
-  glEnable(GL_NORMALIZE);
-  glEnable(GL_COLOR_MATERIAL);
-  glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-
   glMatrixMode(GL_PROJECTION); 
   glLoadIdentity();
   gluPerspective(cfg->perspective_fov, ((float)screen_x)/screen_y,
@@ -146,9 +138,6 @@ void Display::update()
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-
-  const GLfloat light_pos[4] = {0,scale(.3),scale(.8),0};
-  glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
   btVector3 eye_pos, target_pos;
   getCameraPos(eye_pos, target_pos);
@@ -171,8 +160,6 @@ void Display::update()
   for( it_obj = objs.begin(); it_obj != objs.end(); ++it_obj )
     (*it_obj)->draw();
 
-  glDisable(GL_LIGHTING);
-  glDisable(GL_LIGHT0);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluOrtho2D(0.0, screen_x, 0.0, screen_y);
@@ -221,7 +208,6 @@ void Display::windowInit()
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-  this->fullscreen = cfg->fullscreen;
   resize(cfg->screen_x, cfg->screen_y, cfg->fullscreen);
 }
 
@@ -240,6 +226,8 @@ void Display::sceneInit()
   glShadeModel(GL_SMOOTH);
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
+  const GLfloat light_pos[4] = {0,scale(.3),scale(.8),0};
+  glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
   glEnable(GL_DEPTH_TEST); 
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -249,6 +237,12 @@ void Display::sceneInit()
 
   glDepthMask(GL_TRUE);
   glDepthFunc(GL_LESS);
+
+  //glEnable(GL_RESCALE_NORMAL);
+  glEnable(GL_NORMALIZE);
+  glEnable(GL_COLOR_MATERIAL);
+  glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+
 }
 
 void Display::sceneDestroy() {}

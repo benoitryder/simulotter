@@ -52,7 +52,8 @@ public:
   inline btVector2 &normalize() { return *this /= length(); }
   inline btVector2 normalized() const;
 
-  inline btVector2 rotate(const btScalar angle);
+  inline btVector2 &rotate(const btScalar angle);
+  inline btVector2 rotated(const btScalar angle) const;
   inline btVector2 absolute() const { return btVector2( btFabs(x), btFabs(y) ); }
   inline btScalar angle() const { return btAtan2(y,x); }
 };
@@ -68,7 +69,12 @@ inline bool operator==(const btVector2 &v1, const btVector2 &v2) { return v1.x =
 inline btScalar btVector2::distance2(const btVector2 &v) const { return (v - *this).length2(); }
 inline btScalar btVector2::distance (const btVector2 &v) const { return (v - *this).length(); }
 inline btVector2 btVector2::normalized() const { return *this / length(); }
-inline btVector2 btVector2::rotate(const btScalar angle)
+inline btVector2 &btVector2::rotate(const btScalar angle)
+{
+  btVector2 v(-y,x);
+  return *this = ( *this * btCos(angle) + v * btSin(angle) );
+}
+inline btVector2 btVector2::rotated(const btScalar angle) const
 {
   btVector2 v(-y,x);
   return ( *this * btCos(angle) + v * btSin(angle) );

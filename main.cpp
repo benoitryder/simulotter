@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <SDL/SDL.h>
 #include <GL/freeglut.h>
-#include <unistd.h>
-#include <sys/time.h>
 
 #include "global.h"
 
@@ -18,15 +16,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 }
 
 #endif
-
-
-/// Return current time in milliseconds
-unsigned long millitime(void)
-{
-  struct timeval t;
-  gettimeofday(&t,NULL);
-  return t.tv_sec*1000 + t.tv_usec/1000;
-}
 
 
 Config  *cfg     = NULL;
@@ -98,10 +87,10 @@ int main(int argc, char **argv)
 
       LOG->trace("**** simulation starts");
 
-      time_disp = time_step = millitime();
+      time_disp = time_step = SDL_GetTicks();
       while(1)
       {
-        time = millitime();
+        time = SDL_GetTicks();
         if( time >= time_step )
         {
           physics->step();
@@ -117,13 +106,7 @@ int main(int argc, char **argv)
         time_wait = MIN(time_step,time_disp);
         time_wait -= time;
         if( time_wait > 0 )
-        {
-#ifdef WIN32
-          Sleep(time_wait);
-#else
-          usleep(time_wait*1000);
-#endif
-        }
+          SDL_Delay(time_wait);
       }
     }
     else

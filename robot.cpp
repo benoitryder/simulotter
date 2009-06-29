@@ -271,7 +271,7 @@ void RBasic::order_a(btScalar a, bool rel)
 void RBasic::order_back(btScalar d)
 {
   LOG->trace("BACK  %f", d);
-  target_back_xy = xy - d*btVector2(1,0).rotate(a);
+  target_back_xy = xy - d*btVector2(1,0).rotated(a);
 
   order |= ORDER_GO_BACK;
 }
@@ -292,7 +292,7 @@ inline void RBasic::set_v(btScalar v)
 {
   //XXX we have to force activation, is it a Bullet bug?
   body->activate();
-  btVector2 vxy = btVector2(v,0).rotate(a);
+  btVector2 vxy = btVector2(v,0).rotated(a);
   body->setLinearVelocity( btVector3(vxy.x, vxy.y,
         body->getLinearVelocity().z()) );
 }
