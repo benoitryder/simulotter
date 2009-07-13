@@ -147,7 +147,10 @@ public:
 
   virtual void draw();
 
-  /// Draw a small direction cone above the robot
+  /** Draw a small direction cone above the robot
+   *
+   * Current OpenGL matrix si supposed to be on robot center.
+   */
   void drawDirection();
 
   virtual const btTransform &getTrans() const { return body->getCenterOfMassTransform(); }

@@ -10,6 +10,7 @@ namespace eurobot2009
 
 
   SmartPtr<btCylinderShapeZ> OColElem::shape(new btCylinderShapeZ(scale(btVector3(0.035,0.035,0.015))));
+  GLuint OColElem::dl_id_static = 0;
 
   OColElem::OColElem()
   {

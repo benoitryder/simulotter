@@ -11,21 +11,20 @@ void Object::drawTransform(const btTransform &transform)
   btglMultMatrix(m);
 }
 
-void Object::drawShape(const btTransform &transform, const btCollisionShape *shape)
+void Object::drawShape(const btCollisionShape *shape)
 {
-  glPushMatrix();
-  drawTransform(transform);
-
   switch( shape->getShapeType() )
   {
     case COMPOUND_SHAPE_PROXYTYPE:
       {
         const btCompoundShape *compound_shape = static_cast<const btCompoundShape*>(shape);
         for( int i=compound_shape->getNumChildShapes()-1; i>=0; i-- )
-          drawShape(
-              compound_shape->getChildTransform(i),
-              compound_shape->getChildShape(i)
-              );
+        {
+          glPushMatrix();
+          drawTransform(compound_shape->getChildTransform(i));
+          drawShape(compound_shape->getChildShape(i));
+          glPopMatrix();
+        }
         break;
       }
     case SPHERE_SHAPE_PROXYTYPE:
@@ -86,8 +85,15 @@ void Object::drawShape(const btTransform &transform, const btCollisionShape *sha
       throw(Error("drawing not supported for this geometry class"));
       break;
   }
+}
 
-  glPopMatrix();
+GLuint Object::createDisplayList(const btCollisionShape *shape)
+{
+  GLuint dl_id = glGenLists(1);
+  glNewList(dl_id, GL_COMPILE);
+  drawShape(shape);
+  glEndList();
+  return dl_id;
 }
 
 void Object::addToWorld(Physics *physics)
@@ -97,8 +103,11 @@ void Object::addToWorld(Physics *physics)
 }
 
 
+std::map<const btCollisionShape *, GLuint> OSimple::shape2dl;
+
 OSimple::OSimple():
-  btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL))
+  btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL)),
+  dl_id(0)
 {
 }
 
@@ -152,7 +161,22 @@ void OSimple::setPosAbove(const btVector2 &pos)
 void OSimple::draw()
 {
   glColor4fv(color);
-  drawShape(m_worldTransform, m_collisionShape);
+  glPushMatrix();
+  drawTransform(m_worldTransform);
+
+  if( dl_id == 0 )
+  {
+    std::map<const btCollisionShape *, GLuint>::iterator it;
+    const btCollisionShape *shape = m_collisionShape;
+    it = shape2dl.find( shape );
+    if( it == shape2dl.end() )
+      shape2dl[shape] = dl_id = createDisplayList(shape);
+    else
+      dl_id = (*it).second;
+  }
+  glCallList(dl_id);
+
+  glPopMatrix();
 }
 
 
@@ -170,6 +194,9 @@ OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &colo
 
 OGround::~OGround()
 {
+  if( dl_id != 0 )
+    glDeleteLists(dl_id, 1);
+  dl_id = 0;
 }
 
 
@@ -178,38 +205,53 @@ void OGround::draw()
   glPushMatrix();
 
   drawTransform(m_worldTransform);
-  const btVector3 &size = shape->getHalfExtentsWithMargin();
 
-  // Ground
+  if( dl_id != 0 )
+    glCallList(dl_id);
+  else
+  {
+    // Create the display list
+    // Their should be only one ground instance, thus we create one display
+    // list per instance. This allow to put color changes in it.
 
-  glPushMatrix();
+    const btVector3 &size = shape->getHalfExtentsWithMargin();
 
-  glColor4fv(color);
-  btglScale(2*size[0], 2*size[1], 2*size[2]);
-  glutSolidCube(1.0);
+    dl_id = glGenLists(1);
+    glNewList(dl_id, GL_COMPILE_AND_EXECUTE);
 
-  glPopMatrix();
+    // Ground
+
+    glPushMatrix();
+
+    glColor4fv(color);
+    btglScale(2*size[0], 2*size[1], 2*size[2]);
+    glutSolidCube(1.0);
+
+    glPopMatrix();
 
 
-  // Starting areas
+    // Starting areas
 
-  glPushMatrix();
+    glPushMatrix();
 
-  glColor4fv(color_t1);
-  btglTranslate(-size[0]+size_start/2, size[1]-size_start/2, size[2]);
-  btglScale(size_start, size_start, 2*cfg->draw_epsilon);
-  glutSolidCube(1.0f);
+    glColor4fv(color_t1);
+    btglTranslate(-size[0]+size_start/2, size[1]-size_start/2, size[2]);
+    btglScale(size_start, size_start, 2*cfg->draw_epsilon);
+    glutSolidCube(1.0f);
 
-  glPopMatrix();
+    glPopMatrix();
 
-  glPushMatrix();
+    glPushMatrix();
 
-  glColor4fv(color_t2);
-  btglTranslate(size[0]-size_start/2, size[1]-size_start/2, size[2]);
-  btglScale(size_start, size_start, 2*cfg->draw_epsilon);
-  glutSolidCube(1.0f);
+    glColor4fv(color_t2);
+    btglTranslate(size[0]-size_start/2, size[1]-size_start/2, size[2]);
+    btglScale(size_start, size_start, 2*cfg->draw_epsilon);
+    glutSolidCube(1.0f);
 
-  glPopMatrix();
+    glPopMatrix();
+
+    glEndList();
+  }
 
   glPopMatrix();
 }

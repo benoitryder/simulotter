@@ -163,26 +163,21 @@ void RBasic::draw()
 {
   // Use a darker color to contrast with game elements
   glColor4fv(match->getColor(getTeam()) * 0.5);
-  drawShape(
-      body->getCenterOfMassTransform(),
-      body->getCollisionShape()
-      );
+  glPushMatrix();
+  drawTransform(body->getCenterOfMassTransform());
+  drawShape(body->getCollisionShape());
   drawDirection();
+  glPopMatrix();
 }
 
 void RBasic::drawDirection()
 {
-  glPushMatrix();
-  drawTransform(getTrans());
-
   btVector3 aabb_min, aabb_max;
   body->getAabb(aabb_min, aabb_max);
 
   btglTranslate(0, 0, aabb_max.getZ()-getPos().getZ()+cfg->draw_direction_r+cfg->draw_epsilon);
   btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
   glutSolidCone(cfg->draw_direction_r, cfg->draw_direction_h, cfg->draw_div, cfg->draw_div);
-
-  glPopMatrix();
 }
 
 

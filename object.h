@@ -3,6 +3,7 @@
 
 
 #include <vector>
+#include <GL/gl.h>
 #include "global.h"
 
 
@@ -51,7 +52,13 @@ protected:
    * @note This function is based on <em>GL_ShapeDrawer::drawOpenGL</em> method
    * from <em>Bullet</em>'s demos.
    */
-  static void drawShape(const btTransform &transform, const btCollisionShape *shape);
+  static void drawShape(const btCollisionShape *shape);
+
+  /** @brief Create a display list for the given shape
+   *
+   * Shape is drawn using \e drawShape().
+   */
+  static GLuint createDisplayList(const btCollisionShape *shape);
 };
 
 
@@ -62,6 +69,8 @@ protected:
  *
  * Initialization functions are provided to configure an object after its
  * creation.
+ *
+ * If a displaylist is set on the instance it is used for drawing.
  */
 class OSimple: public Object, public btRigidBody
 {
@@ -111,7 +120,10 @@ public:
    */
   void setColor(const Color4 &color) { this->color = color; }
 
-  /// Draw the whole object
+  /** @brief Draw the whole object
+   *
+   * Shape drawing is stored in a display list.
+   */
   virtual void draw();
 
   virtual const btTransform &getTrans() const { return getCenterOfMassTransform(); }
@@ -130,6 +142,16 @@ public:
 protected:
   /// Object main color
   Color4 color;
+  /** @brief Display list to draw (0 if none)
+   *
+   * It is initialized in \e draw() method but can be reused by subclasses for
+   * their own drawing method.
+   */
+  GLuint dl_id;
+
+private:
+  /// Store display lists created in \e draw().
+  static std::map<const btCollisionShape *, GLuint> shape2dl;
 };
 
 
@@ -149,12 +171,9 @@ public:
    * @param color     table color
    * @param color_t1  first team color
    * @param color_t2  second team color
-   *
-   * @note Only the first 3 color values are used.
    */
   OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2);
   ~OGround();
-
   virtual void draw();
 
 protected:

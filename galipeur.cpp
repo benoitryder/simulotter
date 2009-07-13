@@ -16,6 +16,7 @@ const btScalar Galipeur::radius  = btSqrt(side*side+d_side*d_side);
 SmartPtr<btCompoundShape> Galipeur::shape;
 btConvexHullShape Galipeur::body_shape;
 btBoxShape Galipeur::wheel_shape( btVector3(h_wheel/2,r_wheel,r_wheel) );
+GLuint Galipeur::dl_id_static = 0;
 
 
 Galipeur::Galipeur(btScalar m)
@@ -86,95 +87,106 @@ void Galipeur::draw()
   glPushMatrix();
   drawTransform(body->getCenterOfMassTransform());
 
-  btglTranslate(0, 0, -height/2);
-
-  glPushMatrix();
-
-  btglScale(radius, radius, height);
-  btVector2 v;
-
-  // Faces
-
-  glBegin(GL_QUADS);
-
-  v = btVector2(1,0).rotated(-a_wheel/2);
-  btVector2 n(1,0); // normal vector
-  for( int i=0; i<3; i++ )
+  if( dl_id_static != 0 )
+    glCallList(dl_id_static);
+  else
   {
-    // wheel side
-    btglNormal3(n.x, n.y, 0.0);
-    n.rotate(M_PI/3);
+    // new display list
+    dl_id_static = glGenLists(1);
+    glNewList(dl_id_static, GL_COMPILE_AND_EXECUTE);
 
-    btglVertex3(v.x, v.y, 0.0);
-    btglVertex3(v.x, v.y, 1.0);
-    v.rotate(a_wheel);
-    btglVertex3(v.x, v.y, 1.0);
-    btglVertex3(v.x, v.y, 0.0);
+    btglTranslate(0, 0, -height/2);
 
-    // triangle side
-    btglNormal3(n.x, n.y, 0.0);
-    n.rotate(M_PI/3);
+    glPushMatrix();
 
-    btglVertex3(v.x, v.y, 0.0);
-    btglVertex3(v.x, v.y, 1.0);
-    v.rotate(a_side);
-    btglVertex3(v.x, v.y, 1.0);
-    btglVertex3(v.x, v.y, 0.0);
+    btglScale(radius, radius, height);
+    btVector2 v;
+
+    // Faces
+
+    glBegin(GL_QUADS);
+
+    v = btVector2(1,0).rotated(-a_wheel/2);
+    btVector2 n(1,0); // normal vector
+    for( int i=0; i<3; i++ )
+    {
+      // wheel side
+      btglNormal3(n.x, n.y, 0.0);
+      n.rotate(M_PI/3);
+
+      btglVertex3(v.x, v.y, 0.0);
+      btglVertex3(v.x, v.y, 1.0);
+      v.rotate(a_wheel);
+      btglVertex3(v.x, v.y, 1.0);
+      btglVertex3(v.x, v.y, 0.0);
+
+      // triangle side
+      btglNormal3(n.x, n.y, 0.0);
+      n.rotate(M_PI/3);
+
+      btglVertex3(v.x, v.y, 0.0);
+      btglVertex3(v.x, v.y, 1.0);
+      v.rotate(a_side);
+      btglVertex3(v.x, v.y, 1.0);
+      btglVertex3(v.x, v.y, 0.0);
+    }
+
+    glEnd();
+
+    // Bottom
+    glBegin(GL_POLYGON);
+    btglNormal3(0.0, 0.0, -1.0);
+    v = btVector2(1,0).rotated(-a_wheel/2);
+    for( int i=0; i<3; i++ )
+    {
+      btglVertex3(v.x, v.y, 0.0);
+      v.rotate(a_wheel);
+      btglVertex3(v.x, v.y, 0.0);
+      v.rotate(a_side);
+    }
+    glEnd();
+
+    // Top
+    glBegin(GL_POLYGON);
+    btglNormal3(0.0, 0.0, 1.0);
+    v = btVector2(1,0).rotated(-a_wheel/2);
+    for( int i=0; i<3; i++ )
+    {
+      btglVertex3(v.x, v.y, 1.0);
+      v.rotate(a_wheel);
+      btglVertex3(v.x, v.y, 1.0);
+      v.rotate(a_side);
+    }
+    glEnd();
+
+    glPopMatrix();
+
+    // Wheels (box shapes, but drawn using cylinders)
+    btglTranslate(0, 0, r_wheel);
+    btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
+    btVector2 vw( d_wheel, 0 );
+
+    glPushMatrix();
+    btglTranslate(0, vw.y, vw.x);
+    glutSolidCylinder(r_wheel, h_wheel, cfg->draw_div, cfg->draw_div);
+    glPopMatrix();
+
+    glPushMatrix();
+    vw.rotate(2*M_PI/3);
+    btglTranslate(0, vw.y, vw.x);
+    btglRotate(-120.0f, 1.0f, 0.0f, 0.0f);
+    glutSolidCylinder(r_wheel, h_wheel, cfg->draw_div, cfg->draw_div);
+    glPopMatrix();
+
+    glPushMatrix();
+    vw.rotate(-4*M_PI/3);
+    btglTranslate(0, vw.y, vw.x);
+    btglRotate(120.0f, 1.0f, 0.0f, 0.0f);
+    glutSolidCylinder(r_wheel, h_wheel, cfg->draw_div, cfg->draw_div);
+    glPopMatrix();
+
+    glEndList();
   }
-
-  glEnd();
-
-  // Bottom
-  glBegin(GL_POLYGON);
-  btglNormal3(0.0, 0.0, -1.0);
-  v = btVector2(1,0).rotated(-a_wheel/2);
-  for( int i=0; i<3; i++ )
-  {
-    btglVertex3(v.x, v.y, 0.0);
-    v.rotate(a_wheel);
-    btglVertex3(v.x, v.y, 0.0);
-    v.rotate(a_side);
-  }
-  glEnd();
-
-  // Top
-  glBegin(GL_POLYGON);
-  btglNormal3(0.0, 0.0, 1.0);
-  v = btVector2(1,0).rotated(-a_wheel/2);
-  for( int i=0; i<3; i++ )
-  {
-    btglVertex3(v.x, v.y, 1.0);
-    v.rotate(a_wheel);
-    btglVertex3(v.x, v.y, 1.0);
-    v.rotate(a_side);
-  }
-  glEnd();
-
-  glPopMatrix();
-
-  // Wheels (box shapes, but drawn using cylinders)
-  btglTranslate(0, 0, r_wheel);
-  btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
-  btVector2 vw( d_wheel, 0 );
-
-  glPushMatrix();
-  btglTranslate(0, vw.y, vw.x);
-  glutSolidCylinder(r_wheel, h_wheel, cfg->draw_div, cfg->draw_div);
-  glPopMatrix();
-
-  glPushMatrix();
-  vw.rotate(2*M_PI/3);
-  btglTranslate(0, vw.y, vw.x);
-  btglRotate(-120.0f, 1.0f, 0.0f, 0.0f);
-  glutSolidCylinder(r_wheel, h_wheel, cfg->draw_div, cfg->draw_div);
-  glPopMatrix();
-
-  glPushMatrix();
-  vw.rotate(-4*M_PI/3);
-  btglTranslate(0, vw.y, vw.x);
-  btglRotate(120.0f, 1.0f, 0.0f, 0.0f);
-  glutSolidCylinder(r_wheel, h_wheel, cfg->draw_div, cfg->draw_div);
-  glPopMatrix();
 
   glPopMatrix();
 }
