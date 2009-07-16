@@ -56,6 +56,28 @@ function osd.text()
 end
 osd:show()
 
+-- sharps
+local x, y, r
+x = math.cos(math.pi/3)
+y = math.sin(math.pi/3)
+r = 0.1
+r1:set_sharps({
+  { r*x, r*y,0.10, 0,0.25, math.pi/3 },
+  { r*x,-r*y,0.10, 0,0.25,-math.pi/3 }
+})
+
+osd_sharps = OSD()
+osd_sharps.x, osd_sharps.y = 10, 40
+osd_sharps.color = {0, 0, 0}
+osd_sharps.text = ""
+osd_sharps:show()
+
+function r1:update()
+  s0 = self:test_sharp(0)
+  s1 = self:test_sharp(1)
+  osd_sharps.text = tostring(s0).." / "..tostring(s1)
+end
+
 
 config.match_fconf = 0x03
 function r1:strategy()

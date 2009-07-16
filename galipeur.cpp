@@ -95,14 +95,17 @@ void Galipeur::draw()
     dl_id_static = glGenLists(1);
     glNewList(dl_id_static, GL_COMPILE_AND_EXECUTE);
 
+    glPushMatrix();
+
     btglTranslate(0, 0, -height/2);
+
+    // Faces
 
     glPushMatrix();
 
     btglScale(radius, radius, height);
     btVector2 v;
 
-    // Faces
 
     glBegin(GL_QUADS);
 
@@ -185,7 +188,20 @@ void Galipeur::draw()
     glutSolidCylinder(r_wheel, h_wheel, cfg->draw_div, cfg->draw_div);
     glPopMatrix();
 
+    glPopMatrix();
+
     glEndList();
+  }
+
+  // Sharps
+  std::vector<btTransform>::iterator it;
+  for( it=sharps_trans.begin(); it!=sharps_trans.end(); ++it )
+  {
+    glPushMatrix();
+    drawTransform( *it );
+    glutSolidCube(0.1); //XXX
+    SRay::gp2d12.draw();
+    glPopMatrix();
   }
 
   glPopMatrix();
@@ -262,6 +278,12 @@ void Galipeur::order_a(btScalar a, bool rel)
   order |= ORDER_GO_A;
 }
 
+btScalar Galipeur::test_sensor(unsigned int i)
+{
+  if( i >= sharps_trans.size() )
+    throw(Error("invalid sensor index: %u"));
+  return SRay::gp2d12.hitTest( getTrans() * sharps_trans[i] );
+}
 
 
 class LuaGalipeur: public LuaClass<Galipeur>
@@ -301,6 +323,40 @@ class LuaGalipeur: public LuaClass<Galipeur>
 
   LUA_DEFINE_GET(is_waiting, is_waiting)
 
+  static int set_sharps(lua_State *L)
+  {
+    SmartPtr<Galipeur> galipeur = get_ptr(L,1);
+    luaL_checktype(L, 2, LUA_TTABLE);
+    galipeur->sharps_trans.clear();
+
+    lua_pushnil(L);
+    while( lua_next(L, 2) != 0 )
+    {
+      btTransform tr;
+      LuaManager::checktransform(L, -1, tr);
+      galipeur->sharps_trans.push_back( tr );
+      lua_pop(L, 1);
+    }
+    return 0;
+  }
+
+  static int test_sharp(lua_State *L)
+  {
+    SmartPtr<Galipeur> galipeur = get_ptr(L,1);
+    unsigned int i = luaL_checkinteger(L, 2);
+    if( i < galipeur->sharps_trans.size() )
+    {
+      btScalar x = galipeur->test_sensor(i);
+      if( x < 0 )
+        LuaManager::push(L, false);
+      else
+        LuaManager::push(L, x);
+    }
+    else
+      lua_pushnil(L);
+    return 1;
+  }
+
 public:
   LuaGalipeur()
   {
@@ -322,6 +378,9 @@ public:
     LUA_REGFUNC(order_stop);
 
     LUA_REGFUNC(is_waiting);
+
+    LUA_REGFUNC(set_sharps);
+    LUA_REGFUNC(test_sharp);
   }
 };
 

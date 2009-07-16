@@ -42,6 +42,21 @@ public:
    */
   static void checkcolor(lua_State *L, int narg, Color4 &c);
 
+  /** @brief Convert a given value to a transform
+   *
+   * Valid transforms are tables of 3 or 6 elements, indexed by integers.
+   * First 3 elements give the position, last ones give the rotation.
+   *
+   * @retval  0  transform is valid
+   * @retval  1  invalid transform, error message has been pushed on the stack
+   */
+  static int totransform(lua_State *L, int index, btTransform &tr);
+
+  /** @brief Check whether a given argument is a transform and get it
+   * @sa totransform
+   */
+  static void checktransform(lua_State *L, int narg, btTransform &tr);
+
   /** @brief Check whether a given argument is a table of userdata
    *
    * @param  L       Lua state

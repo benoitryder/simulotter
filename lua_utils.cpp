@@ -119,6 +119,65 @@ void LuaManager::checkcolor(lua_State *L, int narg, Color4 &c)
   }
 }
 
+int LuaManager::totransform(lua_State *L, int index, btTransform &tr)
+{
+  // If index is relative to the top, get the absolute position
+  if( index < 0 )
+    index = lua_gettop(L) + 1 + index;
+
+  if( !lua_istable(L, index) )
+  {
+    lua_pushstring(L, "table expected");
+    return 1;
+  }
+
+  int n = lua_objlen(L, index);
+  if( n != 3 && n != 6 ) // rotation is optional
+  {
+    lua_pushstring(L, "invalid element count, 3 or 6 expected");
+    return 1;
+  }
+
+  int i;
+  float f[6];
+  for( i=0; i<n; i++ )
+  {
+    lua_rawgeti(L, index, i+1);
+    if( lua_isnone(L, -1) )
+    {
+      lua_pop(L, 1);
+      lua_pushstring(L, "element is missing");
+      return 1;
+    }
+    if( !lua_isnumber(L, -1) )
+    {
+      lua_pop(L, 1);
+      lua_pushstring(L, "invalid element, number expected");
+      return 1;
+    }
+    f[i] = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+  }
+
+  tr.setIdentity();
+  tr.setOrigin( scale(btVector3(f[0],f[1],f[2])) );
+  if( n == 6 )
+    tr.getBasis().setEulerZYX( f[3], f[4], f[5] );
+
+  return 0;
+}
+
+void LuaManager::checktransform(lua_State *L, int narg, btTransform &tr)
+{
+  int ret = totransform(L, narg, tr);
+  if( ret != 0 )
+  {
+    const char *msg = lua_tostring(L, -1);
+    lua_pop(L, 1);
+    luaL_argerror(L, narg, msg);
+  }
+}
+
 
 int LuaManager::lua_trace(lua_State *L)
 {

@@ -10,6 +10,7 @@
 #include "physics.h"
 #include "match.h"
 #include "object.h"
+#include "sensors.h"
 #include "robot.h"
 #include "config.h"
 #include "display.h"

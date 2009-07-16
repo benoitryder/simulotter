@@ -1,6 +1,7 @@
 #ifndef GALIPEUR_H
 #define GALIPEUR_H
 
+#include <vector>
 #include "global.h"
 
 ///@file
@@ -27,10 +28,10 @@ public:
 
   /** @brief Draw the robot
    *
-   * Assumes that the dispenser is not rotated (robot's Z axis aligned with
-   * world's Z axis).
+   * Assumes that the robot is not rotated (robot's Z axis aligned with world's
+   * Z axis).
    */
-  void draw();
+  virtual void draw();
 
   virtual const btTransform &getTrans() const { return body->getCenterOfMassTransform(); }
   virtual void setTrans(const btTransform &tr) { body->setCenterOfMassTransform(tr); }
@@ -57,6 +58,8 @@ public:
   void order_stop() { order = ORDER_NONE; }
 
   bool is_waiting() { return order == ORDER_NONE; }
+
+  btScalar test_sensor(unsigned int i);
   //@}
 
   void set_v_max(btScalar v)  { this->v_max  = v; }
@@ -82,6 +85,9 @@ public:
 
 protected:
   btRigidBody *body;
+
+  /// Sharp positions
+  std::vector<btTransform> sharps_trans;
 
   btScalar v_max;
   btScalar av_max;
