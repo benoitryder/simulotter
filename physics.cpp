@@ -24,6 +24,7 @@ Physics::Physics()
 
   pause_state = false;
   step_dt = 0;
+  time = 0;
 }
 
 Physics::~Physics()
@@ -57,7 +58,15 @@ void Physics::step()
 
   //XXX Simulation goes smoother with several 1-substep calls than with 1
   // several-substep-call. Yes, it's a bit strange.
-  world->stepSimulation(step_dt, 1, step_dt);
+  world->stepSimulation(step_dt, 0, step_dt);
+  time += step_dt;
+
+  // Scheduled tasks
+  while( !task_queue.empty() && task_queue.top().first <= time )
+  {
+    task_queue.top().second->process(this);
+    task_queue.pop();
+  }
 
   // Update robot values, do asserv and strategy
   std::map<unsigned int, SmartPtr<Robot> > &robots = match->getRobots();
@@ -71,7 +80,63 @@ void Physics::step()
 }
 
 
+void Physics::scheduleTask(TaskPhysics *task, btScalar time)
+{
+  task_queue.push( TaskQueueValue(time, SmartPtr<TaskPhysics>(task)) );
+}
+
+
 btRigidBody Physics::static_body( btRigidBody::btRigidBodyConstructionInfo(0,NULL,NULL) );
+
+
+
+TaskBasic::TaskBasic(btScalar period):
+  period(period), callback(NULL), cancelled(false)
+{
+}
+
+void TaskBasic::process(Physics *ph)
+{
+  if( cancelled )
+    return;
+  if( callback == NULL )
+    throw(Error("TaskBasic::process(): no callback"));
+
+  callback(ph);
+  if( period > 0.0 )
+    ph->scheduleTask(this, ph->getTime() + period);
+}
+
+TaskLua::TaskLua(int ref, btScalar period):
+  period(period), cancelled(false), ref_obj(ref)
+{
+  if( this->ref_obj == LUA_NOREF || this->ref_obj == LUA_REFNIL )
+    throw(LuaError("invalid object reference for TaskLua"));
+}
+
+TaskLua::~TaskLua()
+{
+  lua_State *L = lm->get_L();
+  luaL_unref(L, LUA_REGISTRYINDEX, ref_obj);
+}
+
+void TaskLua::process(Physics *ph)
+{
+  if( cancelled )
+    return;
+  // Get the callback
+  lua_State *L = lm->get_L();
+  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
+  lua_remove(L, -2);
+  lua_getfield(L, -1, "callback");
+  if( !lua_isfunction(L, -1) )
+    throw(LuaError("TaskLua: invalid callback"));
+  LuaManager::pcall(L, 0, 0);
+
+  if( period > 0 )
+    ph->scheduleTask(this, ph->getTime() + period);
+}
+
 
 
 /** @name Lua Physics class
@@ -89,6 +154,7 @@ class LuaPhysics: public LuaClass<Physics>
 
   LUA_DEFINE_SET0(init, init);
   LUA_DEFINE_GET(is_initialized, isInitialized);
+  LUA_DEFINE_GET(get_time, getTime);
   LUA_DEFINE_SET0(pause, pause);
   LUA_DEFINE_SET0(unpause, unpause);
   LUA_DEFINE_SET0(toggle_pause, togglePause);
@@ -99,6 +165,7 @@ public:
     LUA_REGFUNC(_ctor);
     LUA_REGFUNC(init);
     LUA_REGFUNC(is_initialized);
+    LUA_REGFUNC(get_time);
     LUA_REGFUNC(pause);
     LUA_REGFUNC(unpause);
     LUA_REGFUNC(toggle_pause);
@@ -107,6 +174,52 @@ public:
 
 
 LUA_REGISTER_BASE_CLASS(Physics);
+
+
+/** @name Lua Task class
+ */
+class LuaTask: public LuaClass<TaskLua>
+{
+  static int _ctor(lua_State *L)
+  {
+    btScalar period = 0.0;
+    if( !lua_isnoneornil(L, 2) )
+      period = LARG_f(2);
+
+    data_ptr *ud = new_ptr(L);
+    lua_pushvalue(L, 1);
+    int ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    *ud = new TaskLua(ref, period);
+    SmartPtr_add_ref(*ud);
+    return 0;
+  }
+
+  LUA_DEFINE_SET0(cancel, cancel);
+
+  static int schedule(lua_State *L)
+  {
+    if( !physics )
+      return luaL_error(L, "physics is not created, cannot schedule");
+    SmartPtr<TaskLua> task = get_ptr(L,1);
+    if( lua_isnoneornil(L, 2) )
+      physics->scheduleTask(task);
+    else
+      physics->scheduleTask(task, LARG_f(2));
+    return 0;
+  }
+
+public:
+  LuaTask()
+  {
+    LUA_REGFUNC(_ctor);
+    LUA_REGFUNC(cancel);
+    LUA_REGFUNC(schedule);
+  }
+};
+
+template<> const char *LuaClass<TaskLua>::name = "Task";
+static LuaTask register_LuaTask;
+template<> const char *LuaClass<TaskLua>::base_name = NULL;
 
 
 /** @name Lua collision shapes

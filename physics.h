@@ -2,9 +2,12 @@
 #define PHYSICS_H
 
 #include <set>
+#include <queue>
+#include <vector>
 #include "global.h"
 
 class Object;
+class TaskPhysics;
 
 
 ///@file
@@ -20,10 +23,23 @@ public:
 
   /// Init physics (using configuration values)
   void init();
-  bool isInitialized() { return step_dt > 0; }
+  bool isInitialized() const { return step_dt > 0; }
 
   /// Advance simulation and update robots
   void step();
+
+  /// Return current simulation time
+  btScalar getTime() const { return time; }
+
+  /** @brief Schedule a task
+   *
+   * If \e time is negative, the task will be executed after the next
+   * step.
+   *
+   * @note Precision of execution time will depends on simulation time step.
+   * Execution order is not affected.
+   */
+  void scheduleTask(TaskPhysics *task, btScalar time=-1);
 
   void pause()   { this->pause_state = true;  }
   void unpause() { this->pause_state = false; }
@@ -51,6 +67,73 @@ private:
 
   /// Simulation time step, must not be modified
   btScalar step_dt;
+
+  btScalar time;
+
+  typedef std::pair< btScalar, SmartPtr<TaskPhysics> > TaskQueueValue;
+  typedef std::priority_queue< TaskQueueValue, std::vector<TaskQueueValue>, std::greater<TaskQueueValue> > TaskQueue;
+  /// Scheduled tasks
+  TaskQueue task_queue;
+};
+
+
+/** @brief Scheduled task interface
+ *
+ * Parent class for tasks scheduled at a given simulation time.
+ */
+class TaskPhysics: public SmartObject
+{
+public:
+  TaskPhysics() {}
+  virtual ~TaskPhysics() {}
+
+  virtual void process(Physics *ph) = 0;
+};
+
+/** @brief Basic task
+ */
+class TaskBasic: public TaskPhysics
+{
+public:
+  TaskBasic(btScalar period=0.0);
+  virtual ~TaskBasic() {}
+
+  virtual void process(Physics *ph);
+
+  /// Cancel the task
+  void cancel() { cancelled = true; }
+
+  typedef void (*Callback)(Physics *ph);
+  void setCallback(Callback cb) { callback = cb; }
+
+protected:
+  btScalar period; /// Period for repeated tasks (or 0)
+  Callback callback;
+  bool cancelled;
+};
+
+/** @brief Task used in Lua
+ *
+ * Behavior is similar to \e TaskBasic's.
+ *
+ * Callback is stored on the instance \e callback field.
+ */
+class TaskLua: public TaskPhysics
+{
+public:
+  TaskLua(int ref, btScalar period=0.0);
+  virtual ~TaskLua();
+
+  virtual void process(Physics *ph);
+
+  /// Cancel the task
+  void cancel() { cancelled = true; }
+
+protected:
+  btScalar period;
+  bool cancelled;
+  /// Lua instance reference
+  int ref_obj;
 };
 
 

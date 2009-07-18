@@ -71,6 +71,11 @@
       <return type="bool"/>
     </function>
 
+    <function name="get_time">
+      Return current simulation time.
+      <return type="float"/>
+    </function>
+
     <function name="set_camera_mode">
       Set camera mode. <tt>mode</tt> is an integer (as defined in
       <tt>display.h</tt>) or one of the following string: <tt>FREE</tt>,
@@ -107,6 +112,22 @@
     <value name="color" type="Color"/>
     <function name="show"/>
     <function name="hide"/>
+
+  </class>
+
+  <class name="Task">
+    Task scheduled at a given simulation time.<br/>
+    Callback is a function which does not take any arguments. It must be set.
+    <constructor>
+      <arg name="period" type="float" required="0">period for repeated tasks</arg>
+    </constructor>
+    <value name="callback" type="function"/>
+    <function name="cancel"/>
+
+    <function name="schedule">
+      Schedule task at a given time (default: now).
+      <arg name="time" type="float" required="0" />
+    </function>
 
   </class>
 
@@ -392,9 +413,13 @@
 
     <function name="test_sharp">
       Returns hit distance of a given sharp or <tt>false</tt> if it does not hit.
-      If <tt>id</tt> is invalid, returns <tt>nil</tt>.
-      <arg name="id" type="int"/>
+      If <tt>index</tt> is invalid, returns <tt>nil</tt>.
+      <arg name="index" type="int">Sharp index, starting at 1.</arg>
       <return type="float"/>
+    </function>
+
+    <function name="get_sharp_count">
+      <return type="int"/>
     </function>
   </class>
 

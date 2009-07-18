@@ -343,7 +343,7 @@ class LuaGalipeur: public LuaClass<Galipeur>
   static int test_sharp(lua_State *L)
   {
     SmartPtr<Galipeur> galipeur = get_ptr(L,1);
-    unsigned int i = luaL_checkinteger(L, 2);
+    unsigned int i = luaL_checkinteger(L, 2) - 1; // LUA indexes start at 1
     if( i < galipeur->sharps_trans.size() )
     {
       btScalar x = galipeur->test_sensor(i);
@@ -354,6 +354,12 @@ class LuaGalipeur: public LuaClass<Galipeur>
     }
     else
       lua_pushnil(L);
+    return 1;
+  }
+
+  static int get_sharp_count(lua_State *L)
+  {
+    LuaManager::push(L, get_ptr(L, 1)->sharps_trans.size());
     return 1;
   }
 
@@ -381,6 +387,7 @@ public:
 
     LUA_REGFUNC(set_sharps);
     LUA_REGFUNC(test_sharp);
+    LUA_REGFUNC(get_sharp_count);
   }
 };
 
