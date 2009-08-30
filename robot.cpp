@@ -7,12 +7,6 @@
 Robot::Robot()
 {
   this->ref_obj = LUA_NOREF;
-  this->ref_update = LUA_NOREF;
-  this->ref_asserv = LUA_NOREF;
-  this->ref_strategy = LUA_NOREF;
-  this->L_strategy = NULL;
-  this->ref_strategy_thread = LUA_NOREF;
-
   this->team = TEAM_INVALID;
 }
 
@@ -21,10 +15,6 @@ Robot::~Robot()
   lua_State *L = lm->get_L();
   // luaL_unref has no effect on LUA_NOREF, so it's ok
   luaL_unref(L, LUA_REGISTRYINDEX, ref_obj);
-  luaL_unref(L, LUA_REGISTRYINDEX, ref_update);
-  luaL_unref(L, LUA_REGISTRYINDEX, ref_asserv);
-  luaL_unref(L, LUA_REGISTRYINDEX, ref_strategy);
-  luaL_unref(L, LUA_REGISTRYINDEX, ref_strategy_thread);
 }
 
 void Robot::matchRegister(unsigned int team)
@@ -43,79 +33,6 @@ void Robot::matchInit()
 {
   if( ref_obj == LUA_NOREF )
     return;
-
-  lua_State *L = lm->get_L();
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
-  lua_getfield(L, -1, "update");
-  if( !lua_isnil(L, -1) )
-    ref_update = luaL_ref(L, LUA_REGISTRYINDEX);
-  else
-    lua_pop(L, 1);
-  lua_getfield(L, -1, "asserv");
-  if( !lua_isnil(L, -1) )
-    ref_asserv = luaL_ref(L, LUA_REGISTRYINDEX);
-  else
-    lua_pop(L, 1);
-  lua_getfield(L, -1, "strategy");
-  if( !lua_isnil(L, -1) )
-  {
-    ref_strategy = luaL_ref(L, LUA_REGISTRYINDEX);
-    L_strategy = lua_newthread(L);
-    ref_strategy_thread = luaL_ref(L, LUA_REGISTRYINDEX);
-  }
-  else
-    lua_pop(L, 1);
-}
-
-void Robot::update()
-{
-  if( ref_update == LUA_NOREF )
-    return this->do_update();
-
-  lua_State *L = lm->get_L();
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_update);
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
-  LuaManager::pcall(L, 1, 0);
-}
-
-void Robot::asserv()
-{
-  if( ref_asserv == LUA_NOREF )
-    return this->do_asserv();
-
-  lua_State *L = lm->get_L();
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_asserv);
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
-  LuaManager::pcall(L, 1, 0);
-}
-
-void Robot::strategy()
-{
-  static int val = 0;
-  if( ref_strategy == LUA_NOREF )
-  {
-    if( val != -1 )
-      val = this->do_strategy(val);
-    return;
-  }
-
-  if( L_strategy == NULL )
-    return;
-
-  int top = lua_gettop(L_strategy);
-  lua_rawgeti(L_strategy, LUA_REGISTRYINDEX, ref_strategy);
-  lua_rawgeti(L_strategy, LUA_REGISTRYINDEX, ref_obj);
-  int ret = lua_resume(L_strategy, 1);
-  if( ret == 0 )
-  {
-    luaL_unref(L_strategy, LUA_REGISTRYINDEX, ref_strategy_thread);
-    ref_strategy_thread = LUA_NOREF;
-    L_strategy = NULL;
-  }
-  else if( ret == LUA_YIELD )
-    lua_settop(L_strategy, top);// Pop yield values
-  else
-    throw(LuaError(L_strategy));
 }
 
 
@@ -181,7 +98,7 @@ void RBasic::drawDirection()
 }
 
 
-void RBasic::do_asserv()
+void RBasic::asserv()
 {
   // Go back: order which have priority
   if( order & ORDER_GO_BACK )
@@ -272,7 +189,7 @@ void RBasic::order_back(btScalar d)
 }
 
 
-void RBasic::do_update()
+void RBasic::update()
 {
   xy = this->getPos();
   btScalar p, r;
@@ -377,6 +294,8 @@ class LuaRBasic: public LuaClass<RBasic>
   LUA_DEFINE_SET1(order_back, order_back, LARG_scaled)
   LUA_DEFINE_SET0(order_stop, order_stop)
 
+  LUA_DEFINE_SET0(update, update)
+  LUA_DEFINE_SET0(asserv, asserv)
   LUA_DEFINE_GET(is_waiting, is_waiting)
 
 public:
@@ -400,6 +319,8 @@ public:
     LUA_REGFUNC(order_back);
     LUA_REGFUNC(order_stop);
 
+    LUA_REGFUNC(update);
+    LUA_REGFUNC(asserv);
     LUA_REGFUNC(is_waiting);
   }
 };

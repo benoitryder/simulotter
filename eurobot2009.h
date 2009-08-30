@@ -120,7 +120,11 @@ namespace eurobot2009
 
     virtual void setTrans(const btTransform &tr);
 
-    virtual void do_asserv();
+    /** @brief Asserv step
+     *
+     * Move/turn the robot and the pàchev.
+     */
+    virtual void asserv();
 
     /** @name Strategy functions and orders
      */

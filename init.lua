@@ -88,6 +88,7 @@ do
     osd_sharps.text = 'sharps: ' .. table.concat(txt, ' , ')
   end
   task:schedule()
+
 end
 
 
@@ -146,6 +147,16 @@ function r1:strategy()
   return
 end
 
+-- Schedule r1 tasks: asserv then strategy
+local task
+task = Task(config.step_dt)
+task.callback = function() r1:asserv() end
+task:schedule()
+task = Task(config.step_dt)
+task.callback = coroutine.create(function() r1:strategy() end)
+task:schedule()
+
+
 dofile("2009.lua")
 
 r1:match_register()
@@ -158,14 +169,6 @@ r2:set_av_max(4)
 r2:set_threshold_xy(0.001)
 r2:set_threshold_a(0.005)
 r2:match_register()
-
-function r2:update()
-  return
-end
-function r2:strategy()
-  return
-end
-
 
 
 trace("------ SCRIPT END ------")

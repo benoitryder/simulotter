@@ -117,11 +117,12 @@
 
   <class name="Task">
     Task scheduled at a given simulation time.<br/>
-    Callback is a function which does not take any arguments. It must be set.
+    <tt>callback</tt> is a function or a coroutine which does not take any arguments; it must be set.
+    If <tt>callback</tt> it is automatically cancelled after returning (not yielding).
     <constructor>
       <arg name="period" type="float" required="0">period for repeated tasks</arg>
     </constructor>
-    <value name="callback" type="function"/>
+    <value name="callback" type="function|coroutine"/>
     <function name="cancel"/>
 
     <function name="schedule">
@@ -271,11 +272,6 @@
       <arg name="team" type="unsigned int" required="0"/>
     </function>
 
-    <function name="update" user="1">
-      Function called after each simulation step to update internal data using
-      simulation data.
-    </function>
-
     <function name="asserv" user="1">
     </function>
 
@@ -331,6 +327,14 @@
     <function name="order_stop">
     </function>
 
+    <function name="update">
+      Update position and velocity values.<br/>
+      This method should be called after each simulation step and before asserv.
+    </function>
+    <function name="asserv">
+      Asserv method.<br/>
+      This method should be scheduled after each simulation step.
+    </function>
     <function name="is_waiting">
       Returns true if the robot is waiting orders.
       <return type="bool"/>
@@ -399,6 +403,10 @@
     <function name="order_stop">
     </function>
 
+    <function name="asserv">
+      Asserv method.<br/>
+      This method should be scheduled after each simulation step.
+    </function>
     <function name="is_waiting">
       Returns true if the robot is waiting orders.
       <return type="bool"/>

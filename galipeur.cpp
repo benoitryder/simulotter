@@ -207,7 +207,7 @@ void Galipeur::draw()
   glPopMatrix();
 }
 
-void Galipeur::do_asserv()
+void Galipeur::asserv()
 {
   // Go in position
   if( order & ORDER_GO_XY )
@@ -321,6 +321,7 @@ class LuaGalipeur: public LuaClass<Galipeur>
   LUA_DEFINE_SET2(order_a, order_a, LARG_f, LARG_bn)
   LUA_DEFINE_SET0(order_stop, order_stop)
 
+  LUA_DEFINE_SET0(asserv, asserv)
   LUA_DEFINE_GET(is_waiting, is_waiting)
 
   static int set_sharps(lua_State *L)
@@ -383,6 +384,7 @@ public:
     LUA_REGFUNC(order_a);
     LUA_REGFUNC(order_stop);
 
+    LUA_REGFUNC(asserv);
     LUA_REGFUNC(is_waiting);
 
     LUA_REGFUNC(set_sharps);

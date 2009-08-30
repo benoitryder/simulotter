@@ -25,7 +25,7 @@ public:
   void init();
   bool isInitialized() const { return step_dt > 0; }
 
-  /// Advance simulation and update robots
+  /// Advance simulation
   void step();
 
   /// Return current simulation time
@@ -134,6 +134,12 @@ protected:
   bool cancelled;
   /// Lua instance reference
   int ref_obj;
+
+private:
+  /// Process callback function call 
+  void do_process_function(lua_State *L);
+  /// Process callback coroutine call 
+  void do_process_thread(lua_State *L);
 };
 
 

@@ -67,16 +67,6 @@ void Physics::step()
     task_queue.top().second->process(this);
     task_queue.pop();
   }
-
-  // Update robot values, do asserv and strategy
-  std::map<unsigned int, SmartPtr<Robot> > &robots = match->getRobots();
-  std::map<unsigned int, SmartPtr<Robot> >::iterator itr;
-  for( itr=robots.begin(); itr!=robots.end(); ++itr )
-  {
-    (*itr).second->update();
-    (*itr).second->asserv();
-    (*itr).second->strategy();
-  }
 }
 
 
@@ -129,14 +119,31 @@ void TaskLua::process(Physics *ph)
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
   lua_remove(L, -2);
   lua_getfield(L, -1, "callback");
-  if( !lua_isfunction(L, -1) )
+  if( lua_isfunction(L, -1) )
+    do_process_function(L);
+  else if( lua_isthread(L, -1) )
+    do_process_thread(L);
+  else
     throw(LuaError("TaskLua: invalid callback"));
-  LuaManager::pcall(L, 0, 0);
 
-  if( period > 0 )
+  if( period > 0 && ! cancelled )
     ph->scheduleTask(this, ph->getTime() + period);
 }
 
+void TaskLua::do_process_function(lua_State *L)
+{
+  LuaManager::pcall(L, 0, 0);
+}
+
+void TaskLua::do_process_thread(lua_State *L)
+{
+  lua_State *L_cb = lua_tothread(L, -1);
+  int ret = lua_resume(L_cb, 0);
+  if( ret == 0 )
+    cancelled = true; // coroutine returned
+  else if( ret != LUA_YIELD )
+    throw(LuaError(L_cb));
+}
 
 
 /** @name Lua Physics class

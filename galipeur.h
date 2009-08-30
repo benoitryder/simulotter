@@ -36,8 +36,11 @@ public:
   virtual const btTransform &getTrans() const { return body->getCenterOfMassTransform(); }
   virtual void setTrans(const btTransform &tr) { body->setCenterOfMassTransform(tr); }
 
-  virtual void do_update() { /* nothing to do */ }
-  virtual void do_asserv();
+  /** @brief Asserv step
+   *
+   * Go in position and/or turn according to current target.
+   */
+  virtual void asserv();
 
   /** @name Strategy functions and orders
    */
@@ -124,7 +127,7 @@ private:
   static SmartPtr<btCompoundShape> shape;
   static btConvexHullShape body_shape;
   static btBoxShape wheel_shape;
-  /** @brief Display list shared by all instances.
+  /** @brief Display list shared by all instances
    * @todo Created display list is not deleted.
    */
   static GLuint dl_id_static;

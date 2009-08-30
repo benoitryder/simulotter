@@ -289,9 +289,9 @@ namespace eurobot2009
   }
 
 
-  void Galipeur2009::do_asserv()
+  void Galipeur2009::asserv()
   {
-    Galipeur::do_asserv();
+    Galipeur::asserv();
 
     if( order & ORDER_PACHEV_MOVE )
     {

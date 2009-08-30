@@ -32,7 +32,6 @@ public:
 
   /** @brief Time interval between each simulation step
    *
-   * @note It also defines asserv and strategy delay.
    * @warning Value must not be changed after the simulation starts.
    */
   float step_dt;

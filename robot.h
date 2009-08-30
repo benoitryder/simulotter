@@ -29,75 +29,15 @@ public:
 
   /** @brief Init robot for the match.
    *
-   * Get and cache update, asserv and strategy Lua functions, if any. This
-   * method should be called before the match starts.
+   * This method should be called before the match starts.
+   *
+   * @note Currently, do nothing.
    */
   void matchInit();
 
-  /** @brief Update asserv and strategy data
-   *
-   * Call the update Lua function (if any) or the do_update() method.
-   * Robot instance is given as first argument.
-   *
-   * This function is called after each simulation step to update internal data
-   * using simulation data (e.g. position).
-   */
-  void update();
-
-  /** @brief Asserv step
-   *
-   * Call the asserv Lua function (if any) or the do_asserv() method.
-   * Robot instance is given as first argument.
-   *
-   * Search for a Lua asserv function and execute it.
-   */
-  void asserv();
-
-  /** @brief Start or resume the strategy
-   *
-   * Call the strategy Lua function (if any) or the do_strategy() method.
-   *
-   * Non-Lua strategies are standard functions and explained in do_strategy().
-   *
-   * Lua strategies are coroutines, they continue their execution from the
-   * point where they yielded. When the strategy coroutine finishes, robot
-   * control stops: asserv and strategy are not called anymore.
-   * Robot instance is given as first argument.
-   *
-   * @note Strategy is called after an asserv step.
-   */
-  void strategy();
-
-protected:
-  /// Default not implemented do_update() method
-  virtual void do_update() { throw(Error("do_update() not implemented")); }
-  /// Default not implemented do_asserv() method
-  virtual void do_asserv() { throw(Error("do_asserv() not implemented")); }
-  /** @brief Default not implemented do_strategy() method
-   *
-   * Strategy function is called with its last return value. If it returns -1,
-   * it would not be called anymore.
-   *
-   * @param   val  last returned value, 0 at the first call
-   * @return  The next parameter value or -1 to stop the robot.
-   */
-  virtual int do_strategy(int val) { throw(Error("do_strategy() not implemented")); }
-
 private:
-
   /// Team number (TEAM_INVALID if not set)
   int team;
-
-  /// Cached update function reference
-  int ref_update;
-  /// Cached asserv function reference
-  int ref_asserv;
-  /// Cached strategy function reference
-  int ref_strategy;
-  /// Strategy thread state
-  lua_State *L_strategy;
-  /// Strategy thread reference
-  int ref_strategy_thread;
 
 protected:
   /// Lua instance reference
@@ -157,15 +97,19 @@ public:
   virtual void setTrans(const btTransform &tr) { body->setCenterOfMassTransform(tr); }
 
   /** @brief Update position and velocity values
+   *
+   * Update internal values which will be returned by lua calls.
+   * This method should be called after each simulation step and before asserv
+   * step.
    */
-  virtual void do_update();
+  virtual void update();
 
   /** @brief Turn and move forward asserv
    *
    * Simple asserv: first the robot turns to face the target point. Then it
    * moves forward toward the target.
    */
-  virtual void do_asserv();
+  virtual void asserv();
 
   /** @name Basic methods used in strategy
    */
