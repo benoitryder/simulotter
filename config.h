@@ -45,9 +45,6 @@ public:
    */
   float time_scale;
 
-  /// Field configuration value for match initialization
-  int match_fconf;
-
   /// Default dropping height gap for dynamic objects
   float drop_epsilon;
 

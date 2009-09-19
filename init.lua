@@ -4,7 +4,6 @@
 config.gravity_z = -9.81
 config.step_dt = 0.003
 config.time_scale = 1
-config.match_fconf = -1
 config.drop_epsilon = 0.001
 
 config.draw_epsilon = 0.0005
@@ -92,7 +91,6 @@ do
 end
 
 
-config.match_fconf = 0x03
 function r1:strategy()
 
   display:set_camera_target({ obj=r1 })
@@ -158,8 +156,8 @@ task:schedule()
 
 
 dofile("2009.lua")
+match_conf = 0x03
 
-r1:match_register()
 
 r2 = Galipeur(10)
 r2:add_to_world()
@@ -168,7 +166,6 @@ r2:set_v_max(0.5)
 r2:set_av_max(4)
 r2:set_threshold_xy(0.001)
 r2:set_threshold_a(0.005)
-r2:match_register()
 
 
 trace("------ SCRIPT END ------")

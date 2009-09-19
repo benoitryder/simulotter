@@ -81,8 +81,7 @@ void Galipeur::addToWorld(Physics *physics)
 
 void Galipeur::draw()
 {
-  // Use a darker color to contrast with game elements
-  glColor4fv(match->getColor(getTeam()) * 0.5);
+  glColor4fv(Color4(0.3)); //XXX
 
   glPushMatrix();
   drawTransform(body->getCenterOfMassTransform());

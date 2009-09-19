@@ -18,21 +18,23 @@ colors = {
 
 
 
--- Match
+local c1 = colors.ral_6018
+local c2 = colors.ral_3020
+match_conf = nil  -- global value, default: random
 
-match = Match( { colors.ral_6018, colors.ral_3020 } )
-
-function match:init(fconf)
+-- Match init
+local task = Task()
+function task.callback()
   -- Field configuration:
   --   columns: 1 to 10
   --   dispensers: (1 or 2) * 16
   -- Can be defined as 2-digit hexadecimal value: 0x<disp><col>
-  if fconf == nil or fconf < 0 then
+  if match_conf == nil or match_conf < 0 then
     conf_col  = math.random(10)
     conf_disp = math.random(2)
   else
-    conf_col  = fconf % 16 + 1
-    conf_disp = math.floor(fconf/16) + 1
+    conf_col  = match_conf % 16 + 1
+    conf_disp = math.floor(match_conf/16) + 1
   end
   if conf_col < 1 or conf_col > 10 or conf_disp < 1 or conf_disp > 2 then
     error("invalid field configuration")
@@ -40,10 +42,6 @@ function match:init(fconf)
   trace("Atlantis rules, columns: "..tostring(conf_col)..", dispensers: "..tostring(conf_disp))
 
   -- Various variables
-
-  local c1, c2
-  c1 = self:get_color(0)
-  c2 = self:get_color(1)
 
   local table_size_x = 3.0
   local table_size_y = 2.1
@@ -245,5 +243,6 @@ function match:init(fconf)
   ol:set_color(c2)
   ols:fill(ol)
 end
+task:schedule()
 
 

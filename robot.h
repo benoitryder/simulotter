@@ -20,25 +20,6 @@ public:
   Robot();
   virtual ~Robot();
 
-  unsigned int getTeam() const { return this->team; }
-
-  /** @brief Register the robot in the match and set its team
-   * @sa Match::registerRobot()
-   */
-  void matchRegister(unsigned int team=TEAM_INVALID);
-
-  /** @brief Init robot for the match.
-   *
-   * This method should be called before the match starts.
-   *
-   * @note Currently, do nothing.
-   */
-  void matchInit();
-
-private:
-  /// Team number (TEAM_INVALID if not set)
-  int team;
-
 protected:
   /// Lua instance reference
   int ref_obj;
@@ -84,6 +65,13 @@ public:
   ~RBasic();
 
   virtual void addToWorld(Physics *physics);
+
+  /** @brief Set main color
+   *
+   * Color is used in default drawing function and may ignored by subclass
+   * implementations.
+   */
+  void setColor(const Color4 &color) { this->color = color; }
 
   virtual void draw();
 
@@ -136,6 +124,9 @@ public:
 
 protected:
   btRigidBody *body;
+
+  /// Robot main color
+  Color4 color;
 
   /** @name Position and velocity values
    *

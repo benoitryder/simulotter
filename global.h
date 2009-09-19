@@ -8,7 +8,6 @@
 #include "smart.h"
 #include "lua_utils.h"
 #include "physics.h"
-#include "match.h"
 #include "object.h"
 #include "sensors.h"
 #include "robot.h"
@@ -31,7 +30,6 @@ extern LuaManager *lm;
 extern Log *LOG; // lowercase log is already defined :(
 extern SmartPtr<Physics> physics;
 extern SmartPtr<Display> display;
-extern SmartPtr<Match>  match;
 //@}
 
 #endif

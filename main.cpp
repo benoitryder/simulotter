@@ -23,7 +23,6 @@ LuaManager *lm   = NULL;
 Log *LOG         = NULL;
 SmartPtr<Physics> physics;
 SmartPtr<Display> display;
-SmartPtr<Match>  match;
 
 
 int main(int argc, char **argv)
@@ -50,25 +49,11 @@ int main(int argc, char **argv)
     if( !physics )
       throw(Error("physics not created"));
 
-    if( !match )
-      throw(Error("no created match"));
-
     if( !physics->isInitialized() )
     {
       LOG->trace("physics not initialized: init it");
       physics->init();
     }
-
-    //TODO does not need to be here anymore(?)
-    LOG->trace("init match");
-    match->init(cfg->match_fconf);
-
-
-    LOG->trace("init robots");
-    std::map<unsigned int, SmartPtr<Robot> > &robots = match->getRobots();
-    std::map<unsigned int, SmartPtr<Robot> >::iterator itr;
-    for( itr=robots.begin(); itr!=robots.end(); ++itr )
-      (*itr).second->matchInit();
 
     // Simulation displayed: control speed
     if( display != NULL )
@@ -131,7 +116,6 @@ int main(int argc, char **argv)
     ret = 1;
   }
 
-  match = NULL;
   display = NULL;
   physics = NULL;
   delete lm;

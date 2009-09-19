@@ -412,27 +412,21 @@ void Display::handlerCamMode(Display *d, const SDL_Event &event)
       break;
     case CAM_FREE:
       {
-        //TODO allow other objects
-        std::map<unsigned int, SmartPtr<Robot> > &robots = match->getRobots();
-        if( !robots.empty() )
-        {
-          d->camera_target.obj = (*robots.begin()).second;
-          d->setCameraMode(CAM_LOOK);
-          break;
-        }
+        /*TODO
+        d->camera_target.obj = (*robots.begin()).second;
+        d->setCameraMode(CAM_LOOK);
+        break;
+        */
       }
     case CAM_LOOK:
       {
-        //TODO allow other objects
-        std::map<unsigned int, SmartPtr<Robot> > &robots = match->getRobots();
-        if( !robots.empty() )
-        {
-          d->camera_eye.obj = (*robots.begin()).second;
-          d->setCameraMode(CAM_ONBOARD);
-          d->camera_target.spheric = btSpheric3(1.0, 3*M_PI/4, 0.0);//XXX
-          d->camera_eye.cart = scale(btVector3(0.0, 0.0, 0.3));//XXX
-          break;
-        }
+        /*TODO
+        d->camera_eye.obj = (*robots.begin()).second;
+        d->setCameraMode(CAM_ONBOARD);
+        d->camera_target.spheric = btSpheric3(1.0, 3*M_PI/4, 0.0);//XXX
+        d->camera_eye.cart = scale(btVector3(0.0, 0.0, 0.3));//XXX
+        break;
+        */
       }
     case CAM_ONBOARD:
     default:

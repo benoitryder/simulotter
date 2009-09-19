@@ -15,7 +15,6 @@
  * better flexibility, since it may (will?) evolves in a different way.
  *
  * @todo Make threshold_* and v*_max values constant ?
- * @todo Remove update() method ?
  */
 class Galipeur: public Robot
 {

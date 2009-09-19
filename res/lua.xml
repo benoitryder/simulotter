@@ -118,7 +118,8 @@
   <class name="Task">
     Task scheduled at a given simulation time.<br/>
     <tt>callback</tt> is a function or a coroutine which does not take any arguments; it must be set.
-    If <tt>callback</tt> it is automatically cancelled after returning (not yielding).
+    If <tt>callback</tt> is a coroutine, it is automatically cancelled after
+    returning (not yielding).
     <constructor>
       <arg name="period" type="float" required="0">period for repeated tasks</arg>
     </constructor>
@@ -261,17 +262,6 @@
   <class name="Robot" base="Object">
     Robot base class without asserv and strategy implementation.
 
-    <function name="get_team">
-      Return robot's team, or <tt>nil</tt> if not set.
-      <return type="int"/>
-    </function>
-
-    <function name="match_register">
-      Register the robot in the match and set its team.
-      If no team is supplied an available one is used.
-      <arg name="team" type="unsigned int" required="0"/>
-    </function>
-
     <function name="asserv" user="1">
     </function>
 
@@ -295,6 +285,10 @@
       <arg name="shape" type="Shape"/>
       <arg name="mass" type="float"/>
     </constructor>
+
+    <function name="set_color">
+      <arg type="Color"/>
+    </function>
 
     <function name="get_xy"><return type="float"/><return type="float"/></function>
     <function name="get_a"><return type="float"/></function>
@@ -339,30 +333,6 @@
       Returns true if the robot is waiting orders.
       <return type="bool"/>
     </function>
-  </class>
-
-  <class name="Match">
-    Game match.<br/>
-    Exactly one match can and must be created.
-
-    <function name="get_team_nb">
-      Return number of teams.
-      <return type="int"/>
-    </function>
-
-    <function name="get_color">
-      Get color of a given team.
-      <arg name="team" type="int"/>
-      <return type="Color"/>
-    </function>
-
-    <function name="init" user="1">
-      Called before the match starts to create and initialize game objects.
-      Negative values are reserved for random values (note: LUA random seed is
-      automatically initialized at startup).
-      <arg name="fconf" type="int" required="0"/>
-    </function>
-
   </class>
 
 

@@ -2,7 +2,7 @@
 #define OBJECT_H
 
 
-#include <vector>
+#include <map>
 #include <GL/gl.h>
 #include "global.h"
 

@@ -7,7 +7,6 @@
 Robot::Robot()
 {
   this->ref_obj = LUA_NOREF;
-  this->team = TEAM_INVALID;
 }
 
 Robot::~Robot()
@@ -16,25 +15,6 @@ Robot::~Robot()
   // luaL_unref has no effect on LUA_NOREF, so it's ok
   luaL_unref(L, LUA_REGISTRYINDEX, ref_obj);
 }
-
-void Robot::matchRegister(unsigned int team)
-{
-  if( getTeam() != TEAM_INVALID )
-    throw(Error("robot is already registered"));
-
-  if( !match )
-    throw(Error("no match to register the robot in"));
-
-  this->team = match->registerRobot(this, team);
-}
-
-
-void Robot::matchInit()
-{
-  if( ref_obj == LUA_NOREF )
-    return;
-}
-
 
 RBasic::RBasic()
 {
@@ -78,8 +58,7 @@ void RBasic::addToWorld(Physics *physics)
 
 void RBasic::draw()
 {
-  // Use a darker color to contrast with game elements
-  glColor4fv(match->getColor(getTeam()) * 0.5);
+  glColor4fv(color);
   glPushMatrix();
   drawTransform(body->getCenterOfMassTransform());
   drawShape(body->getCollisionShape());
@@ -225,33 +204,10 @@ class LuaRobot: public LuaClass<Robot>
     return luaL_error(L, "Robot class is abstract, no constructor");
   }
 
-  static int get_team(lua_State *L)
-  {
-    unsigned int team = get_ptr(L,1)->getTeam();
-    if( team == TEAM_INVALID )
-      lua_pushnil(L);
-    else
-      LuaManager::push(L, team);
-    return 1;
-  }
-
-  static int match_register(lua_State *L)
-  {
-    // Default team
-    if( lua_isnone(L, 2) )
-      get_ptr(L,1)->matchRegister();
-    else
-      get_ptr(L,1)->matchRegister(LARG_i(2));
-
-    return 0;
-  }
-
 public:
   LuaRobot()
   {
     LUA_REGFUNC(_ctor);
-    LUA_REGFUNC(get_team);
-    LUA_REGFUNC(match_register);
   }
 
 };
@@ -267,6 +223,14 @@ class LuaRBasic: public LuaClass<RBasic>
     store_ptr(L, r);
     lua_pushvalue(L, 1);
     r->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
+    return 0;
+  }
+
+  static int set_color(lua_State *L)
+  {
+    Color4 color;
+    LuaManager::checkcolor(L, 2, color);
+    get_ptr(L,1)->setColor( color );
     return 0;
   }
 
@@ -302,6 +266,7 @@ public:
   LuaRBasic()
   {
     LUA_REGFUNC(_ctor);
+    LUA_REGFUNC(set_color);
 
     LUA_REGFUNC(get_xy);
     LUA_REGFUNC(get_v);
