@@ -3,6 +3,7 @@
 #include <GL/freeglut.h>
 
 #include "global.h"
+#include "modules/eurobot2009.h"
 
 
 #ifdef WIN32
@@ -28,12 +29,16 @@ SmartPtr<Display> display;
 int main(int argc, char **argv)
 {
   LOG = new Log();
-  cfg = new Config();
-  lm = new LuaManager();
 
   int ret = 0;
   try
   {
+    cfg = new Config();
+    lm = new LuaManager();
+
+    eurobot2009::LuaEurobotModule module2009;
+    module2009.import(lm->get_L(), "eurobot2009");
+
     if( argc > 1 )
     {
       LOG->trace("load Lua script: %s", argv[1]);

@@ -205,6 +205,13 @@ namespace eurobot2009
     /// Asserv pàchev threshold
     btScalar threshold_pachev;
   };
+
+
+  class LuaEurobotModule: public LuaModule
+  {
+  public:
+    virtual void do_import(lua_State *L);
+  };
 }
 
 

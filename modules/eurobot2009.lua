@@ -1,12 +1,13 @@
 
 -- Eurobot 2009: Atlantis
+module('eurobot2009', package.seeall)
 
 -- Colors
-function color_i2f(r,g,b)
+local function color_i2f(r,g,b)
   return {r/255.0, g/255.0, b/255.0, 1.0}
 end
 
-colors = {
+local colors = {
   white = {1.0, 1.0, 1.0, 1.0},
   black = {0.0, 0.0, 0.0, 1.0},
   plexi = {.70, .90, .95, 0.5},
@@ -16,25 +17,22 @@ colors = {
   ral_8017 = color_i2f(0x2e, 0x1c, 0x1c),
 }
 
-
-
-local c1 = colors.ral_6018
-local c2 = colors.ral_3020
-match_conf = nil  -- global value, default: random
+-- Team colors
+color1 = colors.ral_6018
+color2 = colors.ral_3020
 
 -- Match init
-local task = Task()
-function task.callback()
+function init(fconf)
   -- Field configuration:
   --   columns: 1 to 10
   --   dispensers: (1 or 2) * 16
   -- Can be defined as 2-digit hexadecimal value: 0x<disp><col>
-  if match_conf == nil or match_conf < 0 then
+  if fconf == nil or fconf < 0 then
     conf_col  = math.random(10)
     conf_disp = math.random(2)
   else
-    conf_col  = match_conf % 16 + 1
-    conf_disp = math.floor(match_conf/16) + 1
+    conf_col  = fconf % 16 + 1
+    conf_disp = math.floor(fconf/16) + 1
   end
   if conf_col < 1 or conf_col > 10 or conf_disp < 1 or conf_disp > 2 then
     error("invalid field configuration")
@@ -62,18 +60,18 @@ function task.callback()
   -- Ground
   trace("  ground")
   
-  ground = OGround(colors.ral_5015, c1, c2)
+  ground = OGround(colors.ral_5015, color1, color2)
   ground:add_to_world()
 
   -- Walls (N, E, W, small SE, small SW, plexi S)
   trace(" walls")
 
-  o = OSimple()
+  o = _G.OSimple()
   o:set_shape(Shape:box(table_size_x/2+wall_width, wall_width/2, wall_height/2))
   o:add_to_world()
   o:set_pos(0, table_size_y/2+wall_width/2, wall_height/2)
   o:set_color(colors.white)
-  o = OSimple()
+  o = _G.OSimple()
   o:set_shape(Shape:box(wall_width/2, table_size_y/2+wall_width, wall_height/2))
   o:add_to_world()
   o:set_pos(table_size_x/2+wall_width/2, 0, wall_height/2)
@@ -146,20 +144,20 @@ function task.callback()
     -- First team
     o = OColElem()
     o:add_to_world()
-    o:set_color(c1)
+    o:set_color(color1)
     o:set_pos(-col_offset_x-(2-math.floor(j%3))*col_space_x, -col_offset_y+(3-math.floor(j/3))*col_space_y)
     o = OColElem()
     o:add_to_world()
-    o:set_color(c1)
+    o:set_color(color1)
     o:set_pos(-col_offset_x-(2-math.floor(j%3))*col_space_x, -col_offset_y+math.floor(j/3)*col_space_y)
     -- Second team
     o = OColElem()
     o:add_to_world()
-    o:set_color(c2)
+    o:set_color(color2)
     o:set_pos(col_offset_x+(2-math.floor(j%3))*col_space_x, -col_offset_y+(3-math.floor(j/3))*col_space_y)
     o = OColElem()
     o:add_to_world()
-    o:set_color(c2)
+    o:set_color(color2)
     o:set_pos(col_offset_x+(2-math.floor(j%3))*col_space_x, -col_offset_y+math.floor(j/3)*col_space_y)
   end
 
@@ -174,7 +172,7 @@ function task.callback()
   for i = 1,5 do
     o = OColElem()
     o:add_to_world()
-    o:set_color(c1)
+    o:set_color(color1)
     od:fill(o, i*0.035)
   end
   od = ODispenser()
@@ -183,7 +181,7 @@ function task.callback()
   for i = 1,5 do
     o = OColElem()
     o:add_to_world()
-    o:set_color(c2)
+    o:set_color(color2)
     od:fill(o, i*0.035)
   end
 
@@ -194,7 +192,7 @@ function task.callback()
   for i = 1,5 do
     o = OColElem()
     o:add_to_world()
-    o:set_color(c1)
+    o:set_color(color1)
     od:fill(o, i*0.035)
   end
   od = ODispenser()
@@ -203,7 +201,7 @@ function task.callback()
   for i = 1,5 do
     o = OColElem()
     o:add_to_world()
-    o:set_color(c2)
+    o:set_color(color2)
     od:fill(o, i*0.035)
   end
 
@@ -216,7 +214,7 @@ function task.callback()
   ols:set_pos(-0.200, 0)
   ol = OLintel()
   ol:add_to_world()
-  ol:set_color(c1)
+  ol:set_color(color1)
   ols:fill(ol)
 
   ols = OLintelStorage()
@@ -224,7 +222,7 @@ function task.callback()
   ols:set_pos(-0.600, 0)
   ol = OLintel()
   ol:add_to_world()
-  ol:set_color(c1)
+  ol:set_color(color1)
   ols:fill(ol)
 
   ols = OLintelStorage()
@@ -232,7 +230,7 @@ function task.callback()
   ols:set_pos(0.200, 0)
   ol = OLintel()
   ol:add_to_world()
-  ol:set_color(c2)
+  ol:set_color(color2)
   ols:fill(ol)
 
   ols = OLintelStorage()
@@ -240,9 +238,7 @@ function task.callback()
   ols:set_pos(0.600, 0)
   ol = OLintel()
   ol:add_to_world()
-  ol:set_color(c2)
+  ol:set_color(color2)
   ols:fill(ol)
 end
-task:schedule()
-
 

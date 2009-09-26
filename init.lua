@@ -29,8 +29,9 @@ display = Display()
 
 trace("------ SCRIPT START ------")
 
+require('modules/eurobot2009')
 
-r1 = Galipeur2009(10)
+r1 = eurobot2009.Galipeur(10)
 r1:add_to_world()
 r1:set_pos(-(3.0-.5)/2, (2.1-.5)/2, 0.1001)
 
@@ -155,8 +156,7 @@ task.callback = coroutine.create(function() r1:strategy() end)
 task:schedule()
 
 
-dofile("2009.lua")
-match_conf = 0x03
+eurobot2009.init( 0x03 )
 
 
 r2 = Galipeur(10)

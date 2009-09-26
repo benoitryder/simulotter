@@ -218,7 +218,7 @@ class LuaRBasic: public LuaClass<RBasic>
   static int _ctor(lua_State *L)
   {
     btCollisionShape *shape;
-    shape = *(btCollisionShape **)luaL_checkudata(L, 2, "Shape");
+    shape = *(btCollisionShape **)luaL_checkudata(L, 2, LUA_REGISTRY_PREFIX "Shape"); //XXX
     RBasic *r = new RBasic( shape, LARG_f(3));
     store_ptr(L, r);
     lua_pushvalue(L, 1);

@@ -14,6 +14,7 @@ extern "C"
 
 
 class LuaClassBase;
+class LuaMainModule;
 class LuaError;
 
 
@@ -167,6 +168,8 @@ private:
 
   /// Write a string line on stdout
   static int lua_trace(lua_State *L);
+
+  static LuaMainModule main_module;
 };
 
 
@@ -176,48 +179,57 @@ private:
  *
  * Instances are tables.
  * Instances of (or which inherit from) predefined classes store their
- * userdata in the \e _ud field. If it is modified, results are unexpected.
+ * userdata in the \e _ud field. It must not be modified.
+ *
+ * Each predefined class stores its metatable in the registry. The \e _cls
+ * field of this metatable stores the class userdata. It must not be modified.
  * 
  * Predefined classes may store Lua objects (e.g. instances) using references
  * in the registry. Thus, they can be associated to C++ instances.
- * 
+ *
  * As a convention, field names starting with an underscore are reserved for
- * intern mechanics.
+ * internal mechanics.
  */
 class LuaClassBase
 {
 public:
-  LuaClassBase()
-  {
-    register_class(this);
-  }
+  LuaClassBase();
   virtual ~LuaClassBase() {}
 
-  /// Init classes
+  /// Initialize registered classes, define the \e class method
   static void init(lua_State *L);
 
-  /// Create the class
-  virtual void create(lua_State *L) = 0;
+protected:
 
-  typedef struct { const char *name; lua_CFunction f; } LuaRegFunc;
+  /** @brief Create class, add it to the registry
+   *
+   * @note Base class is not set in this method because class registration
+   * order cannot be guaranteed.
+   */
+  void create(lua_State *L);
 
-  /// Register a class
-  static void register_class(LuaClassBase *c)
-  {
-    classes.push_back(c);
-  }
+  /** @brief Initialize the base class
+   */
+  void init_base_class(lua_State *L);
+
+  /** @brief Do some class specific initialization
+   * 
+   * Add the \e __gc method to the class metatable (which is
+   * supposed to be on the top of the stack).
+   *
+   * Create and push the class userdata onto the stack.
+   */
+  virtual void create_ud(lua_State *L) = 0;
 
   virtual const char *get_name() = 0;
   virtual const char *get_base_name() = 0;
 
-protected:
+  typedef struct { const char *name; lua_CFunction f; } LuaRegFunc;
+
   /// Method list, with their name
   std::vector<LuaRegFunc> functions;
 
 private:
-
-  /// Array of registered class.
-  static std::vector<LuaClassBase*> classes;
 
   /** @brief Constructor for lua classes
    *
@@ -241,6 +253,10 @@ private:
 
   /// Class metatable key in registry
   static const char *registry_class_mt_name;
+
+  /// Array of registered class.
+  static std::vector<LuaClassBase*> classes;
+
 };
 
 
@@ -280,45 +296,18 @@ public:
     return ptr;
   }
 
-protected:
-  /// Create the class
-  void create(lua_State *L)
+  virtual void create_ud(lua_State *L)
   {
-    // Create the class object
-    LuaClass<T> **ud = (LuaClass<T> **)lua_newuserdata(L, sizeof(this));
-    *ud = this;
-
-    lua_getfield(L, LUA_REGISTRYINDEX, registry_class_mt_name);
-    lua_setmetatable(L, -2);
-
-    // Add global symbol
-    lua_setfield(L, LUA_GLOBALSINDEX, get_name());
-
-    // Create the metatable
-    luaL_newmetatable(L, get_name());
-
-    lua_getfield(L, LUA_REGISTRYINDEX, registry_class_mt_name);
-    lua_setmetatable(L, -2);
-
-    lua_pushvalue(L, -1);
-    lua_setfield(L, -2, "__index");
-
     // Define garbage collector metamethod
     lua_pushcfunction(L, _gc);
     lua_setfield(L, -2, "__gc");
 
-    // Add methods
-    std::vector<LuaRegFunc>::iterator it;
-    for( it=functions.begin(); it!=functions.end(); it++ )
-    {
-      lua_pushcfunction(L, (*it).f);
-      lua_setfield(L, -2, (*it).name);
-    }
-
-    // Add class in registry
-    lua_setfield(L, LUA_REGISTRYINDEX, get_name());
+    // Create the class object
+    LuaClass<T> **ud = (LuaClass<T> **)lua_newuserdata(L, sizeof(this));
+    *ud = this;
   }
 
+protected:
   /// Garbage collector method
   static int _gc(lua_State *L)
   {
@@ -362,22 +351,33 @@ protected:
   static const char *base_name;
 };
 
-#define LUA_REGISTER_BASE_CLASS(T) \
-  LUA_REGISTER_CLASS(T) \
+
+#define LUA_REGISTRY_PREFIX  "simulotter_"
+#define LUA_NS_PREFIX(NS) #NS "_"
+
+
+#define LUA_REGISTER_BASE_CLASS_NAME(C,T,N) \
+  LUA_REGISTER_CLASS_NAME(C,T,N) \
   template<> const char *LuaClass<T>::base_name = NULL;\
 
-#define LUA_REGISTER_SUB_CLASS(T,B) \
-  LUA_REGISTER_CLASS(T) \
-  template<> const char *LuaClass<T>::base_name = #B;\
+#define LUA_REGISTER_SUB_CLASS_NAME(C,T,N,B) \
+  LUA_REGISTER_CLASS_NAME(C,T,N) \
+  template<> const char *LuaClass<T>::base_name = LUA_REGISTRY_PREFIX B;\
 
-#define LUA_REGISTER_CLASS(T) \
-  template<> const char *LuaClass<T>::name = #T; \
-  static Lua##T register_Lua##T;
+#define LUA_REGISTER_CLASS_NAME(C,T,N) \
+  template<> const char *LuaClass<T>::name = LUA_REGISTRY_PREFIX N; \
+  static C C##_register;
+
+#define LUA_REGISTER_BASE_CLASS(T)   LUA_REGISTER_BASE_CLASS_NAME(Lua##T,T,#T)
+#define LUA_REGISTER_SUB_CLASS(T,B)  LUA_REGISTER_SUB_CLASS_NAME(Lua##T,T,#T,#B)
+
+#define LUA_REGISTER_BASE_CLASS_NS(NS,T)   LUA_REGISTER_BASE_CLASS_NAME(Lua##T,T,LUA_NS_PREFIX(NS) #T)
+#define LUA_REGISTER_SUB_CLASS_NS(NS,T,B)  LUA_REGISTER_SUB_CLASS_NAME(Lua##T,T,LUA_NS_PREFIX(NS) #T,#B)
 
 
 /// Define a LuaRegFunc
-#define LUA_REGFUNC(n) \
-  functions.push_back((LuaRegFunc){ #n, n })
+#define LUA_REGFUNC(N) \
+  functions.push_back((LuaRegFunc){ #N, N })
 
 /** @name Argument check macros
  */
@@ -421,6 +421,53 @@ protected:
   static int n(lua_State *L) { get_ptr(L,1)->f( m1(2), m2(3), m3(4), m4(5) ); return 0; }
 
 //@}
+
+
+/** @brief Group of classes and functons
+ */
+class LuaModule
+{
+public:
+  LuaModule() {}
+
+  /** @brief Add module to LUA environment.
+   *
+   * Elements are put in the table with the given name (created if needed) or
+   * in the global environment if name is \e NULL.
+   */
+  void import(lua_State *L, const char *name);
+
+protected:
+
+  /** @brief Add module elements.
+   *
+   * This method is intended to be defined by each module subclasse.
+   *
+   * Elements should be added to element at the top of the stack.
+   */
+  virtual void do_import(lua_State *L) = 0;
+
+  /** @brief Import class \e cls with name \e name.
+   */
+  void import_class(lua_State *L, const char *cls, const char *name);
+};
+
+#define LUA_IMPORT_CLASS_NAME(C,N) \
+  import_class(L, LUA_REGISTRY_PREFIX C, N)
+#define LUA_IMPORT_CLASS(C)  LUA_IMPORT_CLASS_NAME(#C, #C)
+#define LUA_IMPORT_CLASS_NS_NAME(NS,C,N)  LUA_IMPORT_CLASS_NAME(LUA_NS_PREFIX(NS) C, N)
+#define LUA_IMPORT_CLASS_NS(NS,C)  LUA_IMPORT_CLASS_NS_NAME(NS,#C,#C)
+
+
+/** @brief Module with main elements.
+ */
+class LuaMainModule: public LuaModule
+{
+public:
+  virtual void do_import(lua_State *L);
+};
+
+
 
 class LuaError: public Error
 {

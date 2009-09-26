@@ -1,5 +1,5 @@
 #include <GL/freeglut.h>
-#include "eurobot2009.h"
+#include "modules/eurobot2009.h"
 
 
 namespace eurobot2009
@@ -487,14 +487,23 @@ namespace eurobot2009
       LUA_REGFUNC(set_pachev_eject_v);
     }
   };
+
+  void LuaEurobotModule::do_import(lua_State *L)
+  {
+    LUA_IMPORT_CLASS_NS(eurobot2009,OColElem);
+    LUA_IMPORT_CLASS_NS(eurobot2009,OLintel);
+    LUA_IMPORT_CLASS_NS(eurobot2009,ODispenser);
+    LUA_IMPORT_CLASS_NS(eurobot2009,OLintelStorage);
+    LUA_IMPORT_CLASS_NS_NAME(eurobot2009,"Galipeur2009","Galipeur");
+    LUA_IMPORT_CLASS(OGround);
+  }
+
+  LUA_REGISTER_SUB_CLASS_NS(eurobot2009,OColElem,OSimple);
+  LUA_REGISTER_SUB_CLASS_NS(eurobot2009,OLintel,OSimple);
+  LUA_REGISTER_SUB_CLASS_NS(eurobot2009,ODispenser,OSimple);
+  LUA_REGISTER_SUB_CLASS_NS(eurobot2009,OLintelStorage,OSimple);
+
+  LUA_REGISTER_SUB_CLASS_NS(eurobot2009,Galipeur2009,Galipeur);
+
 }
-
-using namespace eurobot2009;
-
-LUA_REGISTER_SUB_CLASS(OColElem,OSimple);
-LUA_REGISTER_SUB_CLASS(OLintel,OSimple);
-LUA_REGISTER_SUB_CLASS(ODispenser,OSimple);
-LUA_REGISTER_SUB_CLASS(OLintelStorage,OSimple);
-
-LUA_REGISTER_SUB_CLASS(Galipeur2009,Galipeur);
 

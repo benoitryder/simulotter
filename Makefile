@@ -1,6 +1,6 @@
 CXX = g++
 
-CFLAGS = -g -Wall -I/usr/local/include/lua5.1 -I/usr/include/lua5.1
+CFLAGS = -g -Wall -I/usr/local/include/lua5.1 -I/usr/include/lua5.1 -I.
 
 # If Bullet has been built using autotools or Jam
 #BULLET_LIBS = -lbulletdynamics -lbulletcollision -lbulletmath
@@ -14,7 +14,7 @@ LDFLAGS = -lm $(BULLET_LIBS) -lGL -llua5.1 -lglut -lSDL
 endif
 
 OBJS = main.o config.o physics.o display.o object.o sensors.o robot.o galipeur.o log.o
-OBJS += eurobot2009.o
+OBJS += modules/eurobot2009.o
 # lua_utils must be the last one to register all Lua classes
 OBJS += lua_utils.o
 

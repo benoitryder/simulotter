@@ -313,7 +313,7 @@ class LuaOSimple: public LuaClass<OSimple>
 
   static int set_shape(lua_State *L)
   {
-    btCollisionShape *shape = *(btCollisionShape **)luaL_checkudata(L, 2, "Shape"); //XXX
+    btCollisionShape *shape = *(btCollisionShape **)luaL_checkudata(L, 2, LUA_REGISTRY_PREFIX "Shape"); //XXX
     get_ptr(L,1)->setShape(shape);
     return 0;
   }

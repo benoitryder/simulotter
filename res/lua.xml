@@ -3,7 +3,8 @@
 
 <lua>
 
-  <globals>
+  <module name="main">
+    Main module, exported to the global environment.
 
     <object name="config">
       Configuration values.
@@ -27,456 +28,459 @@
       <value name="log_flush" type="bool">Flush logs after each write</value>
     </object>
 
-  </globals>
-
-  <class name="Physics">
-    Physics environment, used as a singleton.<br/>
-    It must be created.
-
-    <constructor>
-      Create or get physics singleton.
-    </constructor>
-
-    <function name="init">
-      Init physics (using configuration values).<br/>
-      If not called explicitely, it is called before the simulation starts.
-    </function>
-
-    <function name="is_initialized">
-      Returns whether physics is initialized.
-      <return type="bool"/>
-    </function>
-
-    <function name="pause">Pause the simulation.</function>
-    <function name="unpause">Unpause the simulation.</function>
-    <function name="toggle_pause">Toggle pause state.</function>
-
-  </class>
-
-  <class name="Display">
-    Video display, used as a singleton.<br/>
-    It is not needed: if not created, simulation is run at full speed.
-
-    <constructor>
-      Create or get physics singleton.
-    </constructor>
-
-    <function name="init">
-      Init display (using configuration values).<br/>
-      If not called explicitely, it is called before the simulation starts.
-    </function>
-
-    <function name="is_initialized">
-      Returns whether display is initialized.
-      <return type="bool"/>
-    </function>
-
-    <function name="get_time">
-      Return current simulation time.
-      <return type="float"/>
-    </function>
-
-    <function name="set_camera_mode">
-      Set camera mode. <tt>mode</tt> is an integer (as defined in
-      <tt>display.h</tt>) or one of the following string: <tt>FREE</tt>,
-      <tt>FIXED</tt>, <tt>FOLLOW</tt>, <tt>ONBOARD</tt>, <tt>LOOK</tt>.
-      <arg type="int|string" name="mode" />
-    </function>
-
-    <function name="set_camera_eye">
-      Set camera eye, point from which the scene is viewed.<br/>
-      <tt>params</tt> is a table with eye coordinates. The following fields are
-      recognized: <tt>x</tt>, <tt>y</tt>, <tt>z</tt>, <tt>r</tt>,
-      <tt>theta</tt>, <tt>phi</tt>, <tt>obj</tt>.<br/>
-      <b>Note:</b> invalid values are silently ignored.
-      <arg type="table" name="params" />
-    </function>
-
-    <function name="set_camera_target">
-      Set camera target, point which the camera look at.<br/>
-      See <tt>set_camera_eye()</tt> for details on <tt>params</tt>.
-      <arg type="table" name="params" />
-    </function>
-
-  </class>
-
-  <class name="OSD">
-    Display text messages on the screen.<br/>
-    Instance field listed below can be fixed values or function returning the
-    expected value.<br/>
-    <tt>(0,0)</tt> is the top left corner.
-    <constructor></constructor>
-    <value name="text" type="string"/>
-    <value name="x" type="int"/>
-    <value name="y" type="int"/>
-    <value name="color" type="Color"/>
-    <function name="show"/>
-    <function name="hide"/>
-
-  </class>
-
-  <class name="Task">
-    Task scheduled at a given simulation time.<br/>
-    <tt>callback</tt> is a function or a coroutine which does not take any arguments; it must be set.
-    If <tt>callback</tt> is a coroutine, it is automatically cancelled after
-    returning (not yielding).
-    <constructor>
-      <arg name="period" type="float" required="0">period for repeated tasks</arg>
-    </constructor>
-    <value name="callback" type="function|coroutine"/>
-    <function name="cancel"/>
-
-    <function name="schedule">
-      Schedule task at a given time (default: now).
-      <arg name="time" type="float" required="0" />
-    </function>
-
-  </class>
-
-  <class name="Shape">
-    Create collision shapes. There are no constructor, use creation methods
-    instead.<br/>
-
-    <function name="sphere"><return type="Shape"/>
-      <arg name="radius" type="float"/>
-    </function>
-    <function name="box"><return type="Shape"/>
-      Create a box shape with given <b>half</b> lengths.
-      <arg name="lx" type="float"/>
-      <arg name="ly" type="float"/>
-      <arg name="lz" type="float"/>
-    </function>
-
-    <function name="capsuleX"><return type="Shape"/>
-      <arg name="radius" type="float"/>
-      <arg name="half_length" type="float"/>
-    </function>
-    <function name="capsuleY"><return type="Shape"/>
-      <arg name="radius" type="float"/>
-      <arg name="half_length" type="float"/>
-    </function>
-    <function name="capsuleZ"><return type="Shape"/>
-      <arg name="radius" type="float"/>
-      <arg name="half_length" type="float"/>
-    </function>
-
-    <function name="cylinderX"><return type="Shape"/>
-      <arg name="radius" type="float"/>
-      <arg name="half_length" type="float"/>
-    </function>
-    <function name="cylinderY"><return type="Shape"/>
-      <arg name="radius" type="float"/>
-      <arg name="half_length" type="float"/>
-    </function>
-    <function name="cylinderZ"><return type="Shape"/>
-      <arg name="radius" type="float"/>
-      <arg name="half_length" type="float"/>
-    </function>
-
-  </class>
-  
-
-  <class name="Object">
-    Basic object.<br/>
-
-    <function name="get_pos">
-      Return x, y and z position.
-      <return type="float"/>
-      <return type="float"/>
-      <return type="float"/>
-    </function>
-
-    <function name="get_rot">
-      Return rotation Euler angles (yaw, pitch, roll ie. Z, Y, X).
-      <return type="float"/>
-      <return type="float"/>
-      <return type="float"/>
-    </function>
-
-    <function name="set_pos">
-      Set position.
-      <arg name="x" type="float"/>
-      <arg name="y" type="float"/>
-      <arg name="z" type="float"/>
-    </function>
-
-    <function name="set_rot">
-      Set rotation from Euler angles (yaw, pitch, roll).
-      <arg name="z" type="float"/>
-      <arg name="y" type="float"/>
-      <arg name="x" type="float"/>
-    </function>
-
-    <function name="add_to_world">
-      Add an object in a physical world.
-    </function>
-
-  </class>
-
-
-  <class name="OSimple" base="Object">
-    One-part colored object.
-
-    <constructor></constructor>
-
-    <function name="set_shape">
-      Set object collision shape.<br/>
-      This function must be called to initialize the object.
-      <arg name="shape" type="Shape"/>
-    </function>
-
-    <function name="set_mass">
-      Set object total mass.<br/>
-      If mass is null, object will be static.
-      Mass cannot be set if shape is not set.
-      <arg name="m" type="float"/>
-    </function>
-
-    <function name="is_initialized">
-      Returns whether the object is initialized.
-      <return type="bool"/>
-    </function>
-
-    <function name="set_color">
-      <arg type="Color"/>
-    </function>
-
-    <function name="set_pos">
-      Set position. If z is omitted, place above the ground.
-      <arg name="x" type="float"/>
-      <arg name="y" type="float"/>
-      <arg name="z" type="float" required="0"/>
-    </function>
-
-  </class>
-
-  <class name="OGround" base="Object">
-    Standard table ground with starting areas.
-    <constructor>
-      <arg name="table" type="Color"/>
-      <arg name="team1" type="Color"/>
-      <arg name="team2" type="Color"/>
-    </constructor>
-  </class>
-
-  <class name="Robot" base="Object">
-    Robot base class without asserv and strategy implementation.
-
-    <function name="asserv" user="1">
-    </function>
-
-    <function name="strategy" user="1">
-      Lua strategies are coroutines, they continue their execution from the
-      point where they yielded. When the strategy coroutine finishes, robot
-      control stops: asserv and strategy are not called anymore.<br/>
-      Strategy is called after an asserv step.
-    </function>
-
-  </class>
-
-
-  <class name="RBasic" base="Robot">
-    Basic robot.<br/>
-    Default values are null, including maximum velocities.
-    They should be set, otherwise the robot will not move.
-
-    <constructor>
-      Create a robot with given shape and mass.
-      <arg name="shape" type="Shape"/>
-      <arg name="mass" type="float"/>
-    </constructor>
-
-    <function name="set_color">
-      <arg type="Color"/>
-    </function>
-
-    <function name="get_xy"><return type="float"/><return type="float"/></function>
-    <function name="get_a"><return type="float"/></function>
-    <function name="get_v"><return type="float"/></function>
-    <function name="get_av"><return type="float"/></function>
-
-    <function name="set_v_max"><arg type="float"/>Set maximum linear velocity.</function>
-    <function name="set_av_max"><arg type="float"/>Set maximum angular velocity.</function>
-    <function name="set_threshold_xy"><arg type="float"/>Set distance precision for XY orders.</function>
-    <function name="set_threshold_a"><arg type="float"/>Set angle precision for angle orders.</function>
-
-    <function name="order_xy">
-      <arg name="x" type="float"/>
-      <arg name="y" type="float"/>
-      <arg name="rel" type="bool" required="0"/>
-    </function>
-    <function name="order_a">
-      <arg name="a" type="float"/>
-      <arg name="rel" type="bool" required="0"/>
-    </function>
-    <function name="order_xya">
-      <arg name="x" type="float"/>
-      <arg name="y" type="float"/>
-      <arg name="a" type="float"/>
-      <arg name="rel" type="bool" required="0"/>
-    </function>
-    <function name="order_back">
-      <arg name="d" type="float"/>
-    </function>
-    <function name="order_stop">
-    </function>
-
-    <function name="update">
-      Update position and velocity values.<br/>
-      This method should be called after each simulation step and before asserv.
-    </function>
-    <function name="asserv">
-      Asserv method.<br/>
-      This method should be scheduled after each simulation step.
-    </function>
-    <function name="is_waiting">
-      Returns true if the robot is waiting orders.
-      <return type="bool"/>
-    </function>
-  </class>
-
-
-  <class name="Galipeur" base="Robot">
-    Rob'Otter's robot, Galipeur.<br/>
-    Default values are null, including maximum velocities.
-    They should be set, otherwise the robot will not move.
-
-    <constructor>
-      <arg name="mass" type="float"/>
-    </constructor>
-
-    <function name="get_xy"><return type="float"/><return type="float"/></function>
-    <function name="get_v"><return type="float"/><return type="float"/></function>
-    <function name="get_a"><return type="float"/></function>
-    <function name="get_av"><return type="float"/></function>
-
-    <function name="set_v_max"><arg type="float"/>Set maximum linear velocity.</function>
-    <function name="set_av_max"><arg type="float"/>Set maximum angular velocity.</function>
-    <function name="set_threshold_xy"><arg type="float"/>Set distance precision for XY orders.</function>
-    <function name="set_threshold_a"><arg type="float"/>Set angle precision for angle orders.</function>
-
-    <function name="order_xy">
-      <arg name="x" type="float"/>
-      <arg name="y" type="float"/>
-      <arg name="rel" type="bool" required="0"/>
-    </function>
-    <function name="order_a">
-      <arg name="a" type="float"/>
-      <arg name="rel" type="bool" required="0"/>
-    </function>
-    <function name="order_xya">
-      <arg name="x" type="float"/>
-      <arg name="y" type="float"/>
-      <arg name="a" type="float"/>
-      <arg name="rel" type="bool" required="0"/>
-    </function>
-    <function name="order_stop">
-    </function>
-
-    <function name="asserv">
-      Asserv method.<br/>
-      This method should be scheduled after each simulation step.
-    </function>
-    <function name="is_waiting">
-      Returns true if the robot is waiting orders.
-      <return type="bool"/>
-    </function>
-
-    <function name="set_sharps">
-      Set sharp positions.<br/>
-      Each <tt>t</tt> element is a transform, a table of 3 (position) or 6
-      (position and rotation) elements.
-      <arg name="t" type="table"/>
-    </function>
-
-    <function name="test_sharp">
-      Returns hit distance of a given sharp or <tt>false</tt> if it does not hit.
-      If <tt>index</tt> is invalid, returns <tt>nil</tt>.
-      <arg name="index" type="int">Sharp index, starting at 1.</arg>
-      <return type="float"/>
-    </function>
-
-    <function name="get_sharp_count">
-      <return type="int"/>
-    </function>
-  </class>
-
-
-  <!-- Classes defined in eurobot2009 -->
-
-  <class name="OColElem" base="OSimple">
-    Column element.
-    <constructor></constructor>
-  </class>
-
-  <class name="OLintel" base="OSimple">
-    Lintel.
-    <constructor></constructor>
-  </class>
-
-  <class name="ODispenser" base="OSimple">
-    Dispenser for column elements.
-    <constructor></constructor>
-
-    <function name="set_pos">
-      Set position from attach point (<tt>x</tt>, <tt>y</tt>).<br/>
-      <tt>z</tt> is the space between the dispenser and the ground and
-      <tt>side</tt> is the dispenser attach side (0 top, 1 right, 2 bottom,
-      3 left).
-      <arg name="x" type="float"/>
-      <arg name="y" type="float"/>
-      <arg name="z" type="float"/>
-      <arg name="side" type="int"/>
-    </function>
-
-    <function name="fill">
-      Put an object in the dispenser. <tt>z</tt> is given in global
-      coordinates.
-      <arg name="o" type="Object"/>
-      <arg name="z" type="float"/>
-    </function>
-  </class>
-
-  <class name="OLintelStorage" base="OSimple">
-    Lintel storage.
-    <constructor></constructor>
-
-    <function name="set_pos">
-      Set position from attach point (lintel storage corner in contact with
-      table wall).<br/>
-      <tt>d</tt> is the attach positon on the given wall, <tt>side</tt>
-      is the attach side (0 top, 1 right, 2 bottom, 3 left).<br/>
-      <b>Note:</b> this function overwrites <tt>Object::set_pos(float x, float y)</tt>.
-      <arg name="d" type="float"/>
-      <arg name="side" type="int"/>
-    </function>
-
-    <function name="fill">
-      Put a lintel in the storage
-      <arg name="o" type="OLintel"/>
-    </function>
-  </class>
-
-
-  <class name="Galipeur2009" base="Galipeur">
-    Galipeur for Eurobot 2009 rules.
-    <constructor>
-      <arg name="mass" type="float"/>
-    </constructor>
-
-    <function name="get_pachev_pos"><return type="float"/></function>
-    <function name="set_pachev_v"><arg type="float"/>Set pàchev slider velocity.</function>
-    <function name="set_threshold_pachev"><arg type="float"/>Set distance precision for pàchev moves.</function>
-    <function name="set_pachev_eject_v"><arg type="float"/>Set velocity of ejected elements.</function>
-
-    <function name="order_pachev_move">
-      <arg name="h" type="float"/>
-    </function>
-    <function name="order_pachev_release"/>
-    <function name="order_pachev_grab"/>
-    <function name="order_pachev_eject"/>
-
-  </class>
+    <class name="Physics">
+      Physics environment, used as a singleton.<br/>
+      It must be created.
+
+      <constructor>
+        Create or get physics singleton.
+      </constructor>
+
+      <function name="init">
+        Init physics (using configuration values).<br/>
+        If not called explicitely, it is called before the simulation starts.
+      </function>
+
+      <function name="is_initialized">
+        Returns whether physics is initialized.
+        <return type="bool"/>
+      </function>
+
+      <function name="pause">Pause the simulation.</function>
+      <function name="unpause">Unpause the simulation.</function>
+      <function name="toggle_pause">Toggle pause state.</function>
+
+    </class>
+
+    <class name="Display">
+      Video display, used as a singleton.<br/>
+      It is not needed: if not created, simulation is run at full speed.
+
+      <constructor>
+        Create or get physics singleton.
+      </constructor>
+
+      <function name="init">
+        Init display (using configuration values).<br/>
+        If not called explicitely, it is called before the simulation starts.
+      </function>
+
+      <function name="is_initialized">
+        Returns whether display is initialized.
+        <return type="bool"/>
+      </function>
+
+      <function name="get_time">
+        Return current simulation time.
+        <return type="float"/>
+      </function>
+
+      <function name="set_camera_mode">
+        Set camera mode. <tt>mode</tt> is an integer (as defined in
+        <tt>display.h</tt>) or one of the following string: <tt>FREE</tt>,
+        <tt>FIXED</tt>, <tt>FOLLOW</tt>, <tt>ONBOARD</tt>, <tt>LOOK</tt>.
+        <arg type="int|string" name="mode" />
+      </function>
+
+      <function name="set_camera_eye">
+        Set camera eye, point from which the scene is viewed.<br/>
+        <tt>params</tt> is a table with eye coordinates. The following fields are
+        recognized: <tt>x</tt>, <tt>y</tt>, <tt>z</tt>, <tt>r</tt>,
+        <tt>theta</tt>, <tt>phi</tt>, <tt>obj</tt>.<br/>
+        <b>Note:</b> invalid values are silently ignored.
+        <arg type="table" name="params" />
+      </function>
+
+      <function name="set_camera_target">
+        Set camera target, point which the camera look at.<br/>
+        See <tt>set_camera_eye()</tt> for details on <tt>params</tt>.
+        <arg type="table" name="params" />
+      </function>
+
+    </class>
+
+    <class name="OSD">
+      Display text messages on the screen.<br/>
+      Instance field listed below can be fixed values or function returning the
+      expected value.<br/>
+      <tt>(0,0)</tt> is the top left corner.
+      <constructor></constructor>
+      <value name="text" type="string"/>
+      <value name="x" type="int"/>
+      <value name="y" type="int"/>
+      <value name="color" type="Color"/>
+      <function name="show"/>
+      <function name="hide"/>
+
+    </class>
+
+    <class name="Task">
+      Task scheduled at a given simulation time.<br/>
+      <tt>callback</tt> is a function or a coroutine which does not take any arguments; it must be set.
+      If <tt>callback</tt> is a coroutine, it is automatically cancelled after
+      returning (not yielding).
+      <constructor>
+        <arg name="period" type="float" required="0">period for repeated tasks</arg>
+      </constructor>
+      <value name="callback" type="function|coroutine"/>
+      <function name="cancel"/>
+
+      <function name="schedule">
+        Schedule task at a given time (default: now).
+        <arg name="time" type="float" required="0" />
+      </function>
+
+    </class>
+
+    <class name="Shape">
+      Create collision shapes. There are no constructor, use creation methods
+      instead.<br/>
+
+      <function name="sphere"><return type="Shape"/>
+        <arg name="radius" type="float"/>
+      </function>
+      <function name="box"><return type="Shape"/>
+        Create a box shape with given <b>half</b> lengths.
+        <arg name="lx" type="float"/>
+        <arg name="ly" type="float"/>
+        <arg name="lz" type="float"/>
+      </function>
+
+      <function name="capsuleX"><return type="Shape"/>
+        <arg name="radius" type="float"/>
+        <arg name="half_length" type="float"/>
+      </function>
+      <function name="capsuleY"><return type="Shape"/>
+        <arg name="radius" type="float"/>
+        <arg name="half_length" type="float"/>
+      </function>
+      <function name="capsuleZ"><return type="Shape"/>
+        <arg name="radius" type="float"/>
+        <arg name="half_length" type="float"/>
+      </function>
+
+      <function name="cylinderX"><return type="Shape"/>
+        <arg name="radius" type="float"/>
+        <arg name="half_length" type="float"/>
+      </function>
+      <function name="cylinderY"><return type="Shape"/>
+        <arg name="radius" type="float"/>
+        <arg name="half_length" type="float"/>
+      </function>
+      <function name="cylinderZ"><return type="Shape"/>
+        <arg name="radius" type="float"/>
+        <arg name="half_length" type="float"/>
+      </function>
+
+    </class>
+    
+
+    <class name="Object">
+      Basic object.<br/>
+
+      <function name="get_pos">
+        Return x, y and z position.
+        <return type="float"/>
+        <return type="float"/>
+        <return type="float"/>
+      </function>
+
+      <function name="get_rot">
+        Return rotation Euler angles (yaw, pitch, roll ie. Z, Y, X).
+        <return type="float"/>
+        <return type="float"/>
+        <return type="float"/>
+      </function>
+
+      <function name="set_pos">
+        Set position.
+        <arg name="x" type="float"/>
+        <arg name="y" type="float"/>
+        <arg name="z" type="float"/>
+      </function>
+
+      <function name="set_rot">
+        Set rotation from Euler angles (yaw, pitch, roll).
+        <arg name="z" type="float"/>
+        <arg name="y" type="float"/>
+        <arg name="x" type="float"/>
+      </function>
+
+      <function name="add_to_world">
+        Add an object in a physical world.
+      </function>
+
+    </class>
+
+
+    <class name="OSimple" base="Object">
+      One-part colored object.
+
+      <constructor></constructor>
+
+      <function name="set_shape">
+        Set object collision shape.<br/>
+        This function must be called to initialize the object.
+        <arg name="shape" type="Shape"/>
+      </function>
+
+      <function name="set_mass">
+        Set object total mass.<br/>
+        If mass is null, object will be static.
+        Mass cannot be set if shape is not set.
+        <arg name="m" type="float"/>
+      </function>
+
+      <function name="is_initialized">
+        Returns whether the object is initialized.
+        <return type="bool"/>
+      </function>
+
+      <function name="set_color">
+        <arg type="Color"/>
+      </function>
+
+      <function name="set_pos">
+        Set position. If z is omitted, place above the ground.
+        <arg name="x" type="float"/>
+        <arg name="y" type="float"/>
+        <arg name="z" type="float" required="0"/>
+      </function>
+
+    </class>
+
+    <class name="OGround" base="Object">
+      Standard table ground with starting areas.
+      <constructor>
+        <arg name="table" type="Color"/>
+        <arg name="team1" type="Color"/>
+        <arg name="team2" type="Color"/>
+      </constructor>
+    </class>
+
+    <class name="Robot" base="Object">
+      Robot base class without asserv and strategy implementation.
+
+      <function name="asserv" user="1">
+      </function>
+
+      <function name="strategy" user="1">
+        Lua strategies are coroutines, they continue their execution from the
+        point where they yielded. When the strategy coroutine finishes, robot
+        control stops: asserv and strategy are not called anymore.<br/>
+        Strategy is called after an asserv step.
+      </function>
+
+    </class>
+
+
+    <class name="RBasic" base="Robot">
+      Basic robot.<br/>
+      Default values are null, including maximum velocities.
+      They should be set, otherwise the robot will not move.
+
+      <constructor>
+        Create a robot with given shape and mass.
+        <arg name="shape" type="Shape"/>
+        <arg name="mass" type="float"/>
+      </constructor>
+
+      <function name="set_color">
+        <arg type="Color"/>
+      </function>
+
+      <function name="get_xy"><return type="float"/><return type="float"/></function>
+      <function name="get_a"><return type="float"/></function>
+      <function name="get_v"><return type="float"/></function>
+      <function name="get_av"><return type="float"/></function>
+
+      <function name="set_v_max"><arg type="float"/>Set maximum linear velocity.</function>
+      <function name="set_av_max"><arg type="float"/>Set maximum angular velocity.</function>
+      <function name="set_threshold_xy"><arg type="float"/>Set distance precision for XY orders.</function>
+      <function name="set_threshold_a"><arg type="float"/>Set angle precision for angle orders.</function>
+
+      <function name="order_xy">
+        <arg name="x" type="float"/>
+        <arg name="y" type="float"/>
+        <arg name="rel" type="bool" required="0"/>
+      </function>
+      <function name="order_a">
+        <arg name="a" type="float"/>
+        <arg name="rel" type="bool" required="0"/>
+      </function>
+      <function name="order_xya">
+        <arg name="x" type="float"/>
+        <arg name="y" type="float"/>
+        <arg name="a" type="float"/>
+        <arg name="rel" type="bool" required="0"/>
+      </function>
+      <function name="order_back">
+        <arg name="d" type="float"/>
+      </function>
+      <function name="order_stop">
+      </function>
+
+      <function name="update">
+        Update position and velocity values.<br/>
+        This method should be called after each simulation step and before asserv.
+      </function>
+      <function name="asserv">
+        Asserv method.<br/>
+        This method should be scheduled after each simulation step.
+      </function>
+      <function name="is_waiting">
+        Returns true if the robot is waiting orders.
+        <return type="bool"/>
+      </function>
+    </class>
+
+
+    <class name="Galipeur" base="Robot">
+      Rob'Otter's robot, Galipeur.<br/>
+      Default values are null, including maximum velocities.
+      They should be set, otherwise the robot will not move.
+
+      <constructor>
+        <arg name="mass" type="float"/>
+      </constructor>
+
+      <function name="get_xy"><return type="float"/><return type="float"/></function>
+      <function name="get_v"><return type="float"/><return type="float"/></function>
+      <function name="get_a"><return type="float"/></function>
+      <function name="get_av"><return type="float"/></function>
+
+      <function name="set_v_max"><arg type="float"/>Set maximum linear velocity.</function>
+      <function name="set_av_max"><arg type="float"/>Set maximum angular velocity.</function>
+      <function name="set_threshold_xy"><arg type="float"/>Set distance precision for XY orders.</function>
+      <function name="set_threshold_a"><arg type="float"/>Set angle precision for angle orders.</function>
+
+      <function name="order_xy">
+        <arg name="x" type="float"/>
+        <arg name="y" type="float"/>
+        <arg name="rel" type="bool" required="0"/>
+      </function>
+      <function name="order_a">
+        <arg name="a" type="float"/>
+        <arg name="rel" type="bool" required="0"/>
+      </function>
+      <function name="order_xya">
+        <arg name="x" type="float"/>
+        <arg name="y" type="float"/>
+        <arg name="a" type="float"/>
+        <arg name="rel" type="bool" required="0"/>
+      </function>
+      <function name="order_stop">
+      </function>
+
+      <function name="asserv">
+        Asserv method.<br/>
+        This method should be scheduled after each simulation step.
+      </function>
+      <function name="is_waiting">
+        Returns true if the robot is waiting orders.
+        <return type="bool"/>
+      </function>
+
+      <function name="set_sharps">
+        Set sharp positions.<br/>
+        Each <tt>t</tt> element is a transform, a table of 3 (position) or 6
+        (position and rotation) elements.
+        <arg name="t" type="table"/>
+      </function>
+
+      <function name="test_sharp">
+        Returns hit distance of a given sharp or <tt>false</tt> if it does not hit.
+        If <tt>index</tt> is invalid, returns <tt>nil</tt>.
+        <arg name="index" type="int">Sharp index, starting at 1.</arg>
+        <return type="float"/>
+      </function>
+
+      <function name="get_sharp_count">
+        <return type="int"/>
+      </function>
+    </class>
+
+  </module>
+
+  <module name="eurobot2009">
+    Elements for Eurobot 2009.
+
+    <class name="OColElem" base="main.OSimple">
+      Column element.
+      <constructor></constructor>
+    </class>
+
+    <class name="OLintel" base="main.OSimple">
+      Lintel.
+      <constructor></constructor>
+    </class>
+
+    <class name="ODispenser" base="main.OSimple">
+      Dispenser for column elements.
+      <constructor></constructor>
+
+      <function name="set_pos">
+        Set position from attach point (<tt>x</tt>, <tt>y</tt>).<br/>
+        <tt>z</tt> is the space between the dispenser and the ground and
+        <tt>side</tt> is the dispenser attach side (0 top, 1 right, 2 bottom,
+        3 left).
+        <arg name="x" type="float"/>
+        <arg name="y" type="float"/>
+        <arg name="z" type="float"/>
+        <arg name="side" type="int"/>
+      </function>
+
+      <function name="fill">
+        Put an object in the dispenser. <tt>z</tt> is given in global
+        coordinates.
+        <arg name="o" type="Object"/>
+        <arg name="z" type="float"/>
+      </function>
+    </class>
+
+    <class name="OLintelStorage" base="main.OSimple">
+      Lintel storage.
+      <constructor></constructor>
+
+      <function name="set_pos">
+        Set position from attach point (lintel storage corner in contact with
+        table wall).<br/>
+        <tt>d</tt> is the attach positon on the given wall, <tt>side</tt>
+        is the attach side (0 top, 1 right, 2 bottom, 3 left).<br/>
+        <b>Note:</b> this function overwrites <tt>Object::set_pos(float x, float y)</tt>.
+        <arg name="d" type="float"/>
+        <arg name="side" type="int"/>
+      </function>
+
+      <function name="fill">
+        Put a lintel in the storage
+        <arg name="o" type="OLintel"/>
+      </function>
+    </class>
+
+
+    <class name="Galipeur" base="main.Galipeur">
+      <constructor>
+        <arg name="mass" type="float"/>
+      </constructor>
+
+      <function name="get_pachev_pos"><return type="float"/></function>
+      <function name="set_pachev_v"><arg type="float"/>Set pàchev slider velocity.</function>
+      <function name="set_threshold_pachev"><arg type="float"/>Set distance precision for pàchev moves.</function>
+      <function name="set_pachev_eject_v"><arg type="float"/>Set velocity of ejected elements.</function>
+
+      <function name="order_pachev_move">
+        <arg name="h" type="float"/>
+      </function>
+      <function name="order_pachev_release"/>
+      <function name="order_pachev_grab"/>
+      <function name="order_pachev_eject"/>
+
+    </class>
+
+    <alias name="OGround" target="main.OGround"/>
+
+  </module>
 
 </lua>
 

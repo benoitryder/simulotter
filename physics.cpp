@@ -224,9 +224,7 @@ public:
   }
 };
 
-template<> const char *LuaClass<TaskLua>::name = "Task";
-static LuaTask register_LuaTask;
-template<> const char *LuaClass<TaskLua>::base_name = NULL;
+LUA_REGISTER_BASE_CLASS_NAME(LuaTask,TaskLua,"Task");
 
 
 /** @name Lua collision shapes
@@ -324,8 +322,6 @@ public:
   }
 };
 
-template<> const char *LuaClass<btCollisionShape>::name = "Shape";
-static LuaShape register_LuaShape;
-template<> const char *LuaClass<btCollisionShape>::base_name = NULL;
+LUA_REGISTER_BASE_CLASS_NAME(LuaShape,btCollisionShape,"Shape");
 
 //@}

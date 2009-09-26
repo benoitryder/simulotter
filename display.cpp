@@ -797,7 +797,6 @@ public:
   }
 };
 
-template<> const char *LuaClass<OSDLua>::name = "OSD";
-static LuaOSD register_LuaOSD;
-template<> const char *LuaClass<OSDLua>::base_name = NULL;
+
+LUA_REGISTER_BASE_CLASS_NAME(LuaOSD,OSDLua,"OSD");
 

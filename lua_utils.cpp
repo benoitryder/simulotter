@@ -2,12 +2,11 @@
 #include "global.h"
 
 
-/// Convenient macro for registering global objects
-#define LUA_REG_GLOBAL(name,f) lua_register(L, #name, f)
-
 /// Convenient macro for adding a function in an object at the top of the top stack
 #define LUA_REG_FIELD(name,f) (lua_pushcfunction(L,f),lua_setfield(L, -2, #name))
 
+
+LuaMainModule LuaManager::main_module;
 
 LuaManager::LuaManager()
 {
@@ -21,19 +20,23 @@ LuaManager::LuaManager()
 	lua_pushcfunction(L, luaopen_string); lua_call(L, 0, 0);
 	lua_pushcfunction(L, luaopen_table);  lua_call(L, 0, 0);
 	lua_pushcfunction(L, luaopen_io);     lua_call(L, 0, 0);
+	lua_pushcfunction(L, luaopen_package);lua_call(L, 0, 0);
 
   // Initialize random seed
-  lua_getfield(L, LUA_GLOBALSINDEX, "math");
+  lua_getglobal(L, "math");
   lua_getfield(L, -1, "randomseed");
   lua_pushinteger(L, ::time(NULL));
   lua_pcall(L, 1, 0, 0);
 
   // Register global functions
-  LUA_REG_GLOBAL(trace, lua_trace);
+  lua_register(L, "trace", lua_trace);
 
   // Init Lua stuff of other classes
   cfg->lua_init(L);
   LuaClassBase::init(L);
+
+  // Import main module
+  main_module.import(L, NULL);
 }
 
 LuaManager::~LuaManager()
@@ -187,7 +190,64 @@ int LuaManager::lua_trace(lua_State *L)
 
 
 std::vector<LuaClassBase*> LuaClassBase::classes;
-const char *LuaClassBase::registry_class_mt_name = "simulotter_class";
+const char *LuaClassBase::registry_class_mt_name = LUA_REGISTRY_PREFIX "class";
+
+LuaClassBase::LuaClassBase()
+{
+  // register the class
+  classes.push_back(this);
+}
+
+
+void LuaClassBase::create(lua_State *L)
+{
+  if( luaL_newmetatable(L, get_name()) == 0 )
+    throw(Error("class '%s' already created", get_name()));
+
+  lua_getfield(L, LUA_REGISTRYINDEX, registry_class_mt_name);
+  lua_setmetatable(L, -2);
+
+  lua_pushvalue(L, -1);
+  lua_setfield(L, -2, "__index");
+
+  // Add methods
+  std::vector<LuaRegFunc>::iterator it;
+  for( it=functions.begin(); it!=functions.end(); ++it )
+  {
+    lua_pushcfunction(L, (*it).f);
+    lua_setfield(L, -2, (*it).name);
+  }
+
+  // Create the class object
+  this->create_ud(L);
+  lua_getfield(L, LUA_REGISTRYINDEX, registry_class_mt_name);
+  lua_setmetatable(L, -2);
+
+  // Set class object on the metable
+  lua_setfield(L, -2, "_cls");
+
+  lua_pop(L, 1); // Pop the metatable
+}
+
+void LuaClassBase::init_base_class(lua_State *L)
+{
+  if( get_base_name() == NULL )
+    return;
+
+  // get metatable
+  lua_getfield(L, LUA_REGISTRYINDEX, get_name());
+
+  lua_getfield(L, LUA_REGISTRYINDEX, get_base_name());
+  if( lua_isnil(L, -1) )
+    throw(Error("undefined base class '%s'", get_base_name()));
+  lua_pushstring(L, "_cls");
+  lua_rawget(L, -2);
+  if( lua_isnil(L, -1) )
+    throw(Error("class object not found for base class '%s'", get_base_name()));
+  lua_setfield(L, -3, "_base");
+
+  lua_pop(L, 2); // pop class and base class metatables
+}
 
 
 int LuaClassBase::new_class(lua_State *L)
@@ -298,23 +358,67 @@ void LuaClassBase::init(lua_State *L)
   lua_setfield(L, -2, "__index");
   lua_pop(L, 1);
 
-  LUA_REG_GLOBAL(class, new_class);
+  lua_register(L, "class", new_class);
 
-  // Add subclasses
   std::vector<LuaClassBase*>::iterator it;
   for( it=classes.begin(); it!=classes.end(); ++it )
     (*it)->create(L);
-
-  // Now, all classes are registered, set _base field
   for( it=classes.begin(); it!=classes.end(); ++it )
+    (*it)->init_base_class(L);
+}
+
+
+void LuaModule::import(lua_State *L, const char *name)
+{
+  if( name == NULL )
+    lua_pushvalue(L, LUA_GLOBALSINDEX);
+  else
   {
-    const char *base = (*it)->get_base_name();
-    if( base == NULL )
-      continue;
-    lua_getfield(L, LUA_REGISTRYINDEX, (*it)->get_name());
-    lua_getfield(L, LUA_GLOBALSINDEX, base);
-    lua_setfield(L, -2, "_base");
-    lua_pop(L, 1);
+    lua_getglobal(L, name);
+    if( lua_isnil(L, -1) )
+    {
+      // new table
+      lua_pop(L,1);
+      lua_newtable(L);
+      lua_pushvalue(L, -1);
+      lua_setglobal(L, name);
+    }
+    else if( !lua_istable(L, -1) )
+      throw(Error("cannot create LUA module: '%s' exists and is not a table", name));
   }
+
+  this->do_import(L);
+
+  lua_pop(L, 1);
+}
+
+void LuaModule::import_class(lua_State *L, const char *cls, const char *name)
+{
+  lua_getfield(L, LUA_REGISTRYINDEX, cls);
+  if( lua_isnil(L, -1) )
+    throw(Error("LUA class '%s' not found", cls));
+  lua_pushstring(L, "_cls");
+  lua_rawget(L, -2);
+  if( lua_isnil(L, -1) )
+    throw(Error("class object not found for class '%s'", cls));
+
+  lua_setfield(L, -3, name);
+  lua_pop(L, 1);
+}
+
+
+void LuaMainModule::do_import(lua_State *L)
+{
+  LUA_IMPORT_CLASS(Object);
+  LUA_IMPORT_CLASS(OSimple);
+  LUA_IMPORT_CLASS(OGround);
+  LUA_IMPORT_CLASS(Robot);
+  LUA_IMPORT_CLASS(RBasic);
+  LUA_IMPORT_CLASS(Galipeur);
+  LUA_IMPORT_CLASS(Physics);
+  LUA_IMPORT_CLASS(Shape);
+  LUA_IMPORT_CLASS(Task);
+  LUA_IMPORT_CLASS(Display);
+  LUA_IMPORT_CLASS(OSD);
 }
 
