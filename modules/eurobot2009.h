@@ -18,7 +18,6 @@ namespace eurobot2009
     OColElem();
   private:
     static SmartPtr<btCylinderShapeZ> shape;
-    static GLuint dl_id_static;
   };
 
   /// Lintels

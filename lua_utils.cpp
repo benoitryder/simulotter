@@ -115,11 +115,7 @@ void LuaManager::checkcolor(lua_State *L, int narg, Color4 &c)
 {
   int ret = tocolor(L, narg, c);
   if( ret != 0 )
-  {
-    const char *msg = lua_tostring(L, -1);
-    lua_pop(L, 1);
-    luaL_argerror(L, narg, msg);
-  }
+    throw(LuaError(L, "invalid color"));
 }
 
 int LuaManager::totransform(lua_State *L, int index, btTransform &tr)
@@ -174,11 +170,7 @@ void LuaManager::checktransform(lua_State *L, int narg, btTransform &tr)
 {
   int ret = totransform(L, narg, tr);
   if( ret != 0 )
-  {
-    const char *msg = lua_tostring(L, -1);
-    lua_pop(L, 1);
-    luaL_argerror(L, narg, msg);
-  }
+    throw(LuaError(L, "invalid transform"));
 }
 
 

@@ -1,21 +1,8 @@
 
 -- Eurobot 2009: Atlantis
+
+require('modules/colors')
 module('eurobot2009', package.seeall)
-
--- Colors
-local function color_i2f(r,g,b)
-  return {r/255.0, g/255.0, b/255.0, 1.0}
-end
-
-local colors = {
-  white = {1.0, 1.0, 1.0, 1.0},
-  black = {0.0, 0.0, 0.0, 1.0},
-  plexi = {.70, .90, .95, 0.5},
-  ral_6018 = color_i2f(0x4f, 0xa8, 0x33),
-  ral_3020 = color_i2f(0xc7, 0x17, 0x12),
-  ral_5015 = color_i2f(0x17, 0x61, 0xab),
-  ral_8017 = color_i2f(0x2e, 0x1c, 0x1c),
-}
 
 -- Team colors
 color1 = colors.ral_6018
@@ -27,6 +14,7 @@ function init(fconf)
   --   columns: 1 to 10
   --   dispensers: (1 or 2) * 16
   -- Can be defined as 2-digit hexadecimal value: 0x<disp><col>
+  local conf_col, conf_disp
   if fconf == nil or fconf < 0 then
     conf_col  = math.random(10)
     conf_disp = math.random(2)
@@ -55,23 +43,26 @@ function init(fconf)
 
   local wall_width  = 0.022
   local wall_height = 0.070
+  
+
+  local o, ol, ols
 
 
   -- Ground
   trace("  ground")
-  
-  ground = OGround(colors.ral_5015, color1, color2)
-  ground:add_to_world()
+
+  o = OGround(colors.ral_5015, color1, color2)
+  o:add_to_world()
 
   -- Walls (N, E, W, small SE, small SW, plexi S)
-  trace(" walls")
+  trace("  walls")
 
-  o = _G.OSimple()
+  o = OSimple()
   o:set_shape(Shape:box(table_size_x/2+wall_width, wall_width/2, wall_height/2))
   o:add_to_world()
   o:set_pos(0, table_size_y/2+wall_width/2, wall_height/2)
   o:set_color(colors.white)
-  o = _G.OSimple()
+  o = OSimple()
   o:set_shape(Shape:box(wall_width/2, table_size_y/2+wall_width, wall_height/2))
   o:add_to_world()
   o:set_pos(table_size_x/2+wall_width/2, 0, wall_height/2)

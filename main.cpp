@@ -4,6 +4,7 @@
 
 #include "global.h"
 #include "modules/eurobot2009.h"
+#include "modules/eurobot2010.h"
 
 
 #ifdef WIN32
@@ -38,6 +39,8 @@ int main(int argc, char **argv)
 
     eurobot2009::LuaEurobotModule module2009;
     module2009.import(lm->get_L(), "eurobot2009");
+    eurobot2010::LuaEurobotModule module2010;
+    module2010.import(lm->get_L(), "eurobot2010");
 
     if( argc > 1 )
     {
