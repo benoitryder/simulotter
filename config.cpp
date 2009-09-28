@@ -22,6 +22,7 @@ Config::Config()
   screen_y = 600;
   fullscreen = false;
   fps = 60;
+  antialias = 0;
   camera_step_angle  = 0.1;
   camera_step_linear = scale(0.1);
   camera_mouse_coef  = 0.1;
@@ -77,6 +78,7 @@ int Config::lua_index(lua_State *L)
   CONFIG_INDEX_VAL(screen_x);
   CONFIG_INDEX_VAL(screen_y);
   CONFIG_INDEX_VAL(fps);
+  CONFIG_INDEX_VAL(antialias);
   CONFIG_INDEX_VAL(fullscreen);
   CONFIG_INDEX_VAL(log_flush);
 
@@ -114,6 +116,7 @@ int Config::lua_newindex(lua_State *L)
   CONFIG_NEWINDEX_VAL(screen_x,         LARG_i);
   CONFIG_NEWINDEX_VAL(screen_y,         LARG_i);
   CONFIG_NEWINDEX_VAL(fps,              LARG_f);
+  CONFIG_NEWINDEX_VAL(antialias,        LARG_i);
   CONFIG_NEWINDEX_VAL(fullscreen,       LARG_b);
   CONFIG_NEWINDEX_VAL(log_flush,        LARG_b);
 

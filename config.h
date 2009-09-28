@@ -87,6 +87,9 @@ public:
    */
   float fps;
 
+  /// Multisampling count (0 to disable)
+  unsigned int antialias;
+
   Color4 bg_color;
 
   /// Step for camera angle moves

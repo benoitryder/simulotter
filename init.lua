@@ -19,6 +19,7 @@ config.screen_x = 800
 config.screen_y = 600
 config.fullscreen = false
 config.fps = 60
+config.antialias = 6
 
 config.bg_color = { 0.8, 0.8, 0.8 }
 config.log_flush = true

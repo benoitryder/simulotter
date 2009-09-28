@@ -12,6 +12,9 @@ white = {1.0, 1.0, 1.0, 1.0}
 black = {0.0, 0.0, 0.0, 1.0}
 plexi = {.70, .90, .95, 0.5}
 
+function gray(x) return {x,x,x,1.0} end
+grey = gray
+
 ral_6018 = h2f(0x4fa833)
 ral_3020 = h2f(0xc71712)
 ral_5015 = h2f(0x1761ab)

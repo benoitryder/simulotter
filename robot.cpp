@@ -24,8 +24,9 @@ RBasic::RBasic()
 
 RBasic::RBasic(btCollisionShape *shape, btScalar m)
 {
-  setup(shape, m);
+  this->body = NULL;
   this->order = ORDER_NONE;
+  setup(shape, m);
 }
 
 void RBasic::setup(btCollisionShape *shape, btScalar m)

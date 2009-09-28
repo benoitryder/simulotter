@@ -208,6 +208,14 @@ void Display::windowInit()
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
+  if( cfg->antialias > 0 )
+  {
+    if( SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) < 0 )
+      throw(Error("SDL: cannot enable multisample buffers"));
+    if( SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, cfg->antialias) < 0 )
+      throw(Error("SDL: cannot set multisample sample count to %d", cfg->antialias));
+  }
+
   resize(cfg->screen_x, cfg->screen_y, cfg->fullscreen);
 }
 
@@ -231,9 +239,6 @@ void Display::sceneInit()
 
   glEnable(GL_DEPTH_TEST); 
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-  //glEnable(GL_BLEND);
-  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glDepthMask(GL_TRUE);
   glDepthFunc(GL_LESS);
