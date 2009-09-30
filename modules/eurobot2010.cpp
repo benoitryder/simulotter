@@ -5,11 +5,13 @@ namespace eurobot2010
 {
   const btScalar ORaisedZone::width = scale(0.500);
   const btScalar ORaisedZone::height = scale(0.140);
-  const btScalar ORaisedZone::bottom_length = scale(2*0.500+0.520);
-  const btScalar ORaisedZone::top_length = scale(0.520);
-  const btScalar ORaisedZone::strip_length = scale(0.030); //TODO
+  const btScalar ORaisedZone::bottom_length = scale(2*0.480+0.500);
+  const btScalar ORaisedZone::top_length = scale(0.500);
+  const btScalar ORaisedZone::strip_length = scale(0.100);
   const btScalar ORaisedZone::wall_width = scale(0.022);
   const btScalar ORaisedZone::wall_height = scale(0.070);
+  const btScalar ORaisedZone::wall_bottom_length = scale(2*0.500+0.520);
+  const btScalar ORaisedZone::wall_top_length = scale(0.520);
   SmartPtr<btCompoundShape> ORaisedZone::shape;
   btConvexHullShape ORaisedZone::body_shape;
   btConvexHullShape ORaisedZone::wall_shape;
@@ -38,19 +40,19 @@ namespace eurobot2010
       if( wall_shape.getNumPoints() == 0 )
       {
         // front
-        wall_shape.addPoint( btVector3(-bottom_length/2, +wall_width/2, 0) );
-        wall_shape.addPoint( btVector3(+bottom_length/2, +wall_width/2, 0) );
-        wall_shape.addPoint( btVector3(-bottom_length/2, +wall_width/2, wall_height) );
-        wall_shape.addPoint( btVector3(+bottom_length/2, +wall_width/2, wall_height) );
-        wall_shape.addPoint( btVector3(-top_length/2, +wall_width/2, height+wall_height) );
-        wall_shape.addPoint( btVector3(+top_length/2, +wall_width/2, height+wall_height) );
+        wall_shape.addPoint( btVector3(-wall_bottom_length/2, +wall_width/2, 0) );
+        wall_shape.addPoint( btVector3(+wall_bottom_length/2, +wall_width/2, 0) );
+        wall_shape.addPoint( btVector3(-wall_bottom_length/2, +wall_width/2, wall_height) );
+        wall_shape.addPoint( btVector3(+wall_bottom_length/2, +wall_width/2, wall_height) );
+        wall_shape.addPoint( btVector3(-wall_top_length/2, +wall_width/2, height+wall_height) );
+        wall_shape.addPoint( btVector3(+wall_top_length/2, +wall_width/2, height+wall_height) );
         // back
-        wall_shape.addPoint( btVector3(-bottom_length/2, -wall_width/2, 0) );
-        wall_shape.addPoint( btVector3(+bottom_length/2, -wall_width/2, 0) );
-        wall_shape.addPoint( btVector3(-bottom_length/2, -wall_width/2, wall_height) );
-        wall_shape.addPoint( btVector3(+bottom_length/2, -wall_width/2, wall_height) );
-        wall_shape.addPoint( btVector3(-top_length/2, -wall_width/2, height+wall_height) );
-        wall_shape.addPoint( btVector3(+top_length/2, -wall_width/2, height+wall_height) );
+        wall_shape.addPoint( btVector3(-wall_bottom_length/2, -wall_width/2, 0) );
+        wall_shape.addPoint( btVector3(+wall_bottom_length/2, -wall_width/2, 0) );
+        wall_shape.addPoint( btVector3(-wall_bottom_length/2, -wall_width/2, wall_height) );
+        wall_shape.addPoint( btVector3(+wall_bottom_length/2, -wall_width/2, wall_height) );
+        wall_shape.addPoint( btVector3(-wall_top_length/2, -wall_width/2, height+wall_height) );
+        wall_shape.addPoint( btVector3(+wall_top_length/2, -wall_width/2, height+wall_height) );
       }
 
       shape->addChildShape(btTransform::getIdentity(), &body_shape);
@@ -122,52 +124,52 @@ namespace eurobot2010
   void ORaisedZone::draw_wall()
   {
     glColor4fv(Color4(0x14,0x17,0x1c)); // RAL 9017
-    const btVector2 vn_slope = btVector2(height,(bottom_length-top_length)/2).normalized();
+    const btVector2 vn_slope = btVector2(height,(wall_bottom_length-wall_top_length)/2).normalized();
 
     // outline
     glBegin(GL_QUAD_STRIP);
-    btglVertex3( -bottom_length/2, -wall_width/2, 0 );
-    btglVertex3( -bottom_length/2, +wall_width/2, 0 );
+    btglVertex3( -wall_bottom_length/2, -wall_width/2, 0 );
+    btglVertex3( -wall_bottom_length/2, +wall_width/2, 0 );
     btglNormal3( 0, 0, -1 ); // bottom
-    btglVertex3( +bottom_length/2, -wall_width/2, 0 );
-    btglVertex3( +bottom_length/2, +wall_width/2, 0 );
+    btglVertex3( +wall_bottom_length/2, -wall_width/2, 0 );
+    btglVertex3( +wall_bottom_length/2, +wall_width/2, 0 );
     btglNormal3( 1, 0, 0 ); // side x>0
-    btglVertex3( +bottom_length/2, -wall_width/2, wall_height );
-    btglVertex3( +bottom_length/2, +wall_width/2, wall_height );
+    btglVertex3( +wall_bottom_length/2, -wall_width/2, wall_height );
+    btglVertex3( +wall_bottom_length/2, +wall_width/2, wall_height );
     btglNormal3( vn_slope.x, 0, vn_slope.y ); // slope x>0
-    btglVertex3( +top_length/2, -wall_width/2, height+wall_height );
-    btglVertex3( +top_length/2, +wall_width/2, height+wall_height );
+    btglVertex3( +wall_top_length/2, -wall_width/2, height+wall_height );
+    btglVertex3( +wall_top_length/2, +wall_width/2, height+wall_height );
     btglNormal3( 0, 0, 1 ); // top
-    btglVertex3( -top_length/2, -wall_width/2, height+wall_height );
-    btglVertex3( -top_length/2, +wall_width/2, height+wall_height );
+    btglVertex3( -wall_top_length/2, -wall_width/2, height+wall_height );
+    btglVertex3( -wall_top_length/2, +wall_width/2, height+wall_height );
     btglNormal3( -vn_slope.x, 0, vn_slope.y ); // slope x<0
-    btglVertex3( -bottom_length/2, -wall_width/2, wall_height );
-    btglVertex3( -bottom_length/2, +wall_width/2, wall_height );
+    btglVertex3( -wall_bottom_length/2, -wall_width/2, wall_height );
+    btglVertex3( -wall_bottom_length/2, +wall_width/2, wall_height );
     btglNormal3( -1, 0, 0 ); // side x<0
-    btglVertex3( -bottom_length/2, -wall_width/2, 0 );
-    btglVertex3( -bottom_length/2, +wall_width/2, 0 );
+    btglVertex3( -wall_bottom_length/2, -wall_width/2, 0 );
+    btglVertex3( -wall_bottom_length/2, +wall_width/2, 0 );
     glEnd();
 
     // front face
     glBegin(GL_POLYGON);
     btglNormal3( 0, 1, 0 );
-    btglVertex3( -bottom_length/2, +wall_width/2, 0 );
-    btglVertex3( +bottom_length/2, +wall_width/2, 0 );
-    btglVertex3( +bottom_length/2, +wall_width/2, wall_height );
-    btglVertex3( +top_length/2, +wall_width/2, height+wall_height );
-    btglVertex3( -top_length/2, +wall_width/2, height+wall_height );
-    btglVertex3( -bottom_length/2, +wall_width/2, wall_height );
+    btglVertex3( -wall_bottom_length/2, +wall_width/2, 0 );
+    btglVertex3( +wall_bottom_length/2, +wall_width/2, 0 );
+    btglVertex3( +wall_bottom_length/2, +wall_width/2, wall_height );
+    btglVertex3( +wall_top_length/2, +wall_width/2, height+wall_height );
+    btglVertex3( -wall_top_length/2, +wall_width/2, height+wall_height );
+    btglVertex3( -wall_bottom_length/2, +wall_width/2, wall_height );
     glEnd();
 
     // front face
     glBegin(GL_POLYGON);
     btglNormal3( 0, -1, 0 );
-    btglVertex3( -bottom_length/2, -wall_width/2, 0 );
-    btglVertex3( +bottom_length/2, -wall_width/2, 0 );
-    btglVertex3( +bottom_length/2, -wall_width/2, wall_height );
-    btglVertex3( +top_length/2, -wall_width/2, height+wall_height );
-    btglVertex3( -top_length/2, -wall_width/2, height+wall_height );
-    btglVertex3( -bottom_length/2, -wall_width/2, wall_height );
+    btglVertex3( -wall_bottom_length/2, -wall_width/2, 0 );
+    btglVertex3( +wall_bottom_length/2, -wall_width/2, 0 );
+    btglVertex3( +wall_bottom_length/2, -wall_width/2, wall_height );
+    btglVertex3( +wall_top_length/2, -wall_width/2, height+wall_height );
+    btglVertex3( -wall_top_length/2, -wall_width/2, height+wall_height );
+    btglVertex3( -wall_bottom_length/2, -wall_width/2, wall_height );
     glEnd();
   }
 

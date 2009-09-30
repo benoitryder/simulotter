@@ -19,7 +19,7 @@ config.screen_x = 800
 config.screen_y = 600
 config.fullscreen = false
 config.fps = 60
-config.antialias = 6
+config.antialias = 0
 
 config.bg_color = { 0.8, 0.8, 0.8 }
 config.log_flush = true
@@ -43,7 +43,7 @@ trace("R1: "..x..","..y..","..z)
 r1:set_v_max(0.8)
 r1:set_av_max(4)
 r1:set_threshold_xy(0.001)
-r1:set_threshold_a(0.005)
+r1:set_threshold_a(0.010)
 
 osd = OSD()
 osd.x, osd.y = 10, 20
@@ -92,13 +92,13 @@ end
 
 function r1:strategy()
 
-  self:order_xy( 2.400, 0, true )
+  self:order_xy( eurobot2010.field_pos(-2,5) )
   repeat coroutine.yield() until self:is_waiting()
-  self:order_xy( 0, -0.3, true )
+  self:order_xy( eurobot2010.field_pos(-1,4) )
   repeat coroutine.yield() until self:is_waiting()
-  self:order_xy( -0.2, -0.2, true )
+  self:order_a( math.atan(eurobot2010.field_space_y/eurobot2010.field_space_x) )
   repeat coroutine.yield() until self:is_waiting()
-  self:order_xya( 0, 0.3, -math.pi/2 )
+  self:order_xy( eurobot2010.field_pos(2,1) )
   repeat coroutine.yield() until self:is_waiting()
 
   trace("END: stop robot")

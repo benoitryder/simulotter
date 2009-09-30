@@ -30,15 +30,17 @@ function init(fconf)
 
   -- Various variables
 
-  local table_size_x = 3.0
-  local table_size_y = 2.1
+  table_size_x = 3.0
+  table_size_y = 2.1
 
-  local field_space_x = 0.450
-  local field_space_y = 0.250
-  local field_offset_y = 0.128
+  field_space_x = 0.450
+  field_space_y = 0.250
+  field_offset_y = 0.128
 
   local wall_width  = 0.022
   local wall_height = 0.070
+
+  raised_z = 0.140
 
   -- Compute field element position, (0,0) is middle bottom
   function field_pos(x,y)
@@ -61,6 +63,7 @@ function init(fconf)
   end
 
   -- Add a collect bac, side is -1 (x<0) or 1 (x>0)
+  local bac_sh = nil  -- reuse shape
   function add_bac(side)
     local c = (side == 1 and color1 or color2)
     local off_x = side * (table_size_x-0.500)/2
@@ -70,53 +73,65 @@ function init(fconf)
     local bac_w = 0.010
     local o
 
+    -- First call: create shapes
+    if bac_sh == nil then
+      bac_sh = {
+        b_side = Shape:box(bac_w/2, bac_l/2, wall_height/2),
+        b_back = Shape:box(0.250+bac_w, bac_w/2, wall_height/2),
+        p_side = Shape:box(bac_w/2, bac_l/2, bac_h/2),
+        p_back = Shape:box(0.250+bac_w, bac_w/2, bac_h/2),
+        p_front = Shape:box(0.250+bac_w, bac_w/2, bac_h/2-0.020),
+        p_bottom = Shape:box(0.250+bac_w, (bac_l+bac_w)/2, wall_height/2),
+      }
+    end
+
     -- color bands (W, E, S)
     o = OSimple()
-    o:set_shape(Shape:box(bac_w/2, bac_l/2, wall_height/2))
+    o:set_shape( bac_sh.b_side )
     o:add_to_world()
     o:set_pos(off_x-0.250-bac_w/2, off_y-bac_l/2, wall_height/2)
     o:set_color(c)
     o = OSimple()
-    o:set_shape(Shape:box(bac_w/2, bac_l/2, wall_height/2))
-    o:add_to_world()
+    o:set_shape( bac_sh.b_side )
+    o:add_to_world( bac_sh.b_side )
     o:set_pos(off_x+0.250+bac_w/2, off_y-bac_l/2, wall_height/2)
     o:set_color(c)
     o = OSimple()
-    o:set_shape(Shape:box(0.250+bac_w, bac_w/2, wall_height/2))
+    o:set_shape( bac_sh.b_back )
     o:add_to_world()
     o:set_pos(off_x, off_y-bac_l-bac_w/2, wall_height/2)
     o:set_color(c)
 
     -- plexi (W, E, S, N, bottom)
     o = OSimple()
-    o:set_shape(Shape:box(bac_w/2, bac_l/2, bac_h/2))
+    o:set_shape( bac_sh.p_side )
     o:add_to_world()
     o:set_pos(off_x-0.250-bac_w/2, off_y-bac_l/2, -bac_h/2)
     o:set_color(colors.plexi)
     o = OSimple()
-    o:set_shape(Shape:box(bac_w/2, bac_l/2, bac_h/2))
+    o:set_shape( bac_sh.p_side )
     o:add_to_world()
     o:set_pos(off_x+0.250+bac_w/2, off_y-bac_l/2, -bac_h/2)
     o:set_color(colors.plexi)
     o = OSimple()
-    o:set_shape(Shape:box(0.250+bac_w, bac_w/2, bac_h/2))
+    o:set_shape( bac_sh.p_back )
     o:add_to_world()
     o:set_pos(off_x, off_y-bac_l-bac_w/2, -bac_h/2)
     o:set_color(colors.plexi)
     o = OSimple()
-    o:set_shape(Shape:box(0.250+bac_w, bac_w/2, bac_h/2-0.020))
+    o:set_shape( bac_sh.p_front )
     o:add_to_world()
     o:set_pos(off_x, off_y-bac_w/2, -bac_h/2-0.020)
     o:set_color(colors.plexi)
     o = OSimple()
-    o:set_shape(Shape:box(0.250+bac_w, (bac_l+bac_w)/2, wall_height/2))
+    o:set_shape( bac_sh.p_bottom )
     o:add_to_world()
     o:set_pos(off_x, off_y-bac_l/2-bac_w/2, -bac_h)
     o:set_color(colors.plexi)
   end
 
 
-  local o
+  local o, sh
 
 
   -- Ground and raised zone
@@ -137,13 +152,14 @@ function init(fconf)
   o:add_to_world()
   o:set_pos(0, table_size_y/2+wall_width/2, wall_height/2)
   o:set_color(colors.ral_9017)
+  sh = Shape:box(wall_width/2, table_size_y/2+wall_width, wall_height/2)
   o = OSimple()
-  o:set_shape(Shape:box(wall_width/2, table_size_y/2+wall_width, wall_height/2))
+  o:set_shape( sh )
   o:add_to_world()
   o:set_pos(table_size_x/2+wall_width/2, 0, wall_height/2)
   o:set_color(colors.ral_9017)
   o = OSimple()
-  o:set_shape(Shape:box(wall_width/2, table_size_y/2+wall_width, wall_height/2))
+  o:set_shape( sh )
   o:add_to_world()
   o:set_pos(-table_size_x/2-wall_width/2, 0, wall_height/2)
   o:set_color(colors.ral_9017)
@@ -213,6 +229,58 @@ function init(fconf)
       add_tomato(-i,i-1)
       add_tomato(-i,i+1)
     end
+  end
+
+  -- Oranges and trees
+  trace("  oranges and trees")
+  do
+
+    -- Branch class
+    OBranch = class(OSimple, function(self,h)
+      OSimple._ctor(self)
+      self:set_shape( self.shape )
+      self:add_to_world()
+      self:set_color(colors.white)
+      self.h = h
+    end)
+    -- Make all trees with the same height but use different z position
+    OBranch.sh_h = 0.25
+    OBranch.shape = Shape:cylinderZ(0.025, OBranch.sh_h/2)
+    function OBranch.set_top_pos(self, x, y)
+      self:set_pos(x, y+table_size_y/2-0.250, raised_z-OBranch.sh_h/2+self.h)
+    end
+    function OBranch.add_orange(self)
+      local x,y,z = self:get_pos()
+      local o = OOrange()
+      o:add_to_world()
+      o:set_mass(0)  --XXX oranges are static, for now
+      o:set_pos(x, y, raised_z+self.h+0.050*math.cos(math.asin(0.025/0.050)))
+    end
+
+    -- Tree class
+    OTree = class(OSimple, function(self, x, y)
+      local o
+      for k,v in ipairs(self.branches) do
+        o = OBranch(v.h)
+        o:set_top_pos( (x<0 and x-v.x or x+v.x), y+v.y )
+        o:add_orange()
+      end
+    end)
+    -- branch offset (origin at the tallest branch)
+    OTree.branches = {
+      { h=0.25, x=0, y=0 },
+      { h=0.20, x=0.055, y=0.075 },
+      { h=0.15, x=0.080, y=-0.050 },
+    }
+
+    local tree_offset_x = 0.500/2-0.080-0.055
+    local tree_offset_y = 0.100
+
+    OTree( tree_offset_x,  0.250-0.070-0.075)
+    OTree(-tree_offset_x,  0.250-0.070-0.075)
+    OTree( tree_offset_x, -0.250+0.080+0.050)
+    OTree(-tree_offset_x, -0.250+0.080+0.050)
+
   end
 
 end

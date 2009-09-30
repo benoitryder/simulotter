@@ -25,6 +25,8 @@ namespace eurobot2010
     static const btScalar strip_length;
     static const btScalar wall_width;
     static const btScalar wall_height;
+    static const btScalar wall_bottom_length;
+    static const btScalar wall_top_length;
 
     ORaisedZone();
     virtual void draw();
