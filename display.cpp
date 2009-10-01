@@ -167,12 +167,14 @@ void Display::update()
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   // OSD
+  glDisable(GL_LIGHTING);
   std::set< SmartPtr<OSDMessage> >::iterator it_osd;
   for( it_osd = osds.begin(); it_osd != osds.end(); ++it_osd )
     drawString( (*it_osd)->getText(),
         (*it_osd)->getX(), (*it_osd)->getY(),
         (*it_osd)->getColor(), GLUT_BITMAP_8_BY_13
         );
+  glEnable(GL_LIGHTING);
 
   SDL_GL_SwapBuffers();
   glFlush();
