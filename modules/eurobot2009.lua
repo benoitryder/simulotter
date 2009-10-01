@@ -2,6 +2,7 @@
 -- Eurobot 2009: Atlantis
 
 require('modules/colors')
+require('modules/eurobot')
 module('eurobot2009', package.seeall)
 
 -- Team colors
@@ -29,21 +30,20 @@ function init(fconf)
 
   -- Various variables
 
-  local table_size_x = 3.0
-  local table_size_y = 2.1
+  TABLE = eurobot.TABLE
+  WALL  = eurobot.WALL
 
   local col_space_x = 0.250
   local col_space_y = 0.200
   local col_offset_x = 0.400
   local col_offset_y = 0.125
 
-  local disp_offset_x = 0.289
-  local disp_offset_y = 0.250
-  local disp_offset_z = 0.045
+  local disp_offset {
+    x = 0.289,
+    y = 0.250,
+    z = 0.045,
+  }
 
-  local wall_width  = 0.022
-  local wall_height = 0.070
-  
 
   local o, ol, ols
 
@@ -58,46 +58,46 @@ function init(fconf)
   trace("  walls")
 
   o = OSimple()
-  o:set_shape(Shape:box(table_size_x/2+wall_width, wall_width/2, wall_height/2))
+  o:set_shape(Shape:box(TABLE.sx/2+WALL.w, WALL.w/2, WALL.h/2))
   o:add_to_world()
-  o:set_pos(0, table_size_y/2+wall_width/2, wall_height/2)
+  o:set_pos(0, TABLE.sy/2+WALL.w/2, WALL.h/2)
   o:set_color(colors.white)
   o = OSimple()
-  o:set_shape(Shape:box(wall_width/2, table_size_y/2+wall_width, wall_height/2))
+  o:set_shape(Shape:box(WALL.w/2, TABLE.sy/2+WALL.w, WALL.h/2))
   o:add_to_world()
-  o:set_pos(table_size_x/2+wall_width/2, 0, wall_height/2)
+  o:set_pos(TABLE.sx/2+WALL.w/2, 0, WALL.h/2)
   o:set_color(colors.white)
   o = OSimple()
-  o:set_shape(Shape:box(wall_width/2, table_size_y/2+wall_width, wall_height/2))
+  o:set_shape(Shape:box(WALL.w/2, TABLE.sy/2+WALL.w, WALL.h/2))
   o:add_to_world()
-  o:set_pos(-table_size_x/2-wall_width/2, 0, wall_height/2)
-  o:set_color(colors.white)
-
-  o = OSimple()
-  o:set_shape(Shape:box(wall_width/2, 0.100/2, wall_height/2))
-  o:add_to_world()
-  o:set_pos(0.900+wall_width/2, -table_size_y/2+0.050, wall_height/2)
-  o:set_color(colors.white)
-  o = OSimple()
-  o:set_shape(Shape:box(wall_width/2, 0.100/2, wall_height/2))
-  o:add_to_world()
-  o:set_pos(-0.900-wall_width/2, -table_size_y/2+0.050, wall_height/2)
+  o:set_pos(-TABLE.sx/2-WALL.w/2, 0, WALL.h/2)
   o:set_color(colors.white)
 
   o = OSimple()
-  o:set_shape(Shape:box(1.800/2+wall_width/2, config.draw_epsilon, 0.250/2))
+  o:set_shape(Shape:box(WALL.w/2, 0.100/2, WALL.h/2))
   o:add_to_world()
-  o:set_pos(0, -table_size_y/2, 0.125)
+  o:set_pos(0.900+WALL.w/2, -TABLE.sy/2+0.050, WALL.h/2)
+  o:set_color(colors.white)
+  o = OSimple()
+  o:set_shape(Shape:box(WALL.w/2, 0.100/2, WALL.h/2))
+  o:add_to_world()
+  o:set_pos(-0.900-WALL.w/2, -TABLE.sy/2+0.050, WALL.h/2)
+  o:set_color(colors.white)
+
+  o = OSimple()
+  o:set_shape(Shape:box(1.800/2+WALL.w/2, config.draw_epsilon, 0.250/2))
+  o:add_to_world()
+  o:set_pos(0, -TABLE.sy/2, 0.125)
   o:set_color(colors.plexi)
   o = OSimple()
-  o:set_shape(Shape:box(0.578/2+wall_width/2, config.draw_epsilon, wall_height/2))
+  o:set_shape(Shape:box(0.578/2+WALL.w/2, config.draw_epsilon, WALL.h/2))
   o:add_to_world()
-  o:set_pos(1.200, -table_size_y/2, wall_height/2)
+  o:set_pos(1.200, -TABLE.sy/2, WALL.h/2)
   o:set_color(colors.plexi)
   o = OSimple()
-  o:set_shape(Shape:box(0.578/2+wall_width/2, config.draw_epsilon, wall_height/2))
+  o:set_shape(Shape:box(0.578/2+WALL.w/2, config.draw_epsilon, WALL.h/2))
   o:add_to_world()
-  o:set_pos(-1.200, -table_size_y/2, wall_height/2)
+  o:set_pos(-1.200, -TABLE.sy/2, WALL.h/2)
   o:set_color(colors.plexi)
 
 
@@ -107,13 +107,13 @@ function init(fconf)
   o = OSimple()
   o:set_shape(Shape:box(1.800/2, 0.100/2, config.draw_epsilon))
   o:add_to_world()
-  o:set_pos(0, 0.050-table_size_y/2, config.draw_epsilon)
+  o:set_pos(0, 0.050-TABLE.sy/2, config.draw_epsilon)
   o:set_color(colors.ral_8017)
 
   o = OSimple()
   o:set_shape(Shape:box(0.600/2, 0.100/2, 0.030/2))
   o:add_to_world()
-  o:set_pos(0, 0.050-table_size_y/2, 0.015)
+  o:set_pos(0, 0.050-TABLE.sy/2, 0.015)
   o:set_color(colors.ral_8017)
 
   o = OSimple()
@@ -159,7 +159,7 @@ function init(fconf)
   -- Fixed
   od = ODispenser()
   od:add_to_world()
-  od:set_pos(table_size_x/2-disp_offset_x, -table_size_y/2, disp_offset_z, 2)
+  od:set_pos(TABLE.sx/2-disp_offset.x, -TABLE.sy/2, disp_offset.z, 2)
   for i = 1,5 do
     o = OColElem()
     o:add_to_world()
@@ -168,7 +168,7 @@ function init(fconf)
   end
   od = ODispenser()
   od:add_to_world()
-  od:set_pos(disp_offset_x-table_size_x/2, -table_size_y/2, disp_offset_z, 2)
+  od:set_pos(disp_offset.x-TABLE.sx/2, -TABLE.sy/2, disp_offset.z, 2)
   for i = 1,5 do
     o = OColElem()
     o:add_to_world()
@@ -179,7 +179,7 @@ function init(fconf)
   -- Random
   od = ODispenser()
   od:add_to_world()
-  od:set_pos(table_size_x/2-wall_width/2, conf_disp==1 and disp_offset_y or -disp_offset_y, disp_offset_z, 1)
+  od:set_pos(TABLE.sx/2-WALL.w/2, conf_disp==1 and disp_offset.y or -disp_offset.y, disp_offset.z, 1)
   for i = 1,5 do
     o = OColElem()
     o:add_to_world()
@@ -188,7 +188,7 @@ function init(fconf)
   end
   od = ODispenser()
   od:add_to_world()
-  od:set_pos(-table_size_x/2+wall_width/2, conf_disp==1 and disp_offset_y or -disp_offset_y, disp_offset_z, 3)
+  od:set_pos(-TABLE.sx/2+WALL.w/2, conf_disp==1 and disp_offset.y or -disp_offset.y, disp_offset.z, 3)
   for i = 1,5 do
     o = OColElem()
     o:add_to_world()

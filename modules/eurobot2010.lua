@@ -2,6 +2,7 @@
 -- Eurobot 2010: Feed the World
 
 require('modules/colors')
+require('modules/eurobot')
 module('eurobot2010', package.seeall)
 
 -- Team colors
@@ -28,23 +29,18 @@ function init(fconf)
   trace("Feed the World rules, fake corns: lateral: "..tostring(conf_side)..", central:"..tostring(conf_center))
 
 
-  -- Various variables
+  -- Various constants
 
-  table_size_x = 3.0
-  table_size_y = 2.1
+  TABLE = eurobot.TABLE
+  WALL  = eurobot.WALL
 
-  field_space_x = 0.450
-  field_space_y = 0.250
-  field_offset_y = 0.128
+  FIELD = { dx = 0.450, dy = 0.250, oy = 0.128 }
+  RAISED = { z = 0.140 }
 
-  local wall_width  = 0.022
-  local wall_height = 0.070
-
-  raised_z = 0.140
 
   -- Compute field element position, (0,0) is middle bottom
   function field_pos(x,y)
-    return x*field_space_x, -table_size_y/2+field_offset_y+y*field_space_y
+    return x*FIELD.dx, -TABLE.sy/2+FIELD.oy+y*FIELD.dy
   end
 
   -- Add a tomato at given position
@@ -56,7 +52,7 @@ function init(fconf)
   -- Add a corn at given position, fake if f is true
   function add_corn(x,y,f)
     local o = OCorn()
-    if f then o:set_mass(0) end --TODO temporary work around
+    o:set_mass(0) --TODO temporary work around
     o:add_to_world()
     o:set_color( f and colors.ral_9017 or colors.ral_1013 )
     o:set_pos( field_pos(x,y) )
@@ -66,8 +62,8 @@ function init(fconf)
   local bac_sh = nil  -- reuse shape
   function add_bac(side)
     local c = (side == 1 and color1 or color2)
-    local off_x = side * (table_size_x-0.500)/2
-    local off_y = -table_size_y/2
+    local off_x = side * (TABLE.sx-0.500)/2
+    local off_y = -TABLE.sy/2
     local bac_l = 0.300
     local bac_h = 0.300
     local bac_w = 0.010
@@ -76,12 +72,12 @@ function init(fconf)
     -- First call: create shapes
     if bac_sh == nil then
       bac_sh = {
-        b_side = Shape:box(bac_w/2, bac_l/2, wall_height/2),
-        b_back = Shape:box(0.250+bac_w, bac_w/2, wall_height/2),
+        b_side = Shape:box(bac_w/2, bac_l/2, WALL.h/2),
+        b_back = Shape:box(0.250+bac_w, bac_w/2, WALL.h/2),
         p_side = Shape:box(bac_w/2, bac_l/2, bac_h/2),
         p_back = Shape:box(0.250+bac_w, bac_w/2, bac_h/2),
         p_front = Shape:box(0.250+bac_w, bac_w/2, bac_h/2-0.020),
-        p_bottom = Shape:box(0.250+bac_w, (bac_l+bac_w)/2, wall_height/2),
+        p_bottom = Shape:box(0.250+bac_w, (bac_l+bac_w)/2, WALL.h/2),
       }
     end
 
@@ -89,17 +85,17 @@ function init(fconf)
     o = OSimple()
     o:set_shape( bac_sh.b_side )
     o:add_to_world()
-    o:set_pos(off_x-0.250-bac_w/2, off_y-bac_l/2, wall_height/2)
+    o:set_pos(off_x-0.250-bac_w/2, off_y-bac_l/2, WALL.h/2)
     o:set_color(c)
     o = OSimple()
     o:set_shape( bac_sh.b_side )
     o:add_to_world( bac_sh.b_side )
-    o:set_pos(off_x+0.250+bac_w/2, off_y-bac_l/2, wall_height/2)
+    o:set_pos(off_x+0.250+bac_w/2, off_y-bac_l/2, WALL.h/2)
     o:set_color(c)
     o = OSimple()
     o:set_shape( bac_sh.b_back )
     o:add_to_world()
-    o:set_pos(off_x, off_y-bac_l-bac_w/2, wall_height/2)
+    o:set_pos(off_x, off_y-bac_l-bac_w/2, WALL.h/2)
     o:set_color(c)
 
     -- plexi (W, E, S, N, bottom)
@@ -140,7 +136,7 @@ function init(fconf)
   o = OGround(colors.ral_6018, color1, color2)
   o:add_to_world()
   o = ORaisedZone()
-  o:set_pos(0, table_size_y/2-0.250, 0)
+  o:set_pos(0, TABLE.sy/2-0.250, 0)
   o:add_to_world()
 
 
@@ -148,25 +144,25 @@ function init(fconf)
   trace("  walls")
 
   o = OSimple()
-  o:set_shape(Shape:box(table_size_x/2+wall_width, wall_width/2, wall_height/2))
+  o:set_shape(Shape:box(TABLE.sx/2+WALL.w, WALL.w/2, WALL.h/2))
   o:add_to_world()
-  o:set_pos(0, table_size_y/2+wall_width/2, wall_height/2)
+  o:set_pos(0, TABLE.sy/2+WALL.w/2, WALL.h/2)
   o:set_color(colors.ral_9017)
-  sh = Shape:box(wall_width/2, table_size_y/2+wall_width, wall_height/2)
+  sh = Shape:box(WALL.w/2, TABLE.sy/2+WALL.w, WALL.h/2)
   o = OSimple()
   o:set_shape( sh )
   o:add_to_world()
-  o:set_pos(table_size_x/2+wall_width/2, 0, wall_height/2)
+  o:set_pos(TABLE.sx/2+WALL.w/2, 0, WALL.h/2)
   o:set_color(colors.ral_9017)
   o = OSimple()
   o:set_shape( sh )
   o:add_to_world()
-  o:set_pos(-table_size_x/2-wall_width/2, 0, wall_height/2)
+  o:set_pos(-TABLE.sx/2-WALL.w/2, 0, WALL.h/2)
   o:set_color(colors.ral_9017)
   o = OSimple()
-  o:set_shape(Shape:box(2.0/2, wall_width/2, wall_height/2))
+  o:set_shape(Shape:box(2.0/2, WALL.w/2, WALL.h/2))
   o:add_to_world()
-  o:set_pos(0, -table_size_y/2-wall_width/2, wall_height/2)
+  o:set_pos(0, -TABLE.sy/2-WALL.w/2, WALL.h/2)
   o:set_color(colors.ral_9017)
 
   add_bac(-1)
@@ -247,14 +243,14 @@ function init(fconf)
     OBranch.sh_h = 0.25
     OBranch.shape = Shape:cylinderZ(0.025, OBranch.sh_h/2)
     function OBranch.set_top_pos(self, x, y)
-      self:set_pos(x, y+table_size_y/2-0.250, raised_z-OBranch.sh_h/2+self.h)
+      self:set_pos(x, y+TABLE.sy/2-0.250, RAISED.z-OBranch.sh_h/2+self.h)
     end
     function OBranch.add_orange(self)
       local x,y,z = self:get_pos()
       local o = OOrange()
       o:add_to_world()
       o:set_mass(0)  --XXX oranges are static, for now
-      o:set_pos(x, y, raised_z+self.h+0.050*math.cos(math.asin(0.025/0.050)))
+      o:set_pos(x, y, RAISED.z+self.h+0.050*math.cos(math.asin(0.025/0.050)))
     end
 
     -- Tree class
