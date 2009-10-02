@@ -68,7 +68,7 @@ public:
    *
    * @return An array of objects which should be deleted after use.
    *
-   * @note If the function fails, the value pointed by \e len_ptr is not *
+   * @note If the function fails, the value pointed by \e len_ptr is not
    * modified.
    */
   template<typename T> static T *checkudtable(lua_State *L, int narg, const char *tname, int *len_ptr=NULL, int len=0)
@@ -263,7 +263,7 @@ private:
 /** @brief Class inherited by classes which provide a Lua class.
  *
  * Userdata are raw pointers.
- * Refcount is increased in store_ptr() and decreased in _gc() to to count the
+ * Refcount is increased in store_ptr() and decreased in _gc() to count the
  * pointer held by Lua.
  */
 template<class T>

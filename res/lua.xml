@@ -136,6 +136,13 @@
       Create collision shapes. There are no constructor, use creation methods
       instead.<br/>
 
+      <function name="compound"><return type="Shape"/>
+        A shape made of several child shapes.
+        Each child is a <tt>{Shape, transform}</tt> pair where
+        <tt>transform</tt> is relative to the parent shape.
+        <arg name="children" type="table"/>
+      </function>
+
       <function name="sphere"><return type="Shape"/>
         <arg name="radius" type="float"/>
       </function>

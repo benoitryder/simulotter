@@ -781,7 +781,7 @@ class LuaOSD: public LuaClass<OSDLua>
   static int show(lua_State *L)
   {
     if( !display )
-      throw(LuaError("OSD:show(): no display")); //XXX luaL_error() doesn't work, why? :(
+      throw(LuaError("OSD:show(): no display"));
     SmartPtr<OSDMessage> osd = get_ptr(L,1);
     display->getOsds().insert( osd );
     return 0;

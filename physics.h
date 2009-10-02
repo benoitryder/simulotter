@@ -143,4 +143,35 @@ private:
 };
 
 
+/** @brief Compound shape which hold reference on children.
+ *
+ * The default btCompoundShape does not allow to keep references on children.
+ * This class fulfil this need, especially for the LUA bindings.
+ *
+ * The \e updateChildReferences must be called after changes on children.
+ *
+ * @note Since parent methods are not virtual, they cannot be overloaded and it
+ * is not possible to make automatically update references. This makes this
+ * class pretty unsafe. Be careful when using it.
+ */
+class CompoundShapeSmart: public btCompoundShape
+{
+public:
+  CompoundShapeSmart(bool enableDynamicAabbTree=true):
+    btCompoundShape(enableDynamicAabbTree) {}
+  virtual ~CompoundShapeSmart();
+
+  /// Update references using current child list
+  void updateChildReferences();
+  /// Release referenced children
+  void clearChildReferences();
+
+  virtual const char *getName() const { return "CompoundSmart"; }
+
+private:
+  /// Store a copy of each referenced child
+  std::vector<btCollisionShape *> ref_children;
+};
+
+
 #endif

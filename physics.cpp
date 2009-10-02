@@ -146,7 +146,7 @@ void TaskLua::do_process_thread(lua_State *L)
 }
 
 
-/** @name Lua Physics class
+/** @brief Lua Physics class
  * The constructor is a factory and returns the singleton.
  */
 class LuaPhysics: public LuaClass<Physics>
@@ -179,11 +179,10 @@ public:
   }
 };
 
-
 LUA_REGISTER_BASE_CLASS(Physics);
 
 
-/** @name Lua Task class
+/** @brief Lua Task class
  */
 class LuaTask: public LuaClass<TaskLua>
 {
@@ -227,17 +226,43 @@ public:
 LUA_REGISTER_BASE_CLASS_NAME(LuaTask,TaskLua,"Task");
 
 
-/** @name Lua collision shapes
+
+CompoundShapeSmart::~CompoundShapeSmart()
+{
+  clearChildReferences();
+}
+
+void CompoundShapeSmart::updateChildReferences()
+{
+  clearChildReferences();
+  int n = getNumChildShapes();
+  ref_children.reserve(n);
+  for( int i=0; i<n; i++ )
+  {
+    btCollisionShape *sh = getChildShape(i);
+    SmartPtr_add_ref(sh);
+    ref_children.push_back(sh);
+  }
+}
+
+void CompoundShapeSmart::clearChildReferences()
+{
+  std::vector<btCollisionShape *>::iterator it;
+  for( it=ref_children.begin(); it!=ref_children.end(); ++it )
+    SmartPtr_release( (*it) );
+  ref_children.clear();
+}
+
+
+/** @brief Lua collision shapes
  *
- * Shapes is not a usual class: instances are created using a specific method
+ * Shape is not a usual class: instances are created using a specific method
  * for each shape, there are no constructor.
  * Instances are not tables with an \e _ud fields but userdata.
  * store_ptr() and get_ptr() are redefined for this purpose.
  *
  * @todo Compound shapes
  */
-//@{
-
 class LuaShape: public LuaClass<btCollisionShape>
 {
   static void store_ptr(lua_State *L, btCollisionShape *p)
@@ -261,6 +286,48 @@ class LuaShape: public LuaClass<btCollisionShape>
   static int _ctor(lua_State *L)
   {
     return luaL_error(L, "no Shape constructor, use creation methods");
+  }
+
+  static int compound(lua_State *L)
+  {
+    CompoundShapeSmart *cshape = new CompoundShapeSmart();
+
+    // Get the Shape metatable to check type
+    lua_getfield(L, LUA_REGISTRYINDEX, LUA_REGISTRY_PREFIX "Shape"); //XXX
+    int shape_mt = lua_gettop(L);
+
+    lua_pushnil(L);
+    while( lua_next(L, 2) != 0 )
+    {
+      if( !lua_istable(L, -1) || lua_objlen(L, -1) != 2 )
+        return luaL_error(L, "invalid child element, pair expected");
+
+      // shape
+      lua_rawgeti(L, -1, 1);
+      void *p = lua_touserdata(L, -1);
+      if( p == NULL )
+        throw(LuaError("invalid shape"));
+      btCollisionShape *sh = *(btCollisionShape **)p;
+      if( sh == NULL || !lua_getmetatable(L, -1) || !lua_rawequal(L, -1, shape_mt) )
+        throw(LuaError("invalid shape"));
+      lua_pop(L, 2);
+
+      // transform
+      btTransform tr;
+      lua_rawgeti(L, -1, 2);
+      if( LuaManager::totransform(L, -1, tr) != 0 )
+        throw(LuaError(L, "invalid transform"));
+      lua_pop(L, 1);
+
+      cshape->addChildShape(tr, sh);
+      lua_pop(L, 1);
+    }
+
+    lua_remove(L, shape_mt);
+
+    cshape->updateChildReferences();
+    store_ptr(L, cshape);
+    return 1;
   }
 
   static int sphere(lua_State *L)
@@ -311,6 +378,7 @@ public:
   LuaShape()
   {
     LUA_REGFUNC(_ctor);
+    LUA_REGFUNC(compound);
     LUA_REGFUNC(sphere);
     LUA_REGFUNC(box);
     LUA_REGFUNC(capsuleX);
@@ -324,4 +392,3 @@ public:
 
 LUA_REGISTER_BASE_CLASS_NAME(LuaShape,btCollisionShape,"Shape");
 
-//@}

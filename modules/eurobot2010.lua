@@ -71,58 +71,38 @@ function init(fconf)
 
     -- First call: create shapes
     if bac_sh == nil then
+      local b_side = Shape:box(bac_w/2, bac_l/2, WALL.h/2)
+      local b_back = Shape:box(0.250+bac_w, bac_w/2, WALL.h/2)
+      local p_side = Shape:box(bac_w/2, bac_l/2, bac_h/2)
+      local p_back = Shape:box(0.250+bac_w, bac_w/2, bac_h/2)
+      local p_front = Shape:box(0.250+bac_w, bac_w/2, bac_h/2-0.020)
+      local p_bottom = Shape:box(0.250+bac_w, (bac_l+bac_w)/2, WALL.h/2)
       bac_sh = {
-        b_side = Shape:box(bac_w/2, bac_l/2, WALL.h/2),
-        b_back = Shape:box(0.250+bac_w, bac_w/2, WALL.h/2),
-        p_side = Shape:box(bac_w/2, bac_l/2, bac_h/2),
-        p_back = Shape:box(0.250+bac_w, bac_w/2, bac_h/2),
-        p_front = Shape:box(0.250+bac_w, bac_w/2, bac_h/2-0.020),
-        p_bottom = Shape:box(0.250+bac_w, (bac_l+bac_w)/2, WALL.h/2),
+        band = Shape:compound({
+          {b_side, {-0.250-bac_w/2, -bac_l/2, 0}},
+          {b_side, { 0.250+bac_w/2, -bac_l/2, 0}},
+          {b_back, { 0, -bac_l-bac_w/2, 0}},
+        }),
+        plexi = Shape:compound({
+          {p_side,   {-0.250-bac_w/2, -bac_l/2, 0}},
+          {p_side,   { 0.250+bac_w/2, -bac_l/2, 0}},
+          {p_back,   {0, -bac_l-bac_w/2, 0}},
+          {p_front,  {0, -bac_w/2, -0.020}},
+          {p_bottom, {0, -bac_l/2-bac_w/2, -bac_h/2}},
+        }),
       }
     end
 
-    -- color bands (W, E, S)
     o = OSimple()
-    o:set_shape( bac_sh.b_side )
+    o:set_shape( bac_sh.band )
     o:add_to_world()
-    o:set_pos(off_x-0.250-bac_w/2, off_y-bac_l/2, WALL.h/2)
-    o:set_color(c)
-    o = OSimple()
-    o:set_shape( bac_sh.b_side )
-    o:add_to_world( bac_sh.b_side )
-    o:set_pos(off_x+0.250+bac_w/2, off_y-bac_l/2, WALL.h/2)
-    o:set_color(c)
-    o = OSimple()
-    o:set_shape( bac_sh.b_back )
-    o:add_to_world()
-    o:set_pos(off_x, off_y-bac_l-bac_w/2, WALL.h/2)
+    o:set_pos(off_x, off_y, WALL.h/2)
     o:set_color(c)
 
-    -- plexi (W, E, S, N, bottom)
     o = OSimple()
-    o:set_shape( bac_sh.p_side )
+    o:set_shape( bac_sh.plexi )
     o:add_to_world()
-    o:set_pos(off_x-0.250-bac_w/2, off_y-bac_l/2, -bac_h/2)
-    o:set_color(colors.plexi)
-    o = OSimple()
-    o:set_shape( bac_sh.p_side )
-    o:add_to_world()
-    o:set_pos(off_x+0.250+bac_w/2, off_y-bac_l/2, -bac_h/2)
-    o:set_color(colors.plexi)
-    o = OSimple()
-    o:set_shape( bac_sh.p_back )
-    o:add_to_world()
-    o:set_pos(off_x, off_y-bac_l-bac_w/2, -bac_h/2)
-    o:set_color(colors.plexi)
-    o = OSimple()
-    o:set_shape( bac_sh.p_front )
-    o:add_to_world()
-    o:set_pos(off_x, off_y-bac_w/2, -bac_h/2-0.020)
-    o:set_color(colors.plexi)
-    o = OSimple()
-    o:set_shape( bac_sh.p_bottom )
-    o:add_to_world()
-    o:set_pos(off_x, off_y-bac_l/2-bac_w/2, -bac_h)
+    o:set_pos(off_x, off_y, -bac_h/2)
     o:set_color(colors.plexi)
   end
 

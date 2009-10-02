@@ -122,3 +122,5 @@ eurobot2010.init( nil )
 
 trace("------ SCRIPT END ------")
 
+collectgarbage('collect')
+
