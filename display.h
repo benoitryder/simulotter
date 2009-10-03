@@ -208,7 +208,7 @@ public:
   OSDMessage() {}
   virtual ~OSDMessage() {}
 
-  /** @namme Common accessors
+  /** @name Common accessors
    */
   //@{
   virtual const char *getText() = 0;
@@ -250,7 +250,7 @@ public:
   OSDLua(int ref_obj);
   virtual ~OSDLua();
 
-  /** @namme Common accessors
+  /** @name Common accessors
    */
   //@{
   virtual const char *getText();

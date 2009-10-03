@@ -63,7 +63,7 @@ public:
    *
    * @param  L       Lua state
    * @param  narg    checked argument
-   * @param  type    type of table elements
+   * @param  tname   type of table elements
    * @param  len_ptr if not null, pointed value is set to the actual table size
    * @param  len     size of table (0: any size, negative: minimum size)
    *
