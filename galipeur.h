@@ -13,8 +13,6 @@
  *
  * Galipeur shares code with RBasic but has its own (re)implementation for
  * better flexibility, since it may (will?) evolves in a different way.
- *
- * @todo Make threshold_* and v*_max values constant ?
  */
 class Galipeur: public Robot
 {

@@ -260,8 +260,6 @@ void CompoundShapeSmart::clearChildReferences()
  * for each shape, there are no constructor.
  * Instances are not tables with an \e _ud fields but userdata.
  * store_ptr() and get_ptr() are redefined for this purpose.
- *
- * @todo Compound shapes
  */
 class LuaShape: public LuaClass<btCollisionShape>
 {

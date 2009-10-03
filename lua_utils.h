@@ -16,6 +16,7 @@ extern "C"
 class LuaClassBase;
 class LuaMainModule;
 class LuaError;
+template <class T> class LuaClass;
 
 
 /** @brief Lua state and various functions.
@@ -160,6 +161,24 @@ public:
     push(L, y); push(L, p); push(L, r);
   }
   template<typename T, int n> static void push(lua_State *L, const T t[n]) { for( int i=0; i<n; i++ ) push(L, t[i]); }
+
+  /** @brief Push an already created object, or nil
+   *
+   * @warning This will not work for LuaShape.
+   */
+  template<class T> static void push(lua_State *L, T *t)
+  {
+    if( t == NULL )
+      lua_pushnil(L);
+    else
+    {
+      lua_newtable(L);
+      LuaClass<T>::store_ptr(L, t, lua_gettop(L));
+      lua_getfield(L, LUA_REGISTRYINDEX, LuaClass<T>::name);
+      lua_setmetatable(L, -2);
+    }
+  }
+
   //@}
 
 private:
@@ -269,6 +288,7 @@ private:
 template<class T>
 class LuaClass: public LuaClassBase
 {
+  friend class LuaManager;
 public:
   typedef T data_type;
   typedef T *data_ptr;
@@ -319,16 +339,16 @@ protected:
   /** @brief Return pointer to a new userdata object
    *
    * Create a new userdata, set its metatable, set the \e _ud field of the
-   * first argument and return a pointer to the userdata.
+   * given argument and return a pointer to the userdata.
    */
-  static data_ptr *new_ptr(lua_State *L)
+  static data_ptr *new_ptr(lua_State *L, int narg=1)
   {
     // Create userdata
     LuaManager::push(L, "_ud");
     data_ptr *ud = (data_ptr *)lua_newuserdata(L, sizeof(data_ptr));
     lua_getfield(L, LUA_REGISTRYINDEX, name);
     lua_setmetatable(L, -2);
-    lua_rawset(L, 1);
+    lua_rawset(L, narg);
     return ud;
   }
 
@@ -336,13 +356,14 @@ protected:
    *
    * @note This function should be called by any constructor.
    */
-  static void store_ptr(lua_State *L, data_ptr p)
+  static void store_ptr(lua_State *L, data_ptr p, int narg=1)
   {
-    data_ptr *ud = new_ptr(L);
+    data_ptr *ud = new_ptr(L, narg);
     *ud = p;
     // Increase ref count and store the pointer
     SmartPtr_add_ref(p);
   }
+
 
   /// Class name
   static const char *name;
@@ -352,7 +373,9 @@ protected:
 };
 
 
+/// Prefix for all simulotter entries in the registry
 #define LUA_REGISTRY_PREFIX  "simulotter_"
+/// Namespace prefix for registry entries
 #define LUA_NS_PREFIX(NS) #NS "_"
 
 

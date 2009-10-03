@@ -81,7 +81,7 @@ namespace eurobot2010
       dl_id = glGenLists(1);
       glNewList(dl_id, GL_COMPILE_AND_EXECUTE);
 
-      glColor4fv(Color4(0.6)); //TODO
+      glColor4fv(Color4(1)); // RAL 9016
 
       glBegin(GL_QUAD_STRIP);
       const btVector2 vn_slope = btVector2(height,(bottom_length-top_length)/2).normalized();

@@ -37,7 +37,6 @@ protected:
  * set_v()) which may cause odd behaviors.
  *
  * @todo Add a setPosAbove() function.
- * @todo Add a setPosStart() function.
  */
 class RBasic: public Robot
 {

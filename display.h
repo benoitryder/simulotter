@@ -57,9 +57,6 @@ private:
    *  - fixed: cartesian coordinates, does not move
    *  - ref: spherical offset from the other point (eye or target)
    *  - object: object position with spherical offset
-   *
-   * @todo For objects, use a list of "trackable" objects (eg. robots) which
-   * would be modified in Lua.
    */
   //@{
 public:
@@ -93,7 +90,7 @@ public:
   {
     btVector3  cart;
     btSpheric3 spheric;
-    Object *obj;
+    SmartPtr<Object> obj;
   } CameraPoint;
 
   const CameraPoint &getCameraEye()    const { return camera_eye;    }

@@ -699,15 +699,32 @@ class LuaDisplay: public LuaClass<Display>
 
   static int set_camera_eye(lua_State *L)
   {
-    getCameraPointInfo(L, 2, &get_ptr(L,1)->camera_eye);
+    toCameraPoint(L, 2, &get_ptr(L,1)->camera_eye);
     return 0;
   }
 
   static int set_camera_target(lua_State *L)
   {
-    getCameraPointInfo(L, 2, &get_ptr(L,1)->camera_target);
+    toCameraPoint(L, 2, &get_ptr(L,1)->camera_target);
     return 0;
   }
+
+  LUA_DEFINE_GET(get_camera_mode,getCameraMode);
+  
+  static int get_camera_eye(lua_State *L)
+  {
+    lua_newtable(L);
+    pushCameraPoint(L, &get_ptr(L,1)->camera_eye);
+    return 1;
+  }
+
+  static int get_camera_target(lua_State *L)
+  {
+    lua_newtable(L);
+    pushCameraPoint(L, &get_ptr(L,1)->camera_target);
+    return 1;
+  }
+
 
 protected:
   /** @brief Get camera point info from a table.
@@ -717,7 +734,7 @@ protected:
    *
    * @note Argument is assumed to be a table.
    */
-  static void getCameraPointInfo(lua_State *L, int narg, Display::CameraPoint *camera_point)
+  static void toCameraPoint(lua_State *L, int narg, Display::CameraPoint *camera_point)
   {
     lua_getfield(L, narg, "x");
     if( lua_isnumber(L, -1) )
@@ -749,6 +766,31 @@ protected:
     lua_pop(L, 1);
   }
 
+  /** @brief Push camera point info to a table.
+   *
+   * Pushed fields are: x, y, z, r, theta, phi, obj to the table at the top of
+   * the stack.
+   *
+   * @note Argument is assumed to be a table.
+   */
+  static void pushCameraPoint(lua_State *L, Display::CameraPoint *camera_point)
+  {
+    lua_pushnumber(L, unscale(camera_point->cart[0]));
+    lua_setfield(L, -2, "x");
+    lua_pushnumber(L, unscale(camera_point->cart[1]));
+    lua_setfield(L, -2, "y");
+    lua_pushnumber(L, unscale(camera_point->cart[2]));
+    lua_setfield(L, -2, "z");
+    lua_pushnumber(L, unscale(camera_point->spheric.r));
+    lua_setfield(L, -2, "r");
+    lua_pushnumber(L, unscale(camera_point->spheric.theta));
+    lua_setfield(L, -2, "theta");
+    lua_pushnumber(L, unscale(camera_point->spheric.phi));
+    lua_setfield(L, -2, "phi");
+    LuaManager::push(L, camera_point->obj.get());
+    lua_setfield(L, -2, "obj");
+  }
+
 public:
   LuaDisplay()
   {
@@ -758,6 +800,9 @@ public:
     LUA_REGFUNC(set_camera_mode);
     LUA_REGFUNC(set_camera_eye);
     LUA_REGFUNC(set_camera_target);
+    LUA_REGFUNC(get_camera_mode);
+    LUA_REGFUNC(get_camera_eye);
+    LUA_REGFUNC(get_camera_target);
   }
 };
 

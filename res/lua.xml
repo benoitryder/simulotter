@@ -97,6 +97,23 @@
         <arg type="table" name="params" />
       </function>
 
+      <function name="get_camera_mode">
+        Get camera mode as as defined in <tt>display.h</tt>.
+        <return type="int" />
+      </function>
+
+      <function name="get_camera_eye">
+        Get camera eye parameters as a table.<br/>
+        See <tt>get_camera_eye()</tt> for details on parameters.
+        <return type="table" />
+      </function>
+
+      <function name="get_camera_target">
+        Get camera target parameters as a table.<br/>
+        See <tt>get_camera_eye()</tt> for details on parameters.
+        <return type="table" />
+      </function>
+
     </class>
 
     <class name="OSD">
