@@ -46,6 +46,11 @@
         <return type="bool"/>
       </function>
 
+      <function name="get_time">
+        Return current simulation time.
+        <return type="float"/>
+      </function>
+
       <function name="pause">Pause the simulation.</function>
       <function name="unpause">Unpause the simulation.</function>
       <function name="toggle_pause">Toggle pause state.</function>
@@ -70,9 +75,9 @@
         <return type="bool"/>
       </function>
 
-      <function name="get_time">
-        Return current simulation time.
-        <return type="float"/>
+      <function name="save_screenshot">
+        Save a PNG sreenshot to a file.
+        <arg name="filename" type="string" />
       </function>
 
       <function name="set_camera_mode">

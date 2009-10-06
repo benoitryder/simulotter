@@ -93,7 +93,7 @@ int main(int argc, char **argv)
         {
           display->handleEvents();
           display->update();
-          time_disp += disp_dt;
+          time_disp = time + disp_dt;
         }
 
         time_wait = MIN(time_step,time_disp);

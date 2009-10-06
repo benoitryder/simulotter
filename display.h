@@ -37,6 +37,26 @@ public:
   /// Update display
   void update();
 
+  /** @name Screenshots
+   *
+   * Screenshots are scheduled to be taken after next drawn frame.
+   * Only the last filename will be taken in account.
+   */
+  //@{
+
+private:
+  /** @brief Schedule a screenshot.
+   * The filename string is copied and can safely be immediately freed by the
+   * caller.
+   */
+  void savePNGScreenshot(const char *filename);
+  /// Save a PNG screenshot into a file
+  void doSavePNGScreenshot(const char *filename);
+  /// Filename of the scheduled screenshot, or \e NULL
+  char *screenshot_filename;
+
+  //@}
+
 private:
   SDL_Surface *screen;
 

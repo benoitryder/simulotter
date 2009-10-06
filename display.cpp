@@ -1,8 +1,11 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
+#include <SDL/SDL_endian.h>
 #include <GL/freeglut.h>
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
+#include <png.h>
 #include <vector>
 #include "global.h"
 #include "icon.h"
@@ -15,6 +18,7 @@ Display::Display()
   glutInit(&argc, NULL);
 
   this->screen = NULL;
+  this->screenshot_filename = NULL;
 
   camera_mode = CAM_FIXED;
   camera_eye.spheric = scale( btSpheric3(4.0, M_PI/6, -M_PI/3) );
@@ -178,7 +182,132 @@ void Display::update()
 
   SDL_GL_SwapBuffers();
   glFlush();
+
+  // Save screenshot
+  if( screenshot_filename != NULL )
+  {
+    doSavePNGScreenshot(screenshot_filename);
+    delete[] screenshot_filename;
+    screenshot_filename = NULL;
+  }
 }
+
+
+/** @name PNG related declarations.
+ */
+//@{
+
+#define PNG_ERROR_SIZE  256
+
+typedef struct
+{
+  char msg[PNG_ERROR_SIZE];
+} png_error_data;
+
+
+static void png_handler_error(png_struct *png_ptr, const char *msg)
+{
+  png_error_data *error = (png_error_data *)png_get_error_ptr(png_ptr);
+  strncpy(error->msg, msg, PNG_ERROR_SIZE);
+  error->msg[PNG_ERROR_SIZE-1] = '\0';
+  longjmp(png_ptr->jmpbuf, 1);
+}
+
+static void png_handler_warning(png_struct *png_ptr, const char *msg)
+{
+  LOG->trace("PNG: warning: %s", msg);
+}
+
+//@}
+
+void Display::savePNGScreenshot(const char *filename)
+{
+  if( filename == NULL )
+    return;
+  if( screenshot_filename != NULL )
+    delete[] screenshot_filename;
+  int n = ::strlen(filename);
+  screenshot_filename = new char[n+1];
+  strncpy(screenshot_filename, filename, n);
+  screenshot_filename[n] = '\0';
+}
+
+void Display::doSavePNGScreenshot(const char *filename)
+{
+  FILE *fp = NULL;
+  png_bytep pixels = NULL;
+  png_bytepp row_pointers = NULL;
+
+  try
+  {
+    // Open output file
+    FILE *fp = fopen(filename, "wb");
+    if( !fp )
+      throw(Error("cannot open file '%s' for writing", filename));
+
+    png_error_data error;
+
+    // PNG initializations
+
+    png_structp png_ptr = png_create_write_struct(
+        PNG_LIBPNG_VER_STRING, &error,
+        png_handler_error, png_handler_warning
+        );
+    if( !png_ptr )
+      throw(Error("png_create_write struct failed"));
+
+    png_infop info_ptr = png_create_info_struct(png_ptr);
+    if( !info_ptr )
+    {
+      png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+      throw(Error("png_create_info_struct failed"));
+    }
+
+    if( setjmp(png_ptr->jmpbuf) )
+    {
+      png_destroy_write_struct(&png_ptr, &info_ptr);
+      throw(Error(error.msg));
+    }
+
+    png_init_io(png_ptr, fp);
+
+    png_set_IHDR(png_ptr, info_ptr, screen_x, screen_y, 8, PNG_COLOR_TYPE_RGB,
+        PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
+        PNG_FILTER_TYPE_DEFAULT);
+
+    // Get pixels, create pixel rows
+    SDL_LockSurface(this->screen);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    SDL_UnlockSurface(this->screen);
+    pixels = new unsigned char[4*screen_x*screen_y];
+    glReadPixels(0, 0, screen_x, screen_y, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    row_pointers = new png_bytep[screen_y];
+    int i;
+    for( i=0; i<screen_y; i++ )
+      row_pointers[screen_y-i-1] = (png_bytep)pixels+3*i*screen_x;
+    png_set_rows(png_ptr, info_ptr, row_pointers);
+
+    // Write data
+    png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+
+    delete[] row_pointers; row_pointers = NULL;
+    delete[] pixels; pixels = NULL;
+    fclose(fp); fp = NULL;
+
+    LOG->trace("screenshot saved: %s", filename);
+  }
+  catch(const Error &e)
+  {
+    if( row_pointers != NULL )
+      delete[] row_pointers;
+    if( pixels != NULL )
+      delete[] pixels;
+      fclose(fp);
+    throw(Error("SDL: cannot save screenshot: %s", e.what()));
+  }
+}
+
 
 void Display::drawString(const char *s, int x, int y, Color4 color, void *font)
 {
@@ -669,6 +798,7 @@ class LuaDisplay: public LuaClass<Display>
 
   LUA_DEFINE_SET0(init, init);
   LUA_DEFINE_GET(is_initialized, isInitialized);
+  LUA_DEFINE_SET1(save_screenshot, savePNGScreenshot, LARG_s);
 
   static int set_camera_mode(lua_State *L)
   {
@@ -797,6 +927,7 @@ public:
     LUA_REGFUNC(_ctor);
     LUA_REGFUNC(init);
     LUA_REGFUNC(is_initialized);
+    LUA_REGFUNC(save_screenshot);
     LUA_REGFUNC(set_camera_mode);
     LUA_REGFUNC(set_camera_eye);
     LUA_REGFUNC(set_camera_target);

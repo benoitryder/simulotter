@@ -8,9 +8,9 @@ CFLAGS = -g -Wall -I/usr/local/include/lua5.1 -I/usr/include/lua5.1 -I.
 BULLET_LIBS = -lBulletDynamics -lBulletCollision -lLinearMath
 
 ifeq ($(OS),Windows_NT)
-LDFLAGS = -mconsole -lfreeglut -mwindows -lSDL -lm $(BULLET_LIBS) -lopengl32 -lglu32 -lwinmm -llua
+LDFLAGS = -mconsole -lfreeglut -mwindows -lSDL -lm $(BULLET_LIBS) -lopengl32 -lglu32 -lwinmm -llua -lpng
 else
-LDFLAGS = -lm $(BULLET_LIBS) -lGL -llua5.1 -lglut -lSDL
+LDFLAGS = -lm $(BULLET_LIBS) -lGL -llua5.1 -lglut -lSDL -lpng
 endif
 
 OBJS = main.o config.o physics.o display.o object.o sensors.o robot.o galipeur.o log.o
