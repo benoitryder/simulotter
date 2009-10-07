@@ -358,10 +358,10 @@ namespace eurobot2009
       return 0;
     }
 
-  public:
-    LuaOColElem()
+
+    virtual void init_members(lua_State *L)
     {
-      LUA_REGFUNC(_ctor);
+      LUA_CLASS_MEMBER(_ctor);
     }
   };
 
@@ -373,10 +373,10 @@ namespace eurobot2009
       return 0;
     }
 
-  public:
-    LuaOLintel()
+
+    virtual void init_members(lua_State *L)
     {
-      LUA_REGFUNC(_ctor);
+      LUA_CLASS_MEMBER(_ctor);
     }
   };
 
@@ -406,12 +406,12 @@ namespace eurobot2009
       return 0;
     }
 
-  public:
-    LuaODispenser()
+
+    virtual void init_members(lua_State *L)
     {
-      LUA_REGFUNC(_ctor);
-      LUA_REGFUNC(set_pos);
-      LUA_REGFUNC(fill);
+      LUA_CLASS_MEMBER(_ctor);
+      LUA_CLASS_MEMBER(set_pos);
+      LUA_CLASS_MEMBER(fill);
     }
   };
 
@@ -441,12 +441,12 @@ namespace eurobot2009
       return 0;
     }
 
-  public:
-    LuaOLintelStorage()
+
+    virtual void init_members(lua_State *L)
     {
-      LUA_REGFUNC(_ctor);
-      LUA_REGFUNC(set_pos);
-      LUA_REGFUNC(fill);
+      LUA_CLASS_MEMBER(_ctor);
+      LUA_CLASS_MEMBER(set_pos);
+      LUA_CLASS_MEMBER(fill);
     }
   };
 
@@ -472,18 +472,18 @@ namespace eurobot2009
     LUA_DEFINE_SET1(set_pachev_eject_v, set_pachev_eject_v, LARG_scaled)
     LUA_DEFINE_SET1(set_threshold_pachev, set_threshold_pachev, LARG_scaled)
 
-  public:
-    LuaGalipeur2009()
+
+    virtual void init_members(lua_State *L)
     {
-      LUA_REGFUNC(_ctor);
-      LUA_REGFUNC(order_pachev_move);
-      LUA_REGFUNC(order_pachev_release);
-      LUA_REGFUNC(order_pachev_grab);
-      LUA_REGFUNC(order_pachev_eject);
-      LUA_REGFUNC(get_pachev_pos);
-      LUA_REGFUNC(set_pachev_v);
-      LUA_REGFUNC(set_threshold_pachev);
-      LUA_REGFUNC(set_pachev_eject_v);
+      LUA_CLASS_MEMBER(_ctor);
+      LUA_CLASS_MEMBER(order_pachev_move);
+      LUA_CLASS_MEMBER(order_pachev_release);
+      LUA_CLASS_MEMBER(order_pachev_grab);
+      LUA_CLASS_MEMBER(order_pachev_eject);
+      LUA_CLASS_MEMBER(get_pachev_pos);
+      LUA_CLASS_MEMBER(set_pachev_v);
+      LUA_CLASS_MEMBER(set_threshold_pachev);
+      LUA_CLASS_MEMBER(set_pachev_eject_v);
     }
   };
 

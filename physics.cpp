@@ -166,16 +166,16 @@ class LuaPhysics: public LuaClass<Physics>
   LUA_DEFINE_SET0(unpause, unpause);
   LUA_DEFINE_SET0(toggle_pause, togglePause);
 
-public:
-  LuaPhysics()
+
+  virtual void init_members(lua_State *L)
   {
-    LUA_REGFUNC(_ctor);
-    LUA_REGFUNC(init);
-    LUA_REGFUNC(is_initialized);
-    LUA_REGFUNC(get_time);
-    LUA_REGFUNC(pause);
-    LUA_REGFUNC(unpause);
-    LUA_REGFUNC(toggle_pause);
+    LUA_CLASS_MEMBER(_ctor);
+    LUA_CLASS_MEMBER(init);
+    LUA_CLASS_MEMBER(is_initialized);
+    LUA_CLASS_MEMBER(get_time);
+    LUA_CLASS_MEMBER(pause);
+    LUA_CLASS_MEMBER(unpause);
+    LUA_CLASS_MEMBER(toggle_pause);
   }
 };
 
@@ -214,12 +214,12 @@ class LuaTask: public LuaClass<TaskLua>
     return 0;
   }
 
-public:
-  LuaTask()
+
+  virtual void init_members(lua_State *L)
   {
-    LUA_REGFUNC(_ctor);
-    LUA_REGFUNC(cancel);
-    LUA_REGFUNC(schedule);
+    LUA_CLASS_MEMBER(_ctor);
+    LUA_CLASS_MEMBER(cancel);
+    LUA_CLASS_MEMBER(schedule);
   }
 };
 
@@ -372,19 +372,19 @@ class LuaShape: public LuaClass<btCollisionShape>
     return 1;
   }
 
-public:
-  LuaShape()
+
+  virtual void init_members(lua_State *L)
   {
-    LUA_REGFUNC(_ctor);
-    LUA_REGFUNC(compound);
-    LUA_REGFUNC(sphere);
-    LUA_REGFUNC(box);
-    LUA_REGFUNC(capsuleX);
-    LUA_REGFUNC(capsuleY);
-    LUA_REGFUNC(capsuleZ);
-    LUA_REGFUNC(cylinderX);
-    LUA_REGFUNC(cylinderY);
-    LUA_REGFUNC(cylinderZ);
+    LUA_CLASS_MEMBER(_ctor);
+    LUA_CLASS_MEMBER(compound);
+    LUA_CLASS_MEMBER(sphere);
+    LUA_CLASS_MEMBER(box);
+    LUA_CLASS_MEMBER(capsuleX);
+    LUA_CLASS_MEMBER(capsuleY);
+    LUA_CLASS_MEMBER(capsuleZ);
+    LUA_CLASS_MEMBER(cylinderX);
+    LUA_CLASS_MEMBER(cylinderY);
+    LUA_CLASS_MEMBER(cylinderZ);
   }
 };
 

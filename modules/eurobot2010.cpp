@@ -211,10 +211,10 @@ namespace eurobot2010
       return 0;
     }
 
-  public:
-    LuaORaisedZone()
+
+    virtual void init_members(lua_State *L)
     {
-      LUA_REGFUNC(_ctor);
+      LUA_CLASS_MEMBER(_ctor);
     }
   };
 
@@ -227,10 +227,10 @@ namespace eurobot2010
       return 0;
     }
 
-  public:
-    LuaOCorn()
+
+    virtual void init_members(lua_State *L)
     {
-      LUA_REGFUNC(_ctor);
+      LUA_CLASS_MEMBER(_ctor);
     }
   };
 
@@ -243,10 +243,10 @@ namespace eurobot2010
       return 0;
     }
 
-  public:
-    LuaOTomato()
+
+    virtual void init_members(lua_State *L)
     {
-      LUA_REGFUNC(_ctor);
+      LUA_CLASS_MEMBER(_ctor);
     }
   };
 
@@ -259,10 +259,10 @@ namespace eurobot2010
       return 0;
     }
 
-  public:
-    LuaOOrange()
+
+    virtual void init_members(lua_State *L)
     {
-      LUA_REGFUNC(_ctor);
+      LUA_CLASS_MEMBER(_ctor);
     }
   };
 

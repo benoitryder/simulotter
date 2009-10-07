@@ -81,10 +81,9 @@
       </function>
 
       <function name="set_camera_mode">
-        Set camera mode. <tt>mode</tt> is an integer (as defined in
-        <tt>display.h</tt>) or one of the following string: <tt>FREE</tt>,
-        <tt>FIXED</tt>, <tt>FOLLOW</tt>, <tt>ONBOARD</tt>, <tt>LOOK</tt>.
-        <arg type="int|string" name="mode" />
+        Set camera mode. <tt>mode</tt> can be defined using one or a sum of
+        <tt>CAM_*</tt> values.
+        <arg type="int" name="mode" />
       </function>
 
       <function name="set_camera_eye">
@@ -118,6 +117,20 @@
         See <tt>get_camera_eye()</tt> for details on parameters.
         <return type="table" />
       </function>
+
+      <value name="CAM_EYE_FIXED" />
+      <value name="CAM_EYE_REL" />
+      <value name="CAM_EYE_OBJECT" />
+      <value name="CAM_EYE_MASK" />
+      <value name="CAM_TARGET_FIXED" />
+      <value name="CAM_TARGET_REL" />
+      <value name="CAM_TARGET_OBJECT" />
+      <value name="CAM_TARGET_MASK" />
+      <value name="CAM_FREE">Alias for <tt>CAM_EYE_FIXED+CAM_TARGET_REL</tt></value>
+      <value name="CAM_FIXED">Alias for <tt>CAM_EYE_REL+CAM_TARGET_FIXED</tt></value>
+      <value name="CAM_FOLLOW">Alias for <tt>CAM_EYE_REL+CAM_TARGET_OBJECT</tt></value>
+      <value name="CAM_ONBOARD">Alias for <tt>CAM_EYE_OBJECT+CAM_TARGET_REL</tt></value>
+      <value name="CAM_LOOK">Alias for <tt>CAM_EYE_FIXED+CAM_TARGET_OBJECT</tt></value>
 
     </class>
 

@@ -290,15 +290,15 @@ class LuaObject: public LuaClass<Object>
     return 0;
   }
 
-public:
-  LuaObject()
+
+  virtual void init_members(lua_State *L)
   {
-    LUA_REGFUNC(_ctor);
-    LUA_REGFUNC(get_pos);
-    LUA_REGFUNC(get_rot);
-    LUA_REGFUNC(set_pos);
-    LUA_REGFUNC(set_rot);
-    LUA_REGFUNC(add_to_world);
+    LUA_CLASS_MEMBER(_ctor);
+    LUA_CLASS_MEMBER(get_pos);
+    LUA_CLASS_MEMBER(get_rot);
+    LUA_CLASS_MEMBER(set_pos);
+    LUA_CLASS_MEMBER(set_rot);
+    LUA_CLASS_MEMBER(add_to_world);
   }
 };
 
@@ -338,15 +338,15 @@ class LuaOSimple: public LuaClass<OSimple>
     return 0;
   }
 
-public:
-  LuaOSimple()
+
+  virtual void init_members(lua_State *L)
   {
-    LUA_REGFUNC(_ctor);
-    LUA_REGFUNC(set_shape);
-    LUA_REGFUNC(set_mass);
-    LUA_REGFUNC(is_initialized);
-    LUA_REGFUNC(set_pos);
-    LUA_REGFUNC(set_color);
+    LUA_CLASS_MEMBER(_ctor);
+    LUA_CLASS_MEMBER(set_shape);
+    LUA_CLASS_MEMBER(set_mass);
+    LUA_CLASS_MEMBER(is_initialized);
+    LUA_CLASS_MEMBER(set_pos);
+    LUA_CLASS_MEMBER(set_color);
   }
 };
 
@@ -363,10 +363,10 @@ class LuaOGround: public LuaClass<OGround>
     return 0;
   }
 
-public:
-  LuaOGround()
+
+  virtual void init_members(lua_State *L)
   {
-    LUA_REGFUNC(_ctor);
+    LUA_CLASS_MEMBER(_ctor);
   }
 };
 

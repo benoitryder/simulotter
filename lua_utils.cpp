@@ -202,16 +202,11 @@ void LuaClassBase::create(lua_State *L)
   lua_pushvalue(L, -1);
   lua_setfield(L, -2, "__index");
 
-  // Add methods
-  std::vector<LuaRegFunc>::iterator it;
-  for( it=functions.begin(); it!=functions.end(); ++it )
-  {
-    lua_pushcfunction(L, (*it).f);
-    lua_setfield(L, -2, (*it).name);
-  }
+  // Add class members
+  this->init_class_members(L);
 
   // Create the class object
-  this->create_ud(L);
+  this->push_class_ud(L);
   lua_getfield(L, LUA_REGISTRYINDEX, registry_class_mt_name);
   lua_setmetatable(L, -2);
 

@@ -363,32 +363,32 @@ class LuaGalipeur: public LuaClass<Galipeur>
     return 1;
   }
 
-public:
-  LuaGalipeur()
+
+  virtual void init_members(lua_State *L)
   {
-    LUA_REGFUNC(_ctor);
+    LUA_CLASS_MEMBER(_ctor);
 
-    LUA_REGFUNC(get_xy);
-    LUA_REGFUNC(get_v);
-    LUA_REGFUNC(get_a);
-    LUA_REGFUNC(get_av);
+    LUA_CLASS_MEMBER(get_xy);
+    LUA_CLASS_MEMBER(get_v);
+    LUA_CLASS_MEMBER(get_a);
+    LUA_CLASS_MEMBER(get_av);
 
-    LUA_REGFUNC(set_v_max);
-    LUA_REGFUNC(set_av_max);
-    LUA_REGFUNC(set_threshold_xy);
-    LUA_REGFUNC(set_threshold_a);
+    LUA_CLASS_MEMBER(set_v_max);
+    LUA_CLASS_MEMBER(set_av_max);
+    LUA_CLASS_MEMBER(set_threshold_xy);
+    LUA_CLASS_MEMBER(set_threshold_a);
 
-    LUA_REGFUNC(order_xy);
-    LUA_REGFUNC(order_xya);
-    LUA_REGFUNC(order_a);
-    LUA_REGFUNC(order_stop);
+    LUA_CLASS_MEMBER(order_xy);
+    LUA_CLASS_MEMBER(order_xya);
+    LUA_CLASS_MEMBER(order_a);
+    LUA_CLASS_MEMBER(order_stop);
 
-    LUA_REGFUNC(asserv);
-    LUA_REGFUNC(is_waiting);
+    LUA_CLASS_MEMBER(asserv);
+    LUA_CLASS_MEMBER(is_waiting);
 
-    LUA_REGFUNC(set_sharps);
-    LUA_REGFUNC(test_sharp);
-    LUA_REGFUNC(get_sharp_count);
+    LUA_CLASS_MEMBER(set_sharps);
+    LUA_CLASS_MEMBER(test_sharp);
+    LUA_CLASS_MEMBER(get_sharp_count);
   }
 };
 

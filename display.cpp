@@ -800,32 +800,7 @@ class LuaDisplay: public LuaClass<Display>
   LUA_DEFINE_GET(is_initialized, isInitialized);
   LUA_DEFINE_SET1(save_screenshot, savePNGScreenshot, LARG_s);
 
-  static int set_camera_mode(lua_State *L)
-  {
-    int mode = 0;
-    if( lua_isnumber(L, 2) )
-    {
-      mode = lua_tointeger(L, 2);
-    }
-    else
-    {
-      const char *smode = luaL_checkstring(L, 2);
-      if( strcmp(smode, "FREE")==0 )
-        mode = Display::CAM_FREE;
-      else if( strcmp(smode, "FREE")==0 )
-        mode = Display::CAM_FREE;
-      else if( strcmp(smode, "FIXED")==0 )
-        mode = Display::CAM_FIXED;
-      else if( strcmp(smode, "FOLLOW")==0 )
-        mode = Display::CAM_FOLLOW;
-      else if( strcmp(smode, "ONBOARD")==0 )
-        mode = Display::CAM_ONBOARD;
-      else if( strcmp(smode, "LOOK")==0 )
-        mode = Display::CAM_LOOK;
-    }
-    get_ptr(L,1)->setCameraMode( mode );
-    return 0;
-  }
+  LUA_DEFINE_SET1(set_camera_mode, setCameraMode, LARG_n);
 
   static int set_camera_eye(lua_State *L)
   {
@@ -921,19 +896,33 @@ protected:
     lua_setfield(L, -2, "obj");
   }
 
-public:
-  LuaDisplay()
+
+  virtual void init_members(lua_State *L)
   {
-    LUA_REGFUNC(_ctor);
-    LUA_REGFUNC(init);
-    LUA_REGFUNC(is_initialized);
-    LUA_REGFUNC(save_screenshot);
-    LUA_REGFUNC(set_camera_mode);
-    LUA_REGFUNC(set_camera_eye);
-    LUA_REGFUNC(set_camera_target);
-    LUA_REGFUNC(get_camera_mode);
-    LUA_REGFUNC(get_camera_eye);
-    LUA_REGFUNC(get_camera_target);
+    LUA_CLASS_MEMBER(_ctor);
+    LUA_CLASS_MEMBER(init);
+    LUA_CLASS_MEMBER(is_initialized);
+    LUA_CLASS_MEMBER(save_screenshot);
+    LUA_CLASS_MEMBER(set_camera_mode);
+    LUA_CLASS_MEMBER(set_camera_eye);
+    LUA_CLASS_MEMBER(set_camera_target);
+    LUA_CLASS_MEMBER(get_camera_mode);
+    LUA_CLASS_MEMBER(get_camera_eye);
+    LUA_CLASS_MEMBER(get_camera_target);
+    // Camera modes
+    LUA_CLASS_MEMBER_VAL("CAM_EYE_FIXED",Display::CAM_EYE_FIXED);
+    LUA_CLASS_MEMBER_VAL("CAM_EYE_REL",Display::CAM_EYE_REL);
+    LUA_CLASS_MEMBER_VAL("CAM_EYE_OBJECT",Display::CAM_EYE_OBJECT);
+    LUA_CLASS_MEMBER_VAL("CAM_EYE_MASK",Display::CAM_EYE_MASK);
+    LUA_CLASS_MEMBER_VAL("CAM_TARGET_FIXED",Display::CAM_TARGET_FIXED);
+    LUA_CLASS_MEMBER_VAL("CAM_TARGET_REL",Display::CAM_TARGET_REL);
+    LUA_CLASS_MEMBER_VAL("CAM_TARGET_OBJECT",Display::CAM_TARGET_OBJECT);
+    LUA_CLASS_MEMBER_VAL("CAM_TARGET_MASK",Display::CAM_TARGET_MASK);
+    LUA_CLASS_MEMBER_VAL("CAM_FREE",Display::CAM_FREE);
+    LUA_CLASS_MEMBER_VAL("CAM_FIXED",Display::CAM_FIXED);
+    LUA_CLASS_MEMBER_VAL("CAM_FOLLOW",Display::CAM_FOLLOW);
+    LUA_CLASS_MEMBER_VAL("CAM_ONBOARD",Display::CAM_ONBOARD);
+    LUA_CLASS_MEMBER_VAL("CAM_LOOK",Display::CAM_LOOK);
   }
 };
 
@@ -971,12 +960,11 @@ class LuaOSD: public LuaClass<OSDLua>
   }
 
 
-public:
-  LuaOSD()
+  virtual void init_members(lua_State *L)
   {
-    LUA_REGFUNC(_ctor);
-    LUA_REGFUNC(show);
-    LUA_REGFUNC(hide);
+    LUA_CLASS_MEMBER(_ctor);
+    LUA_CLASS_MEMBER(show);
+    LUA_CLASS_MEMBER(hide);
   }
 };
 

@@ -205,10 +205,10 @@ class LuaRobot: public LuaClass<Robot>
     return luaL_error(L, "Robot class is abstract, no constructor");
   }
 
-public:
-  LuaRobot()
+
+  virtual void init_members(lua_State *L)
   {
-    LUA_REGFUNC(_ctor);
+    LUA_CLASS_MEMBER(_ctor);
   }
 
 };
@@ -263,31 +263,31 @@ class LuaRBasic: public LuaClass<RBasic>
   LUA_DEFINE_SET0(asserv, asserv)
   LUA_DEFINE_GET(is_waiting, is_waiting)
 
-public:
-  LuaRBasic()
+
+  virtual void init_members(lua_State *L)
   {
-    LUA_REGFUNC(_ctor);
-    LUA_REGFUNC(set_color);
+    LUA_CLASS_MEMBER(_ctor);
+    LUA_CLASS_MEMBER(set_color);
 
-    LUA_REGFUNC(get_xy);
-    LUA_REGFUNC(get_v);
-    LUA_REGFUNC(get_a);
-    LUA_REGFUNC(get_av);
+    LUA_CLASS_MEMBER(get_xy);
+    LUA_CLASS_MEMBER(get_v);
+    LUA_CLASS_MEMBER(get_a);
+    LUA_CLASS_MEMBER(get_av);
 
-    LUA_REGFUNC(set_v_max);
-    LUA_REGFUNC(set_av_max);
-    LUA_REGFUNC(set_threshold_xy);
-    LUA_REGFUNC(set_threshold_a);
+    LUA_CLASS_MEMBER(set_v_max);
+    LUA_CLASS_MEMBER(set_av_max);
+    LUA_CLASS_MEMBER(set_threshold_xy);
+    LUA_CLASS_MEMBER(set_threshold_a);
 
-    LUA_REGFUNC(order_xy);
-    LUA_REGFUNC(order_xya);
-    LUA_REGFUNC(order_a);
-    LUA_REGFUNC(order_back);
-    LUA_REGFUNC(order_stop);
+    LUA_CLASS_MEMBER(order_xy);
+    LUA_CLASS_MEMBER(order_xya);
+    LUA_CLASS_MEMBER(order_a);
+    LUA_CLASS_MEMBER(order_back);
+    LUA_CLASS_MEMBER(order_stop);
 
-    LUA_REGFUNC(update);
-    LUA_REGFUNC(asserv);
-    LUA_REGFUNC(is_waiting);
+    LUA_CLASS_MEMBER(update);
+    LUA_CLASS_MEMBER(asserv);
+    LUA_CLASS_MEMBER(is_waiting);
   }
 };
 

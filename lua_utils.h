@@ -137,6 +137,7 @@ public:
   static void push(lua_State *L, const char *s) { lua_pushstring(L, s); }
   static void push(lua_State *L, unsigned int    n) { lua_pushinteger(L, n); }
   static void push(lua_State *L, unsigned long   n) { lua_pushinteger(L, n); }
+  static void push(lua_State *L, lua_CFunction f) { lua_pushcfunction(L, f); }
   static void push(lua_State *L, const btVector2 &v) { lua_pushnumber(L, unscale(v.x)); lua_pushnumber(L, unscale(v.y)); }
   static void push(lua_State *L, const btVector3 &v)
   {
@@ -231,22 +232,17 @@ protected:
    */
   void init_base_class(lua_State *L);
 
-  /** @brief Do some class specific initialization
-   * 
-   * Add the \e __gc method to the class metatable (which is
-   * supposed to be on the top of the stack).
+  /** @brief Add class members.
    *
-   * Create and push the class userdata onto the stack.
+   * The class table to add members to is on the top of the stack.
    */
-  virtual void create_ud(lua_State *L) = 0;
+  virtual void init_class_members(lua_State *L) = 0;
+
+  /// Create and push the class userdata onto the stack.
+  virtual void push_class_ud(lua_State *L) = 0;
 
   virtual const char *get_name() = 0;
   virtual const char *get_base_name() = 0;
-
-  typedef struct { const char *name; lua_CFunction f; } LuaRegFunc;
-
-  /// Method list, with their name
-  std::vector<LuaRegFunc> functions;
 
 private:
 
@@ -316,18 +312,34 @@ public:
     return ptr;
   }
 
-  virtual void create_ud(lua_State *L)
+protected:
+  virtual void init_class_members(lua_State *L)
   {
     // Define garbage collector metamethod
     lua_pushcfunction(L, _gc);
     lua_setfield(L, -2, "__gc");
+    // Add class specific members
+    this->init_members(L);
+  }
 
+  /** @brief Add class specific members
+   *
+   * This method is intended to be defined by each subclasse.
+   *
+   * The class table to add members to is on the top of the stack.
+   *
+   * @note This name may seem strange since it could (should?) be more
+   * explicit. It has been choosed to be convenient for subclass definition.
+   */
+  virtual void init_members(lua_State *L) = 0;
+
+  virtual void push_class_ud(lua_State *L)
+  {
     // Create the class object
     LuaClass<T> **ud = (LuaClass<T> **)lua_newuserdata(L, sizeof(this));
     *ud = this;
   }
 
-protected:
   /// Garbage collector method
   static int _gc(lua_State *L)
   {
@@ -398,9 +410,14 @@ protected:
 #define LUA_REGISTER_SUB_CLASS_NS(NS,T,B)  LUA_REGISTER_SUB_CLASS_NAME(Lua##T,T,LUA_NS_PREFIX(NS) #T,#B)
 
 
-/// Define a LuaRegFunc
-#define LUA_REGFUNC(N) \
-  functions.push_back((LuaRegFunc){ #N, N })
+/** @brief Set a member to a class
+ * This method is intended to be used in a \e init_members() method.
+ */
+#define LUA_CLASS_MEMBER_VAL(N,V) \
+  LuaManager::push(L, V),           \
+  lua_setfield(L, -2, N)
+#define LUA_CLASS_MEMBER(N)  LUA_CLASS_MEMBER_VAL(#N,N)
+
 
 /** @name Argument check macros
  */
