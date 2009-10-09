@@ -492,7 +492,7 @@ void Display::setCameraMode(int mode)
       break;
     case CAM_TARGET_OBJECT:
       if( camera_target.obj == NULL )
-        throw(Error("object must be set before setting an object camera mode."));
+        throw(Error("object must be set before setting an object camera mode"));
       camera_target.cart = btVector3(0,0,0);
       break;
     default:
@@ -800,7 +800,7 @@ class LuaDisplay: public LuaClass<Display>
   LUA_DEFINE_GET(is_initialized, isInitialized);
   LUA_DEFINE_SET1(save_screenshot, savePNGScreenshot, LARG_s);
 
-  LUA_DEFINE_SET1(set_camera_mode, setCameraMode, LARG_n);
+  LUA_DEFINE_SET1(set_camera_mode, setCameraMode, LARG_i);
 
   static int set_camera_eye(lua_State *L)
   {
@@ -910,19 +910,21 @@ protected:
     LUA_CLASS_MEMBER(get_camera_eye);
     LUA_CLASS_MEMBER(get_camera_target);
     // Camera modes
-    LUA_CLASS_MEMBER_VAL("CAM_EYE_FIXED",Display::CAM_EYE_FIXED);
-    LUA_CLASS_MEMBER_VAL("CAM_EYE_REL",Display::CAM_EYE_REL);
-    LUA_CLASS_MEMBER_VAL("CAM_EYE_OBJECT",Display::CAM_EYE_OBJECT);
-    LUA_CLASS_MEMBER_VAL("CAM_EYE_MASK",Display::CAM_EYE_MASK);
-    LUA_CLASS_MEMBER_VAL("CAM_TARGET_FIXED",Display::CAM_TARGET_FIXED);
-    LUA_CLASS_MEMBER_VAL("CAM_TARGET_REL",Display::CAM_TARGET_REL);
-    LUA_CLASS_MEMBER_VAL("CAM_TARGET_OBJECT",Display::CAM_TARGET_OBJECT);
-    LUA_CLASS_MEMBER_VAL("CAM_TARGET_MASK",Display::CAM_TARGET_MASK);
-    LUA_CLASS_MEMBER_VAL("CAM_FREE",Display::CAM_FREE);
-    LUA_CLASS_MEMBER_VAL("CAM_FIXED",Display::CAM_FIXED);
-    LUA_CLASS_MEMBER_VAL("CAM_FOLLOW",Display::CAM_FOLLOW);
-    LUA_CLASS_MEMBER_VAL("CAM_ONBOARD",Display::CAM_ONBOARD);
-    LUA_CLASS_MEMBER_VAL("CAM_LOOK",Display::CAM_LOOK);
+    lua_newtable(L);
+      LUA_CLASS_MEMBER_VAL("EYE_FIXED",Display::CAM_EYE_FIXED);
+      LUA_CLASS_MEMBER_VAL("EYE_REL",Display::CAM_EYE_REL);
+      LUA_CLASS_MEMBER_VAL("EYE_OBJECT",Display::CAM_EYE_OBJECT);
+      LUA_CLASS_MEMBER_VAL("EYE_MASK",Display::CAM_EYE_MASK);
+      LUA_CLASS_MEMBER_VAL("TARGET_FIXED",Display::CAM_TARGET_FIXED);
+      LUA_CLASS_MEMBER_VAL("TARGET_REL",Display::CAM_TARGET_REL);
+      LUA_CLASS_MEMBER_VAL("TARGET_OBJECT",Display::CAM_TARGET_OBJECT);
+      LUA_CLASS_MEMBER_VAL("TARGET_MASK",Display::CAM_TARGET_MASK);
+      LUA_CLASS_MEMBER_VAL("FREE",Display::CAM_FREE);
+      LUA_CLASS_MEMBER_VAL("FIXED",Display::CAM_FIXED);
+      LUA_CLASS_MEMBER_VAL("FOLLOW",Display::CAM_FOLLOW);
+      LUA_CLASS_MEMBER_VAL("ONBOARD",Display::CAM_ONBOARD);
+      LUA_CLASS_MEMBER_VAL("LOOK",Display::CAM_LOOK);
+    lua_setfield(L, -2, "CAM");
   }
 };
 

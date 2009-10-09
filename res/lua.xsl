@@ -38,18 +38,23 @@
             margin-top: 2ex;
             padding: 2px;
           }
-
-          h2 span.text {
-            font-size: 80%
+          h4 {
+            font-size: 120%;
+            background-color: #f0f0f0;
+            text-indent: 0.7em;
           }
-          h3 span.text {
+
+          h2 span.text, h3 span.text {
             font-size: 80%;
           }
-          h2 .name, h3 .name {
+          h4 span.text {
+            font-size: 90%;
+          }
+          h2 .name, h3 .name, h4 .name {
             color: #0000b0;
           }
 
-          h2 span.module, h3 span.class, h3 span.object, h3 span.alias {
+          h2 span.module, h3 span.class, h3 span.object, h3 span.alias, h4 span.field {
             margin-right: .3em;
           }
           h3 span.base, h3 span.redirect {
@@ -84,6 +89,10 @@
             padding: 0.5ex 0.5em 0.5ex 0.5em;
             margin-left: 0;
           }
+          .field.desc {
+            padding: 0.5ex 0.5em 0.5ex 0.5em;
+            margin-left: 0;
+          }
 
           div.function {
             margin: 1ex 0 0.5ex 1em;
@@ -99,6 +108,10 @@
             font-weight: bold;
             padding: 0 .5em;
             margin-left: 1em;
+          }
+          div.field {
+            margin: 1ex 0 0.5ex 1em;
+            border: 1px solid #f0f0f0;
           }
 
           table.values {
@@ -201,6 +214,25 @@
         <xsl:with-param name="content">
           <p class="object desc"><xsl:call-template name="xhtml"/></p>
           <xsl:apply-templates select="function"/>
+          <xsl:apply-templates select="field"/>
+          <xsl:call-template name="values"/>
+        </xsl:with-param>
+      </xsl:call-template>
+    </div>
+  </xsl:template>
+
+  <xsl:template match="field">
+    <div class="field">
+      <xsl:variable name="name"><xsl:value-of select="../../@name"/>.<xsl:value-of select="../@name"/>.<xsl:value-of select="@name"/></xsl:variable>
+      <h4>
+        <xsl:call-template name="toggler"><xsl:with-param name="name" select="$name"/></xsl:call-template>
+        <span class="text field"><xsl:text>Field </xsl:text></span>
+        <span class="name"><xsl:value-of select="@name"/></span>
+      </h4>
+      <xsl:call-template name="toggle_content">
+        <xsl:with-param name="name" select="$name"/>
+        <xsl:with-param name="content">
+          <p class="field desc"><xsl:call-template name="xhtml"/></p>
           <xsl:call-template name="values"/>
         </xsl:with-param>
       </xsl:call-template>
@@ -247,6 +279,7 @@
         <xsl:with-param name="name" select="$name"/>
         <xsl:with-param name="content">
           <p class="class desc"><xsl:call-template name="xhtml" /></p>
+          <xsl:apply-templates select="field"/>
           <xsl:call-template name="values"/>
           <xsl:apply-templates select="constructor"/>
           <xsl:apply-templates select="function"/>
@@ -327,10 +360,11 @@
 
 
   <xsl:template name="xhtml">
-    <xsl:apply-templates select="br|tt|b|text()"/>
+    <xsl:apply-templates select="br|tt|b|em|text()"/>
   </xsl:template>
   <xsl:template match="br"><br/></xsl:template>
   <xsl:template match="tt"><code><xsl:apply-templates/></code></xsl:template>
   <xsl:template match="b"><strong><xsl:apply-templates/></strong></xsl:template>
+  <xsl:template match="em"><em><xsl:apply-templates/></em></xsl:template>
 
 </xsl:stylesheet>

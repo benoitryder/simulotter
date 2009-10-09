@@ -274,6 +274,7 @@ namespace eurobot2010
     LUA_IMPORT_CLASS_NS(eurobot2010,OTomato);
     LUA_IMPORT_CLASS_NS(eurobot2010,OOrange);
     LUA_IMPORT_CLASS(Galipeur);
+    LUA_IMPORT_CLASS(OGround);
   }
 
   LUA_REGISTER_SUB_CLASS_NS(eurobot2010,ORaisedZone,OSimple);

@@ -81,8 +81,8 @@
       </function>
 
       <function name="set_camera_mode">
-        Set camera mode. <tt>mode</tt> can be defined using one or a sum of
-        <tt>CAM_*</tt> values.
+        Set camera mode.<br/>
+        See <tt>CAM</tt> for values.
         <arg type="int" name="mode" />
       </function>
 
@@ -102,7 +102,7 @@
       </function>
 
       <function name="get_camera_mode">
-        Get camera mode as as defined in <tt>display.h</tt>.
+        Get camera mode.
         <return type="int" />
       </function>
 
@@ -118,19 +118,23 @@
         <return type="table" />
       </function>
 
-      <value name="CAM_EYE_FIXED" />
-      <value name="CAM_EYE_REL" />
-      <value name="CAM_EYE_OBJECT" />
-      <value name="CAM_EYE_MASK" />
-      <value name="CAM_TARGET_FIXED" />
-      <value name="CAM_TARGET_REL" />
-      <value name="CAM_TARGET_OBJECT" />
-      <value name="CAM_TARGET_MASK" />
-      <value name="CAM_FREE">Alias for <tt>CAM_EYE_FIXED+CAM_TARGET_REL</tt></value>
-      <value name="CAM_FIXED">Alias for <tt>CAM_EYE_REL+CAM_TARGET_FIXED</tt></value>
-      <value name="CAM_FOLLOW">Alias for <tt>CAM_EYE_REL+CAM_TARGET_OBJECT</tt></value>
-      <value name="CAM_ONBOARD">Alias for <tt>CAM_EYE_OBJECT+CAM_TARGET_REL</tt></value>
-      <value name="CAM_LOOK">Alias for <tt>CAM_EYE_FIXED+CAM_TARGET_OBJECT</tt></value>
+      <field name="CAM">
+        Values to be used as camera mode.<br/>
+        <tt>EYE_*</tt> and <tt>TARGET_*</tt> values can be combined using their sum.
+        <value name="EYE_FIXED" />
+        <value name="EYE_REL" />
+        <value name="EYE_OBJECT" />
+        <value name="EYE_MASK" />
+        <value name="TARGET_FIXED" />
+        <value name="TARGET_REL" />
+        <value name="TARGET_OBJECT" />
+        <value name="TARGET_MASK" />
+        <value name="FREE">Alias for <tt>EYE_FIXED+TARGET_REL</tt></value>
+        <value name="FIXED">Alias for <tt>EYE_REL+TARGET_FIXED</tt></value>
+        <value name="FOLLOW">Alias for <tt>EYE_REL+TARGET_OBJECT</tt></value>
+        <value name="ONBOARD">Alias for <tt>EYE_OBJECT+TARGET_REL</tt></value>
+        <value name="LOOK">Alias for <tt>EYE_FIXED+TARGET_OBJECT</tt></value>
+      </field>
 
     </class>
 
@@ -445,7 +449,7 @@
   </module>
 
   <module name="eurobot2009">
-    Elements for Eurobot 2009.
+    Elements for Eurobot 2009, Atlantis.
 
     <class name="OColElem" base="main.OSimple">
       Column element.
@@ -520,6 +524,35 @@
 
     </class>
 
+    <alias name="OGround" target="main.OGround"/>
+
+  </module>
+
+  <module name="eurobot2010">
+    Elements for Eurobot 2010, Feed the World.<br/>
+
+    <class name="ORaisedZone" base="main.OSimple">
+      Raised zone.
+      <constructor></constructor>
+    </class>
+
+    <class name="OCorn" base="main.OSimple">
+      Ear of corn.
+      <constructor></constructor>
+    </class>
+
+    <class name="OTomato" base="main.OSimple">
+      Tomato.
+      <constructor></constructor>
+    </class>
+
+    <class name="OOrange" base="main.OSimple">
+      Orange.
+      <constructor></constructor>
+    </class>
+
+
+    <alias name="Galipeur" target="main.Galipeur"/>
     <alias name="OGround" target="main.OGround"/>
 
   </module>

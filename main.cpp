@@ -118,7 +118,7 @@ int main(int argc, char **argv)
     LOG->trace("EXIT");
     ret = i;
   }
-  catch(Error e)
+  catch(const Error &e)
   {
     fprintf(stderr,"%s\n", e.what());
     ret = 1;
