@@ -80,6 +80,18 @@
         <arg name="filename" type="string" />
       </function>
 
+      <function name="set_handler">
+        Add, replace or remove an event handler.<br/>
+        <tt>ev</tt> is a table which must contains a type field <tt>t</tt> (cf.
+        <tt>EVENT</tt> values) and a type-specific parameter.<br/>
+        The handler function takes an event as parameter. It is a table similar
+        to the <tt>ev</tt> argument with additional state fields depending on
+        the event type.
+
+        <arg name="ev" type="table">Event that will trigger the handler.</arg>
+        <arg name="h" type="function">Handler function or <tt>nil</tt></arg>
+      </function>
+
       <function name="set_camera_mode">
         Set camera mode.<br/>
         See <tt>CAM</tt> for values.
@@ -134,6 +146,137 @@
         <value name="FOLLOW">Alias for <tt>EYE_REL+TARGET_OBJECT</tt></value>
         <value name="ONBOARD">Alias for <tt>EYE_OBJECT+TARGET_REL</tt></value>
         <value name="LOOK">Alias for <tt>EYE_FIXED+TARGET_OBJECT</tt></value>
+      </field>
+
+      <field name="EVENT">
+        Event types.<br/>
+        Each type has its own input parameters (additional fields for the first
+        argument of <tt>set_handler()</tt>) and output parameters (fields set
+        on the event table passed to handler functions).
+
+        <value name="KEYDOWN/UP">
+          Keyboard event (note: keyboard repeat is enabled).
+          <br/><em>input:</em>
+          <br/><tt>key</tt>: key that will trigger the event (cf. <tt>KEY</tt> values)
+          <br/><em>output:</em>
+          <br/><tt>key</tt>: key which triggered the event (cf. <tt>KEY</tt> values)
+          <br/><tt>state</tt>: <tt>true</tt> if the key is pressed, <tt>false</tt> otherwise
+          <br/><tt>mod</tt>: a table with a field set to <tt>true</tt> for each
+          active modifier, possible modifiers are:
+          <tt>LSHIFT</tt>, <tt>RSHIFT</tt>, <tt>LCTRL</tt>, <tt>RCTRL</tt>,
+          <tt>LALT</tt>, <tt>RALT</tt>, <tt>LMETA</tt>, <tt>RMETA</tt>,
+          <tt>NUM</tt>, <tt>CAPS</tt>, <tt>MODE</tt>, <tt>SHIFT</tt>,
+          <tt>CTRL</tt>, <tt>ALT</tt>, <tt>META</tt>.
+        </value>
+        <value name="MOUSEMOTION">
+          Mouse motion event.
+          <br/><em>input:</em>
+          <br/><tt>state</tt>: a table with a field set to <tt>true</tt> for each
+          pressed button, possible buttons are: <tt>LEFT</tt>, <tt>MIDDLE</tt>,
+          <tt>RIGHT</tt>
+          <br/><em>output:</em>
+          <br/><tt>state</tt>: same as input <tt>state</tt>
+          <br/><tt>x</tt>, <tt>y</tt>: absolute mouse coordinates
+          <br/><tt>xrel</tt>, <tt>yrel</tt>: relative mouse motion
+        </value>
+        <value name="MOUSEBUTTONDOWN/UP">
+          Mouse button event.
+          <br/><em>input:</em>
+          <br/><tt>button</tt>: button that will trigger the event (cf. <tt>BUTTON</tt> values)
+          <br/><em>output:</em>
+          <br/><tt>button</tt>: button which triggered the event (cf. <tt>BUTTON</tt> values)
+          <br/><tt>state</tt>: <tt>true</tt> if the button is pressed, <tt>false</tt> otherwise
+          <br/><tt>x</tt>, <tt>y</tt>: mouse position at press/release time
+        </value>
+      </field>
+
+      <field name="KEY">
+        Special keys values for the <tt>key</tt> event field.<br/>
+        Character keys (letters, digits, symbols) can given as single character
+        strings or byte values.<br/>
+        Output <tt>key</tt> field is always a numeric value. (Character values can be
+        converted to strings using <tt>string.char()</tt>).
+
+        <value name="BACKSPACE"/>
+        <value name="TAB"/>
+        <value name="CLEAR"/>
+        <value name="RETURN"/>
+        <value name="PAUSE"/>
+        <value name="ESCAPE"/>
+        <value name="DELETE"/>
+        <value name="KP0"/>
+        <value name="KP1"/>
+        <value name="KP2"/>
+        <value name="KP3"/>
+        <value name="KP4"/>
+        <value name="KP5"/>
+        <value name="KP6"/>
+        <value name="KP7"/>
+        <value name="KP8"/>
+        <value name="KP9"/>
+        <value name="KP_PERIOD"/>
+        <value name="KP_DIVIDE"/>
+        <value name="KP_MULTIPLY"/>
+        <value name="KP_MINUS"/>
+        <value name="KP_PLUS"/>
+        <value name="KP_ENTER"/>
+        <value name="KP_EQUALS"/>
+        <value name="UP"/>
+        <value name="DOWN"/>
+        <value name="RIGHT"/>
+        <value name="LEFT"/>
+        <value name="INSERT"/>
+        <value name="HOME"/>
+        <value name="END"/>
+        <value name="PAGEUP"/>
+        <value name="PAGEDOWN"/>
+        <value name="F1"/>
+        <value name="F2"/>
+        <value name="F3"/>
+        <value name="F4"/>
+        <value name="F5"/>
+        <value name="F6"/>
+        <value name="F7"/>
+        <value name="F8"/>
+        <value name="F9"/>
+        <value name="F10"/>
+        <value name="F11"/>
+        <value name="F12"/>
+        <value name="F13"/>
+        <value name="F14"/>
+        <value name="F15"/>
+        <value name="NUMLOCK"/>
+        <value name="CAPSLOCK"/>
+        <value name="SCROLLOCK"/>
+        <value name="RSHIFT"/>
+        <value name="LSHIFT"/>
+        <value name="RCTRL"/>
+        <value name="LCTRL"/>
+        <value name="RALT"/>
+        <value name="LALT"/>
+        <value name="RMETA"/>
+        <value name="LMETA"/>
+        <value name="LSUPER"/>
+        <value name="RSUPER"/>
+        <value name="MODE"/>
+        <value name="COMPOSE"/>
+        <value name="HELP"/>
+        <value name="PRINT"/>
+        <value name="SYSREQ"/>
+        <value name="BREAK"/>
+        <value name="MENU"/>
+        <value name="POWER"/>
+        <value name="EURO"/>
+        <value name="UNDO"/>
+      </field>
+
+      <field name="BUTTON">
+        Mouse button values, for the <tt>button</tt> event field.
+        <value name="LEFT"/>
+        <value name="MIDDLE"/>
+        <value name="RIGHT"/>
+        <value name="WHEELUP"/>
+        <value name="WHEELDOWN"/>
       </field>
 
     </class>

@@ -91,7 +91,7 @@ int main(int argc, char **argv)
         }
         if( time >= time_disp )
         {
-          display->handleEvents();
+          display->processEvents();
           display->update();
           time_disp = time + disp_dt;
         }

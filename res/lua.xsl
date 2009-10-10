@@ -117,6 +117,9 @@
           table.values {
             margin-left: 1em;
           }
+          table.values td {
+            vertical-align: top;
+          }
           tr.value td.type {
             text-align: right;
             padding-right: 0.5em;

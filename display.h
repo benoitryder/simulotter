@@ -9,6 +9,7 @@
 
 ///@file
 
+class EventHandler;
 class OSDMessage;
 
 
@@ -82,7 +83,7 @@ private:
 public:
 
   /// Camera modes
-  enum
+  enum CamMode
   {
     CAM_EYE_FIXED  = 0x01,
     CAM_EYE_REL    = 0x02,
@@ -139,11 +140,14 @@ private:
 
   /** @name Events
    *
-   * Handlers are associated to SDL events. Each input event is checked agains
-   * keys.
-   * Event type are compared, then additional type specific comparisons are
-   * made (e.g. \e keysym for keyboard events).
-   * Some fields are not compared (e.g. mouse coordinates for motion events).
+   * Handlers are associated to SDL events. Each input event is checked given
+   * handlers.
+   *
+   * Event type are compared using type and type specific fields (e.g. \e
+   * keysym for keyboard events), some fields are not compared (e.g. mouse
+   * coordinates for motion events).
+   *
+   * Their could not have several active handlers matching a same event.
    *
    * @note Key repeat is enabled.
    */
@@ -151,7 +155,7 @@ private:
 public:
 
   /// Process SDL events
-  void handleEvents();
+  void processEvents();
 
   /** @brief Event comparison function class
    *
@@ -168,30 +172,52 @@ public:
     bool operator()(const SDL_Event &a, const SDL_Event &b);
   };
 
-  /// Event handler type
-  typedef void (*EventHandler)(Display *d, const SDL_Event &event);
+  /** @brief Event handler
+   */
+  class EventHandler
+  {
+  public:
+    typedef void (*Callback)(Display *, const SDL_Event *);
 
-  /// Add or replace an event handler
-  void setHandler(const SDL_Event &event, EventHandler handler) { handlers[event] = handler; }
+    /// C++ constructor
+    EventHandler(Callback cb): ptr_cb(cb), ref_cb(LUA_NOREF) {}
+    /// Lua constructor
+    EventHandler(int ref);
+    /// Copy constructor, to copy the Lua reference
+    EventHandler(const EventHandler &h);
+
+    virtual ~EventHandler();
+
+    void operator()(Display *d, const SDL_Event *ev) const;
+
+  private:
+    /// C++ callback
+    Callback ptr_cb;
+    /// Lua callback reference
+    int ref_cb;
+  };
+
+  /// Add, replace or remove an event handler
+  void setHandler(const SDL_Event &ev, const EventHandler &h);
 
 private:
+  typedef std::map<SDL_Event, EventHandler, EventCmp> EventHandlerContainer;
   /// Event handlers
-  std::map<SDL_Event, EventHandler, EventCmp> handlers;
+  EventHandlerContainer handlers;
 
   /** @name Default handlers
    */
   //@{
-  static void handlerQuit    (Display *d, const SDL_Event &event) {throw(0);}
-  static void handlerResize  (Display *d, const SDL_Event &event);
-  static void handlerPause   (Display *d, const SDL_Event &event);
-  static void handlerCamMode (Display *d, const SDL_Event &event);
-  static void handlerCamMouse(Display *d, const SDL_Event &event);
-  static void handlerCamAhead(Display *d, const SDL_Event &event);
-  static void handlerCamBack (Display *d, const SDL_Event &event);
-  static void handlerCamLeft (Display *d, const SDL_Event &event);
-  static void handlerCamRight(Display *d, const SDL_Event &event);
-  static void handlerCamUp   (Display *d, const SDL_Event &event);
-  static void handlerCamDown (Display *d, const SDL_Event &event);
+  static void handlerQuit    (Display *d, const SDL_Event *event) {throw(0);}
+  static void handlerResize  (Display *d, const SDL_Event *event);
+  static void handlerPause   (Display *d, const SDL_Event *event);
+  static void handlerCamMouse(Display *d, const SDL_Event *event);
+  static void handlerCamAhead(Display *d, const SDL_Event *event);
+  static void handlerCamBack (Display *d, const SDL_Event *event);
+  static void handlerCamLeft (Display *d, const SDL_Event *event);
+  static void handlerCamRight(Display *d, const SDL_Event *event);
+  static void handlerCamUp   (Display *d, const SDL_Event *event);
+  static void handlerCamDown (Display *d, const SDL_Event *event);
   //@}
 
   //@}
@@ -216,6 +242,7 @@ private:
   //@}
 
 };
+
 
 
 /** @brief OSD messages interface

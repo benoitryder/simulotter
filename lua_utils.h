@@ -180,6 +180,15 @@ public:
     }
   }
 
+  /// Push and set a field
+  template<typename T> static inline void setfield(lua_State *L, int index, const char *k, const T val)
+  {
+    push(L, val);
+    if( index < 0 )
+      index--;
+    lua_setfield(L, index, k);
+  }
+
   //@}
 
 private:
@@ -414,9 +423,7 @@ protected:
  * This method is intended to be used in a \e init_members() method but can be
  * used to set a field on any table at the top of the stack.
  */
-#define LUA_CLASS_MEMBER_VAL(N,V) \
-  LuaManager::push(L, V),         \
-  lua_setfield(L, -2, N)
+#define LUA_CLASS_MEMBER_VAL(N,V)  LuaManager::setfield(L, -1, N, V)
 #define LUA_CLASS_MEMBER(N)  LUA_CLASS_MEMBER_VAL(#N,N)
 
 
