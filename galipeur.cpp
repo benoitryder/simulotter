@@ -219,8 +219,6 @@ void Galipeur::asserv()
     else
     {
       set_v( v_max * (target_xy-get_xy()).normalize() );
-      set_av(0);
-      return;
     }
   }
 
@@ -236,8 +234,6 @@ void Galipeur::asserv()
     else
     {
       set_av( btFsel(da, av_max, -av_max) );
-      set_v( btVector2(0,0) );
-      return;
     }
   }
 }

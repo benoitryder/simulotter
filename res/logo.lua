@@ -39,7 +39,7 @@ display = Display()
 require('modules/colors')
 
 -- Camera
-display:set_camera_mode('FIXED')
+display:set_camera_mode(display.CAM.FIXED)
 display:set_camera_target({ x=0.1, y=-0.2, z=0 })
 display:set_camera_eye({ r=5, theta=0.6, phi=-1.0 })
 
@@ -135,5 +135,4 @@ o:set_shape( sh )
 o:add_to_world()
 o:set_pos(-table_size_x/2-wall_width/2, 0, wall_height/2)
 o:set_color(colors.black)
-
 
