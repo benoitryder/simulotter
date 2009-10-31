@@ -165,7 +165,7 @@ Error::Error(const char *fmt, ...)
 }
 
 
-Error::Error(const Error &e)
+Error::Error(const Error &e): std::exception(e)
 {
   operator=(e);
 }

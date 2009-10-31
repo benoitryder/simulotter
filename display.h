@@ -180,9 +180,9 @@ public:
     typedef void (*Callback)(Display *, const SDL_Event *);
 
     /// C++ constructor
-    EventHandler(Callback cb): ptr_cb(cb), ref_cb(LUA_NOREF) {}
+    EventHandler(Callback cb): ptr_cb(cb), L(NULL), ref_cb(LUA_NOREF) {}
     /// Lua constructor
-    EventHandler(int ref);
+    EventHandler(lua_State *L, int ref);
     /// Copy constructor, to copy the Lua reference
     EventHandler(const EventHandler &h);
 
@@ -193,6 +193,8 @@ public:
   private:
     /// C++ callback
     Callback ptr_cb;
+    /// Lua callback state
+    lua_State *L;
     /// Lua callback reference
     int ref_cb;
   };
@@ -294,7 +296,7 @@ public:
 class OSDLua: public OSDMessage
 {
 public:
-  OSDLua(int ref_obj);
+  OSDLua(lua_State *L, int ref_obj);
   virtual ~OSDLua();
 
   /** @name Common accessors
@@ -307,6 +309,8 @@ public:
   //@}
 
 protected:
+  /// Lua instance state
+  lua_State *L;
   /// Lua instance reference
   int ref_obj;
   /// Lua text reference

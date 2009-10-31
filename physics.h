@@ -121,7 +121,7 @@ protected:
 class TaskLua: public TaskPhysics
 {
 public:
-  TaskLua(int ref, btScalar period=0.0);
+  TaskLua(lua_State *L, int ref, btScalar period=0.0);
   virtual ~TaskLua();
 
   virtual void process(Physics *ph);
@@ -132,6 +132,8 @@ public:
 protected:
   btScalar period;
   bool cancelled;
+  /// Lua instance state
+  lua_State *L;
   /// Lua instance reference
   int ref_obj;
 

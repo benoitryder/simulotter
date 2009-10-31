@@ -97,8 +97,8 @@ void TaskBasic::process(Physics *ph)
     ph->scheduleTask(this, ph->getTime() + period);
 }
 
-TaskLua::TaskLua(int ref, btScalar period):
-  period(period), cancelled(false), ref_obj(ref)
+TaskLua::TaskLua(lua_State *L, int ref, btScalar period):
+  period(period), cancelled(false), L(L), ref_obj(ref)
 {
   if( this->ref_obj == LUA_NOREF || this->ref_obj == LUA_REFNIL )
     throw(LuaError("invalid object reference for TaskLua"));
@@ -106,7 +106,6 @@ TaskLua::TaskLua(int ref, btScalar period):
 
 TaskLua::~TaskLua()
 {
-  lua_State *L = lm->get_L();
   luaL_unref(L, LUA_REGISTRYINDEX, ref_obj);
 }
 
@@ -115,7 +114,6 @@ void TaskLua::process(Physics *ph)
   if( cancelled )
     return;
   // Get the callback
-  lua_State *L = lm->get_L();
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
   lua_remove(L, -2);
   lua_getfield(L, -1, "callback");
@@ -195,7 +193,7 @@ class LuaTask: public LuaClass<TaskLua>
     data_ptr *ud = new_ptr(L);
     lua_pushvalue(L, 1);
     int ref = luaL_ref(L, LUA_REGISTRYINDEX);
-    *ud = new TaskLua(ref, period);
+    *ud = new TaskLua(L, ref, period);
     SmartPtr_add_ref(*ud);
     return 0;
   }

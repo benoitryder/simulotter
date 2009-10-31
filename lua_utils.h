@@ -3,11 +3,6 @@
 
 ///@file
 
-extern "C"
-{
-#include <lualib.h>
-#include <lauxlib.h>
-}
 #include <vector>
 
 #include "global.h"

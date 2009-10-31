@@ -21,7 +21,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 
 
 Config  *cfg     = NULL;
-LuaManager *lm   = NULL;
 Log *LOG         = NULL;
 SmartPtr<Physics> physics;
 SmartPtr<Display> display;
@@ -30,6 +29,7 @@ SmartPtr<Display> display;
 int main(int argc, char **argv)
 {
   LOG = new Log();
+  LuaManager *lm = NULL;
 
   int ret = 0;
   try

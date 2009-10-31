@@ -1,6 +1,11 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
+extern "C"
+{
+#include <lualib.h>
+#include <lauxlib.h>
+}
 #include "bullet.h"
 #include "maths.h"
 #include "colors.h"
@@ -26,7 +31,6 @@
  */
 //@{
 extern Config *cfg;
-extern LuaManager *lm;
 extern Log *LOG; // lowercase log is already defined :(
 extern SmartPtr<Physics> physics;
 extern SmartPtr<Display> display;

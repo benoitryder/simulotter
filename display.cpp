@@ -423,11 +423,10 @@ void Display::setHandler(const SDL_Event &ev, const EventHandler &h)
   handlers.insert( EventHandlerContainer::value_type(ev, h) );
 }
 
-Display::EventHandler::EventHandler(int ref): ptr_cb(NULL), ref_cb(ref)
+Display::EventHandler::EventHandler(lua_State *L, int ref): ptr_cb(NULL), L(L), ref_cb(ref)
 {
   if( ref_cb == LUA_NOREF || ref_cb == LUA_REFNIL )
     throw(LuaError("invalid object reference for EventHandler"));
-  lua_State *L = lm->get_L();
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref_cb);
   if( !lua_isfunction(L, -1) )
     throw(Error("EventHandler: invalid callback type"));
@@ -438,28 +437,30 @@ Display::EventHandler::EventHandler(const EventHandler &h): ptr_cb(h.ptr_cb)
 {
   if( h.ref_cb != LUA_NOREF )
   {
-    // Copy the reference
-    lua_State *L = lm->get_L();
+    // Copy the reference and the state
+    L = h.L;
     lua_rawgeti(L, LUA_REGISTRYINDEX, h.ref_cb);
     ref_cb = luaL_ref(L, LUA_REGISTRYINDEX);
   }
   else
+  {
+    L = NULL;
     ref_cb = LUA_NOREF;
+  }
 }
 
 Display::EventHandler::~EventHandler()
 {
-  lua_State *L = lm->get_L();
-  luaL_unref(L, LUA_REGISTRYINDEX, ref_cb);
+  if( L != NULL )
+    luaL_unref(L, LUA_REGISTRYINDEX, ref_cb);
 }
 
 void Display::EventHandler::operator()(Display *d, const SDL_Event *ev) const
 {
   if( ptr_cb )
     ptr_cb(d, ev);
-  else if( ref_cb != LUA_NOREF )
+  else if( L != NULL && ref_cb != LUA_NOREF )
   {
-    lua_State *L = lm->get_L();
     lua_rawgeti(L, LUA_REGISTRYINDEX, ref_cb);
     // callback type has already been checked in constructor
     // push the event
@@ -773,7 +774,7 @@ void Display::handlerCamDown(Display *d, const SDL_Event *event)
 }
 
 
-OSDLua::OSDLua(int ref_obj): ref_obj(ref_obj), ref_text(LUA_NOREF)
+OSDLua::OSDLua(lua_State *L, int ref_obj): L(L), ref_obj(ref_obj), ref_text(LUA_NOREF)
 {
   if( this->ref_obj == LUA_NOREF || this->ref_obj == LUA_REFNIL )
     throw(LuaError("invalid object reference for OSDLua"));
@@ -781,14 +782,12 @@ OSDLua::OSDLua(int ref_obj): ref_obj(ref_obj), ref_text(LUA_NOREF)
 
 OSDLua::~OSDLua()
 {
-  lua_State *L = lm->get_L();
   luaL_unref(L, LUA_REGISTRYINDEX, ref_obj);
   luaL_unref(L, LUA_REGISTRYINDEX, ref_text);
 }
 
 const char *OSDLua::getText()
 {
-  lua_State *L = lm->get_L();
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
   lua_remove(L, -2);
   lua_getfield(L, -1, "text");
@@ -808,7 +807,6 @@ const char *OSDLua::getText()
 
 int OSDLua::getX()
 {
-  lua_State *L = lm->get_L();
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
   lua_remove(L, -2);
   lua_getfield(L, -1, "x");
@@ -823,7 +821,6 @@ int OSDLua::getX()
 
 int OSDLua::getY()
 {
-  lua_State *L = lm->get_L();
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
   lua_remove(L, -2);
   lua_getfield(L, -1, "y");
@@ -838,7 +835,6 @@ int OSDLua::getY()
 
 Color4 OSDLua::getColor()
 {
-  lua_State *L = lm->get_L();
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
   lua_remove(L, -2);
   lua_getfield(L, -1, "color");
@@ -917,7 +913,7 @@ class LuaDisplay: public LuaClass<Display>
       luaL_checktype(L, 3, LUA_TFUNCTION);
       lua_pushvalue(L, 3);
       int ref_cb = luaL_ref(L, LUA_REGISTRYINDEX);
-      d->setHandler(ev, Display::EventHandler(ref_cb));
+      d->setHandler(ev, Display::EventHandler(L, ref_cb));
     }
     return 0;
   }
@@ -1199,7 +1195,7 @@ class LuaOSD: public LuaClass<OSDLua>
     data_ptr *ud = new_ptr(L);
     lua_pushvalue(L, 1);
     int ref = luaL_ref(L, LUA_REGISTRYINDEX);
-    *ud = new OSDLua(ref);
+    *ud = new OSDLua(L, ref);
     SmartPtr_add_ref(*ud);
     return 0;
   }
