@@ -285,11 +285,7 @@ class LuaGalipeur: public LuaClass<Galipeur>
 {
   static int _ctor(lua_State *L)
   {
-    Galipeur *r = new Galipeur(LARG_f(2));
-    store_ptr(L, r);
-    lua_pushvalue(L, 1);
-    r->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
-
+    store_ptr(L, new Galipeur(LARG_f(2)));
     return 0;
   }
 

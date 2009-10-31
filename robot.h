@@ -18,12 +18,6 @@ class Robot: public Object
 public:
 
   Robot();
-  virtual ~Robot();
-
-protected:
-  /// Lua instance reference
-  int ref_obj;
-
 };
 
 

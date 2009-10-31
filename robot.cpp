@@ -6,14 +6,6 @@
 
 Robot::Robot()
 {
-  this->ref_obj = LUA_NOREF;
-}
-
-Robot::~Robot()
-{
-  lua_State *L = lm->get_L();
-  // luaL_unref has no effect on LUA_NOREF, so it's ok
-  luaL_unref(L, LUA_REGISTRYINDEX, ref_obj);
 }
 
 RBasic::RBasic()
@@ -141,7 +133,6 @@ void RBasic::asserv()
 
 void RBasic::order_xy(btVector2 xy, bool rel)
 {
-  LOG->trace("XY  %c %f,%f", rel?'+':'=', xy.x, xy.y);
   target_xy = xy;
   if( rel )
     target_xy += this->xy;
@@ -151,7 +142,6 @@ void RBasic::order_xy(btVector2 xy, bool rel)
 
 void RBasic::order_a(btScalar a, bool rel)
 {
-  LOG->trace("A  %c %f", rel?'+':'=', a);
   target_a = a;
   if( rel )
     target_a += this->a;
@@ -162,7 +152,6 @@ void RBasic::order_a(btScalar a, bool rel)
 
 void RBasic::order_back(btScalar d)
 {
-  LOG->trace("BACK  %f", d);
   target_back_xy = xy - d*btVector2(1,0).rotated(a);
 
   order |= ORDER_GO_BACK;
@@ -220,10 +209,7 @@ class LuaRBasic: public LuaClass<RBasic>
   {
     btCollisionShape *shape;
     shape = *(btCollisionShape **)luaL_checkudata(L, 2, LUA_REGISTRY_PREFIX "Shape"); //XXX
-    RBasic *r = new RBasic( shape, LARG_f(3));
-    store_ptr(L, r);
-    lua_pushvalue(L, 1);
-    r->ref_obj = luaL_ref(L, LUA_REGISTRYINDEX);
+    store_ptr(L, new RBasic( shape, LARG_f(3)));
     return 0;
   }
 
