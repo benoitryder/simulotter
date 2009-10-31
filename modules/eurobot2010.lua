@@ -9,6 +9,129 @@ module('eurobot2010', package.seeall)
 color1 = colors.ral_5005
 color2 = colors.ral_1023
 
+-- Various constants
+TABLE = eurobot.TABLE
+WALL  = eurobot.WALL
+
+FIELD = { dx = 0.450, dy = 0.250, oy = 0.128 }
+RAISED = { z = 0.140 }
+BAC = {
+  ox = (TABLE.sx-0.500)/2, oy = -TABLE.sy/2,
+  sx = 0.500, sy = 0.300, h = 0.300, w = 0.010
+}
+
+-- Game objects (filled in init)
+tomatoes = {}
+corns = {}
+oranges = {}
+
+
+-- Compute field element position, (0,0) is middle bottom
+function field_pos(x,y)
+  return x*FIELD.dx, -TABLE.sy/2+FIELD.oy+y*FIELD.dy
+end
+
+-- Return team number if an object is in a bac, false otherwise
+-- Test is based on object's center position.
+function is_collected(o)
+  local x,y,z = o:get_pos()
+  if z < 0 and z > -BAC.h and y > BAC.oy-BAC.sy and y < BAC.oy then
+    if x > TABLE.sx/2-BAC.sx and x < TABLE.sx/2 then
+      return 1
+    elseif x < -TABLE.sx/2+BAC.sx and x > -TABLE.sx/2 then
+      return 2
+    end
+  end
+  return false
+end
+
+-- Compute score of each team, in grams, returned as a table
+function compute_scores()
+
+  local sc = { 0, 0 } -- team scores
+  for k,v in ipairs(tomatoes) do
+    local t = is_collected(v)
+    if t then sc[t] = sc[t] + 150 end
+  end
+  for k,v in ipairs(corns) do
+    local t = is_collected(v)
+    if t then sc[t] = sc[t] + 250 end
+  end
+  for k,v in ipairs(oranges) do
+    local t = is_collected(v)
+    if t then sc[t] = sc[t] + 300 end
+  end
+
+  return sc
+
+end
+
+
+-- Add a tomato at given position
+function add_tomato(x,y)
+  local o = OTomato()
+  o:add_to_world()
+  o:set_pos( field_pos(x,y) )
+  tomatoes[#tomatoes+1] = o
+end
+
+-- Add a corn at given position, fake if f is true
+function add_corn(x,y,f)
+  local o = OCorn()
+  if f then o:set_mass(0) end
+  o:add_to_world()
+  o:set_color( f and colors.ral_9017 or colors.ral_1013 )
+  o:set_pos( field_pos(x,y) )
+  corns[#corns+1] = o
+end
+
+
+-- Branches and trees classes
+do
+
+  -- Branch class
+  OBranch = class(OSimple, function(self,h)
+    OSimple._ctor(self)
+    self:set_shape( self.shape )
+    self:add_to_world()
+    self:set_color(colors.white)
+    self.h = h
+  end)
+  -- Make all trees with the same height but use different z position
+  OBranch.sh_h = 0.25
+  OBranch.shape = Shape:cylinderZ(0.025, OBranch.sh_h/2)
+  function OBranch.set_top_pos(self, x, y)
+    self:set_pos(x, y+TABLE.sy/2-0.250, RAISED.z-OBranch.sh_h/2+self.h)
+  end
+
+  function OBranch.add_orange(self)
+    local x,y,z = self:get_pos()
+    local o = OOrange()
+    o:add_to_world()
+    o:set_mass(0)  --XXX oranges are static, for now
+    o:set_pos(x, y, RAISED.z+self.h+0.050*math.cos(math.asin(0.025/0.050)))
+    oranges[#oranges+1] = o
+  end
+
+  -- Tree class
+  OTree = class(OSimple, function(self, x, y)
+    local o
+    for k,v in ipairs(self.branches) do
+      o = OBranch(v.h)
+      o:set_top_pos( (x<0 and x-v.x or x+v.x), y+v.y )
+      o:add_orange()
+    end
+  end)
+  -- branch offset (origin at the tallest branch)
+  OTree.branches = {
+    { h=0.25, x=0, y=0 },
+    { h=0.20, x=0.055, y=0.075 },
+    { h=0.15, x=0.080, y=-0.050 },
+  }
+
+end
+
+
 -- Match init
 function init(fconf)
   -- Field configuration:
@@ -29,66 +152,33 @@ function init(fconf)
   trace("Feed the World rules, fake corns: lateral: "..tostring(conf_side)..", central:"..tostring(conf_center))
 
 
-  -- Various constants
-
-  TABLE = eurobot.TABLE
-  WALL  = eurobot.WALL
-
-  FIELD = { dx = 0.450, dy = 0.250, oy = 0.128 }
-  RAISED = { z = 0.140 }
-
-
-  -- Compute field element position, (0,0) is middle bottom
-  function field_pos(x,y)
-    return x*FIELD.dx, -TABLE.sy/2+FIELD.oy+y*FIELD.dy
-  end
-
-  -- Add a tomato at given position
-  function add_tomato(x,y)
-    local o = OTomato()
-    o:add_to_world()
-    o:set_pos( field_pos(x,y) )
-  end
-  -- Add a corn at given position, fake if f is true
-  function add_corn(x,y,f)
-    local o = OCorn()
-    o:set_mass(0) --TODO temporary work around
-    o:add_to_world()
-    o:set_color( f and colors.ral_9017 or colors.ral_1013 )
-    o:set_pos( field_pos(x,y) )
-  end
-
   -- Add a collect bac, side is -1 (x<0) or 1 (x>0)
   local bac_sh = nil  -- reuse shape
   function add_bac(side)
     local c = (side == 1 and color1 or color2)
-    local off_x = side * (TABLE.sx-0.500)/2
-    local off_y = -TABLE.sy/2
-    local bac_l = 0.300
-    local bac_h = 0.300
-    local bac_w = 0.010
+    local off_x = side * BAC.ox
     local o
 
     -- First call: create shapes
     if bac_sh == nil then
-      local b_side = Shape:box(bac_w/2, bac_l/2, WALL.h/2)
-      local b_back = Shape:box(0.250+bac_w, bac_w/2, WALL.h/2)
-      local p_side = Shape:box(bac_w/2, bac_l/2, bac_h/2)
-      local p_back = Shape:box(0.250+bac_w, bac_w/2, bac_h/2)
-      local p_front = Shape:box(0.250+bac_w, bac_w/2, bac_h/2-0.020)
-      local p_bottom = Shape:box(0.250+bac_w, (bac_l+bac_w)/2, WALL.h/2)
+      local b_side = Shape:box(BAC.w/2, BAC.sy/2, WALL.h/2)
+      local b_back = Shape:box(BAC.sx/2+BAC.w, BAC.w/2, WALL.h/2)
+      local p_side = Shape:box(BAC.w/2, BAC.sy/2, BAC.h/2)
+      local p_back = Shape:box(BAC.sx/2+BAC.w, BAC.w/2, BAC.h/2)
+      local p_front = Shape:box(BAC.sx/2+BAC.w, BAC.w/2, BAC.h/2-0.020)
+      local p_bottom = Shape:box(BAC.sx/2+BAC.w, (BAC.sy+BAC.w)/2, WALL.h/2)
       bac_sh = {
         band = Shape:compound({
-          {b_side, {-0.250-bac_w/2, -bac_l/2, 0}},
-          {b_side, { 0.250+bac_w/2, -bac_l/2, 0}},
-          {b_back, { 0, -bac_l-bac_w/2, 0}},
+          {b_side, {-BAC.sx/2-BAC.w/2, -BAC.sy/2, 0}},
+          {b_side, { BAC.sx/2+BAC.w/2, -BAC.sy/2, 0}},
+          {b_back, { 0, -BAC.sy-BAC.w/2, 0}},
         }),
         plexi = Shape:compound({
-          {p_side,   {-0.250-bac_w/2, -bac_l/2, 0}},
-          {p_side,   { 0.250+bac_w/2, -bac_l/2, 0}},
-          {p_back,   {0, -bac_l-bac_w/2, 0}},
-          {p_front,  {0, -bac_w/2, -0.020}},
-          {p_bottom, {0, -bac_l/2-bac_w/2, -bac_h/2}},
+          {p_side,   {-BAC.sx/2-BAC.w/2, -BAC.sy/2, 0}},
+          {p_side,   { BAC.sx/2+BAC.w/2, -BAC.sy/2, 0}},
+          {p_back,   {0, -BAC.sy-BAC.w/2, 0}},
+          {p_front,  {0, -BAC.w/2, -0.020}},
+          {p_bottom, {0, -BAC.sy/2-BAC.w/2, -BAC.h/2}},
         }),
       }
     end
@@ -96,13 +186,13 @@ function init(fconf)
     o = OSimple()
     o:set_shape( bac_sh.band )
     o:add_to_world()
-    o:set_pos(off_x, off_y, WALL.h/2)
+    o:set_pos(off_x, BAC.oy, WALL.h/2)
     o:set_color(c)
 
     o = OSimple()
     o:set_shape( bac_sh.plexi )
     o:add_to_world()
-    o:set_pos(off_x, off_y, -bac_h/2)
+    o:set_pos(off_x, BAC.oy, -BAC.h/2)
     o:set_color(colors.plexi)
   end
 
@@ -140,7 +230,7 @@ function init(fconf)
   o:set_pos(-TABLE.sx/2-WALL.w/2, 0, WALL.h/2)
   o:set_color(colors.ral_9017)
   o = OSimple()
-  o:set_shape(Shape:box(2.0/2, WALL.w/2, WALL.h/2))
+  o:set_shape(Shape:box(TABLE.sx/2-BAC.sx, WALL.w/2, WALL.h/2))
   o:add_to_world()
   o:set_pos(0, -TABLE.sy/2-WALL.w/2, WALL.h/2)
   o:set_color(colors.ral_9017)
@@ -210,53 +300,12 @@ function init(fconf)
   -- Oranges and trees
   trace("  oranges and trees")
   do
-
-    -- Branch class
-    OBranch = class(OSimple, function(self,h)
-      OSimple._ctor(self)
-      self:set_shape( self.shape )
-      self:add_to_world()
-      self:set_color(colors.white)
-      self.h = h
-    end)
-    -- Make all trees with the same height but use different z position
-    OBranch.sh_h = 0.25
-    OBranch.shape = Shape:cylinderZ(0.025, OBranch.sh_h/2)
-    function OBranch.set_top_pos(self, x, y)
-      self:set_pos(x, y+TABLE.sy/2-0.250, RAISED.z-OBranch.sh_h/2+self.h)
-    end
-    function OBranch.add_orange(self)
-      local x,y,z = self:get_pos()
-      local o = OOrange()
-      o:add_to_world()
-      o:set_mass(0)  --XXX oranges are static, for now
-      o:set_pos(x, y, RAISED.z+self.h+0.050*math.cos(math.asin(0.025/0.050)))
-    end
-
-    -- Tree class
-    OTree = class(OSimple, function(self, x, y)
-      local o
-      for k,v in ipairs(self.branches) do
-        o = OBranch(v.h)
-        o:set_top_pos( (x<0 and x-v.x or x+v.x), y+v.y )
-        o:add_orange()
-      end
-    end)
-    -- branch offset (origin at the tallest branch)
-    OTree.branches = {
-      { h=0.25, x=0, y=0 },
-      { h=0.20, x=0.055, y=0.075 },
-      { h=0.15, x=0.080, y=-0.050 },
-    }
-
     local tree_offset_x = 0.500/2-0.080-0.055
     local tree_offset_y = 0.100
-
     OTree( tree_offset_x,  0.250-0.070-0.075)
     OTree(-tree_offset_x,  0.250-0.070-0.075)
     OTree( tree_offset_x, -0.250+0.080+0.050)
     OTree(-tree_offset_x, -0.250+0.080+0.050)
-
   end
 
 end

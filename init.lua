@@ -55,6 +55,23 @@ function osd.text()
 end
 osd:show()
 
+-- Scores, refreshed every (simulated) second
+do 
+  local scores = { 0, 0 }
+  local osd = OSD()
+  osd.x, osd.y = 400,20
+  osd.color = {0, 0, 0}
+  function osd.text()
+    return string.format("scores: %4d - %4d", scores[1], scores[2])
+  end
+  osd:show()
+  local task = Task(1)
+  function task.callback()
+    scores = eurobot2010.compute_scores()
+  end
+  task:schedule()
+end
+
 -- sharps
 do
   local x, y, r
