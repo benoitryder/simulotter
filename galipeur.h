@@ -22,6 +22,7 @@ public:
   virtual ~Galipeur();
 
   virtual void addToWorld(Physics *physics);
+  virtual void removeFromWorld();
 
   /** @brief Draw the robot
    *

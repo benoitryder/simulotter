@@ -225,7 +225,7 @@ namespace eurobot2009
                   *this, *o, btTransform::getIdentity(), tr, false);
               for(int i=0; i<6; i++)
                 constraint->setLimit(i, 0, 0);
-              physics->getWorld()->addConstraint(constraint, true);
+              this->robot->physics->getWorld()->addConstraint(constraint, true);
               return false;
             }
           }
@@ -241,7 +241,6 @@ namespace eurobot2009
                 btVector2 v = this->robot->pachev_link->getFrameOffsetB()
                   * this->getCenterOfMassPosition();
                 v.normalize();
-                //TODO use proper coeff with pachev_eject_v
                 o->translate( -this->robot->pachev_eject_v * v );
               }
               return false;
@@ -256,9 +255,17 @@ namespace eurobot2009
 
   void Galipeur2009::addToWorld(Physics *physics)
   {
-    Galipeur::addToWorld(physics);
     physics->getWorld()->addRigidBody(pachev);
     physics->getWorld()->addConstraint(pachev_link, true);
+    Galipeur::addToWorld(physics);
+  }
+
+  void Galipeur2009::removeFromWorld()
+  {
+    Physics *ph_bak = this->physics;
+    Galipeur::removeFromWorld();
+    ph_bak->getWorld()->removeConstraint(pachev_link);
+    ph_bak->getWorld()->removeRigidBody(pachev);
   }
 
   void Galipeur2009::draw()

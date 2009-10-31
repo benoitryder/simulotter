@@ -58,6 +58,7 @@ public:
   ~RBasic();
 
   virtual void addToWorld(Physics *physics);
+  virtual void removeFromWorld();
 
   /** @brief Set main color
    *

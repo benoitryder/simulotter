@@ -109,6 +109,7 @@ namespace eurobot2009
     virtual ~Galipeur2009();
 
     virtual void addToWorld(Physics *physics);
+    virtual void removeFromWorld();
 
     /** @brief Draw the robot
      *

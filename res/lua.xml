@@ -399,6 +399,10 @@
         Add an object in a physical world.
       </function>
 
+      <function name="remove_from_world">
+        Remove an object from its physical world.
+      </function>
+
     </class>
 
 

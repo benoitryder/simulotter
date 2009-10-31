@@ -49,6 +49,14 @@ void RBasic::addToWorld(Physics *physics)
   Robot::addToWorld(physics);
 }
 
+void RBasic::removeFromWorld()
+{
+  Physics *ph_bak = this->physics;
+  Robot::removeFromWorld();
+  ph_bak->getWorld()->removeRigidBody(body);
+}
+
+
 void RBasic::draw()
 {
   glColor4fv(color);

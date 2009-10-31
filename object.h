@@ -15,11 +15,11 @@
 class Object: public SmartObject
 {
 protected:
-  Object() {}
+  Object(): physics(NULL) {}
 public:
   virtual ~Object() {}
 
-  /** @brief Add an object in a physics world.
+  /** @brief Add an object in a physical world.
    *
    * Add bodies and constraint to the Bullet world.
    * Object is added to the physics object array, an exception is raised if it
@@ -28,6 +28,17 @@ public:
    * @note Overload functions should call this parent function.
    */
   virtual void addToWorld(Physics *physics);
+
+  /** @brief Remove an object from its physical world.
+   *
+   * It is the opposite of addToWorld().
+   * Object is removed from the physics object array, an exception is raised if
+   * was not in a world array.
+   * The \e physics member is resetted to \e NULL.
+   *
+   * @note Overload functions should call this parent function.
+   */
+  virtual void removeFromWorld();
 
   /// Draw the whole object
   virtual void draw() = 0;
@@ -59,6 +70,14 @@ protected:
    * Shape is drawn using \e drawShape().
    */
   static GLuint createDisplayList(const btCollisionShape *shape);
+
+  /** @brief Physical world the object was added to.
+   *
+   * Since the world keep a reference to its objects, it will not be deleted
+   * before them. This means that a deleted object has been removed from its
+   * world.
+   */
+  Physics *physics;
 };
 
 
@@ -110,6 +129,7 @@ public:
    * @todo Define Physics::addObject() instead.
    */
   virtual void addToWorld(Physics *physics);
+  virtual void removeFromWorld();
 
   bool isInitialized() { return getCollisionShape() != NULL; }
 

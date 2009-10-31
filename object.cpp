@@ -100,6 +100,15 @@ void Object::addToWorld(Physics *physics)
 {
   if( physics->getObjs().insert(this).second == false )
     throw(Error("object added to the world twice"));
+  this->physics = physics;
+}
+
+void Object::removeFromWorld()
+{
+  if( physics == NULL )
+    throw(Error("object is not in a world"));
+  physics->getObjs().erase(this); // should return 1
+  physics = NULL;
 }
 
 
@@ -147,6 +156,13 @@ void OSimple::addToWorld(Physics *physics)
     throw(Error("object must be initialized to be added to a world"));
   physics->getWorld()->addRigidBody(this);
   Object::addToWorld(physics);
+}
+
+void OSimple::removeFromWorld()
+{
+  Physics *ph_bak = this->physics;
+  Object::removeFromWorld();
+  ph_bak->getWorld()->removeRigidBody(this);
 }
 
 
@@ -290,6 +306,8 @@ class LuaObject: public LuaClass<Object>
     return 0;
   }
 
+  LUA_DEFINE_SET0(remove_from_world, removeFromWorld);
+
 
   virtual void init_members(lua_State *L)
   {
@@ -299,6 +317,7 @@ class LuaObject: public LuaClass<Object>
     LUA_CLASS_MEMBER(set_pos);
     LUA_CLASS_MEMBER(set_rot);
     LUA_CLASS_MEMBER(add_to_world);
+    LUA_CLASS_MEMBER(remove_from_world);
   }
 };
 

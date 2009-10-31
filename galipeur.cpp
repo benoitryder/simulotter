@@ -79,6 +79,13 @@ void Galipeur::addToWorld(Physics *physics)
   Robot::addToWorld(physics);
 }
 
+void Galipeur::removeFromWorld()
+{
+  Physics *ph_bak = this->physics;
+  Robot::removeFromWorld();
+  ph_bak->getWorld()->removeRigidBody(body);
+}
+
 void Galipeur::draw()
 {
   glColor4fv(Color4(0.3)); //XXX
