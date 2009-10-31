@@ -106,7 +106,7 @@ void RBasic::asserv()
     else
     {
       // Aim target point, then move
-      btScalar da = normA( (target_xy-xy).angle() - a );
+      btScalar da = btNormalizeAngle( (target_xy-xy).angle() - a );
       if( btFabs( da ) < threshold_a )
       {
         set_av(0);
@@ -124,7 +124,7 @@ void RBasic::asserv()
   // Turn
   if( order & ORDER_GO_A )
   {
-    btScalar da = normA( target_a-a );
+    btScalar da = btNormalizeAngle( target_a-a );
     if( btFabs( da ) < threshold_a )
     {
       set_av(0);
@@ -153,7 +153,7 @@ void RBasic::order_a(btScalar a, bool rel)
   target_a = a;
   if( rel )
     target_a += this->a;
-  target_a = normA(target_a);
+  target_a = btNormalizeAngle(target_a);
 
   order |= ORDER_GO_A;
 }
