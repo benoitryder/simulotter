@@ -27,6 +27,11 @@ LuaManager::LuaManager()
   lua_getfield(L, -1, "randomseed");
   lua_pushinteger(L, ::time(NULL));
   lua_pcall(L, 1, 0, 0);
+  // pop the first random integer with is "less random"
+  lua_getfield(L, -1, "random");
+  lua_pushinteger(L, 42);
+  lua_pcall(L, 1, 0, 0);
+  lua_pop(L, 1);
 
   // Register global functions
   lua_register(L, "trace", lua_trace);
