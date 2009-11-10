@@ -426,10 +426,10 @@ void Display::setHandler(const SDL_Event &ev, const EventHandler &h)
 Display::EventHandler::EventHandler(lua_State *L, int ref): ptr_cb(NULL), L(L), ref_cb(ref)
 {
   if( ref_cb == LUA_NOREF || ref_cb == LUA_REFNIL )
-    throw(LuaError("invalid object reference for EventHandler"));
+    throw(LuaError(L, "invalid object reference for EventHandler"));
   lua_rawgeti(L, LUA_REGISTRYINDEX, ref_cb);
   if( !lua_isfunction(L, -1) )
-    throw(Error("EventHandler: invalid callback type"));
+    throw(LuaError(L, "EventHandler: invalid callback type"));
   lua_pop(L,1);
 }
 
@@ -777,7 +777,7 @@ void Display::handlerCamDown(Display *d, const SDL_Event *event)
 OSDLua::OSDLua(lua_State *L, int ref_obj): L(L), ref_obj(ref_obj), ref_text(LUA_NOREF)
 {
   if( this->ref_obj == LUA_NOREF || this->ref_obj == LUA_REFNIL )
-    throw(LuaError("invalid object reference for OSDLua"));
+    throw(LuaError(L, "OSDLua: invalid object reference"));
 }
 
 OSDLua::~OSDLua()
@@ -795,7 +795,7 @@ const char *OSDLua::getText()
     LuaManager::pcall(L, 0, 1);
   const char *s = lua_tostring(L, -1);
   if( s == NULL )
-    throw(LuaError("OSDLua: invalid 'text' field value"));
+    throw(Error("OSDLua: invalid 'text' field value"));
 
   // Hold a reference to avoid returned string to be collected
   if( ref_text != LUA_NOREF )
@@ -813,7 +813,7 @@ int OSDLua::getX()
   if( lua_isfunction(L, -1) )
     LuaManager::pcall(L, 0, 1);
   if( !lua_isnumber(L, -1) )
-    throw(LuaError("OSDLua: invalid 'x' field value"));
+    throw(Error("OSDLua: invalid 'x' field value"));
   int i = lua_tointeger(L, -1);
   lua_pop(L, 1);
   return i;
@@ -827,7 +827,7 @@ int OSDLua::getY()
   if( lua_isfunction(L, -1) )
     LuaManager::pcall(L, 0, 1);
   if( !lua_isnumber(L, -1) )
-    throw(LuaError("OSDLua: invalid 'y' field value"));
+    throw(Error("OSDLua: invalid 'y' field value"));
   int i = lua_tointeger(L, -1);
   lua_pop(L, 1);
   return i;
@@ -842,7 +842,7 @@ Color4 OSDLua::getColor()
     LuaManager::pcall(L, 0, 1);
   Color4 c;
   if( LuaManager::tocolor(L, -1, c) != 0 )
-    throw(LuaError("OSDLua: invalid 'color' field value"));
+    throw(Error("OSDLua: invalid 'color' field value"));
   lua_pop(L, 1);
   return c;
 }
@@ -1203,7 +1203,7 @@ class LuaOSD: public LuaClass<OSDLua>
   static int show(lua_State *L)
   {
     if( !display )
-      throw(LuaError("OSD:show(): no display"));
+      throw(LuaError(L, "no display"));
     SmartPtr<OSDMessage> osd = get_ptr(L,1);
     display->getOsds().insert( osd );
     return 0;
@@ -1211,7 +1211,7 @@ class LuaOSD: public LuaClass<OSDLua>
   static int hide(lua_State *L)
   {
     if( !display )
-      throw(LuaError("OSD:hide(): no display"));
+      throw(LuaError(L, "no display"));
     display->getOsds().erase( SmartPtr<OSDMessage>(get_ptr(L,1)) );
     return 0;
   }

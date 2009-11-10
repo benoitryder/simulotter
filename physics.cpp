@@ -104,7 +104,7 @@ TaskLua::TaskLua(lua_State *L, int ref, btScalar period):
   period(period), cancelled(false), L(L), ref_obj(ref)
 {
   if( this->ref_obj == LUA_NOREF || this->ref_obj == LUA_REFNIL )
-    throw(LuaError("invalid object reference for TaskLua"));
+    throw(LuaError(L, "TaskLua: invalid object reference"));
 }
 
 TaskLua::~TaskLua()
@@ -125,7 +125,7 @@ void TaskLua::process(Physics *ph)
   else if( lua_isthread(L, -1) )
     do_process_thread(L);
   else
-    throw(LuaError("TaskLua: invalid callback"));
+    throw(Error("TaskLua: invalid callback"));
 
   if( period > 0 && ! cancelled )
     ph->scheduleTask(this, ph->getTime() + period);
@@ -305,10 +305,10 @@ class LuaShape: public LuaClass<btCollisionShape>
       lua_rawgeti(L, -1, 1);
       void *p = lua_touserdata(L, -1);
       if( p == NULL )
-        throw(LuaError("invalid shape"));
+        throw(LuaError(L, "invalid shape"));
       btCollisionShape *sh = *(btCollisionShape **)p;
       if( sh == NULL || !lua_getmetatable(L, -1) || !lua_rawequal(L, -1, shape_mt) )
-        throw(LuaError("invalid shape"));
+        throw(LuaError(L, "invalid shape"));
       lua_pop(L, 2);
 
       // transform

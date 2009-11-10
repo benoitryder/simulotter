@@ -156,11 +156,11 @@ void Log::trace(const char *fmt, ...)
 
 
 
-Error::Error(const char *fmt, ...)
+Error::Error(const char *fmt, ...): msg(NULL)
 {
   va_list ap;
   va_start(ap, fmt);
-  vssprintf(&msg, fmt, ap);
+  setMsg(fmt, ap);
   va_end(ap);
 }
 
@@ -182,5 +182,19 @@ Error &Error::operator=(const Error &e)
     this->msg[n] = '\0';
   }
   return *this;
+}
+
+void Error::setMsg(const char *fmt, ...)
+{
+  va_list ap;
+  va_start(ap, fmt);
+  setMsg(fmt, ap);
+  va_end(ap);
+}
+
+void Error::setMsg(const char *fmt, va_list ap)
+{
+  free(msg);
+  vssprintf(&msg, fmt, ap);
 }
 

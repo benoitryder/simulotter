@@ -49,6 +49,10 @@ public:
     return this->msg;
   }
 
+protected:
+  void setMsg(const char *fmt, ...);
+  void setMsg(const char *fmt, va_list ap);
+
 private:
   char *msg;
 };

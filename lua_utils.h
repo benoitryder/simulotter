@@ -25,6 +25,21 @@ public:
   /// Run a Lua script
   void do_file(const char *filename);
 
+  /** @brief Lua call in protected Lua with error forwarding.
+   *
+   * C++ exceptions are not compatible with Lua error handling
+   * (<em>longjmp/setjump</em>). Thus, throwing after a Lua error will crash.
+   * To prevent this, we use an error handler which throw an exception (before
+   * the <em>setjump</em>). Other exceptions are caught and rethrown with LUA
+   * stack info.
+   *
+   * If the method fails (an exception is thrown) the LUA state may be in an
+   * inconsistent state and the error should lead the programm to exit.
+   */
+  static void pcall(lua_State *L, int nargs, int nresults);
+  /// Handler used by pcall().
+  static int pcall_error_handler(lua_State *L);
+
   /** @brief Convert a given value to a color
    *
    * Valid colors are tables of 3 or 4 elements, indexed by integers.
@@ -106,19 +121,6 @@ public:
 
 
   lua_State *get_L() { return this->L; }
-
-  /** @brief Lua call in protected Lua with error forwarding
-   *
-   * C++ exceptions are not compatible with Lua error handling
-   * (<em>longjmp/setjump</em>). Call is made in protected mode and errors are
-   * transmitted (if any).
-   */
-  static void pcall(lua_State *L, int nargs, int nresults)
-  {
-    int err = lua_pcall(L, nargs, nresults, 0);
-    if( err != 0 )
-      lua_error(L);
-  }
 
   /** @name Push functions
    */
@@ -310,7 +312,7 @@ public:
     else
       lua_pushvalue(L, narg);
     if( !lua_isuserdata(L, -1) )
-      throw(LuaError("invalid type, userdata expected"));
+      throw(LuaError(L, "invalid type, userdata expected"));
     data_ptr ptr = *(data_ptr *)lua_touserdata(L, -1);
     lua_pop(L, 1);
     return ptr;
@@ -515,30 +517,20 @@ public:
 class LuaError: public Error
 {
 public:
-  LuaError(): err(0) {}
-  LuaError(const char *msg): Error("LUA: %s", msg), err(0) {}
-  LuaError(lua_State *L, int err=0):
-    Error("LUA: %s", lua_tostring(L,-1)), err(err) { lua_pop(L,1); }
-  LuaError(lua_State *L, const char *msg, int err=0):
-    Error("LUA: %s: %s", msg, lua_tostring(L,-1)), err(err) { lua_pop(L,1); }
+  /// Get error message from the stack (and pop it).
+  LuaError(lua_State *L);
+  /// LUA error with given message.
+  LuaError(lua_State *L, const char *msg):
+    Error() { setLuaMsg(L, msg); }
+  // Add LUA error info to an existing error.
+  LuaError(lua_State *L, const Error &e):
+    Error() { setLuaMsg(L, e.what()); }
   ~LuaError() throw() {}
   LuaError(const LuaError &e): Error(e) {}
 
-  LuaError& operator=(const LuaError &e)
-  {
-    Error::operator=(e);
-    this->err = e.err;
-    return *this;
-  }
-
-  int get_err() { return err; }
-
-private:
-  /// Lua error code (0 if none)
-  int err;
-
+protected:
+  void setLuaMsg(lua_State *L, const char *msg);
 };
-
 
 
 #endif

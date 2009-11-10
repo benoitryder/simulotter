@@ -12,7 +12,7 @@ LuaManager::LuaManager()
 {
   this->L = luaL_newstate();
   if( this->L == NULL )
-    throw(LuaError("state creation failed (memory allocation error)"));
+    throw(Error("state creation failed (memory allocation error)"));
 
   // Load some standard libraries
 	lua_pushcfunction(L, luaopen_base);   lua_call(L, 0, 0);
@@ -27,7 +27,7 @@ LuaManager::LuaManager()
   lua_getfield(L, -1, "randomseed");
   lua_pushinteger(L, ::time(NULL));
   lua_pcall(L, 1, 0, 0);
-  // pop the first random integer with is "less random"
+  // pop the first random integer which is "less random"
   lua_getfield(L, -1, "random");
   lua_pushinteger(L, 42);
   lua_pcall(L, 1, 0, 0);
@@ -56,12 +56,44 @@ void LuaManager::do_file(const char *filename)
 
   ret = luaL_loadfile(L, filename);
   if( ret != 0 )
-    throw(LuaError(L, ret));
-
-  ret = lua_pcall(L, 0, LUA_MULTRET, 0);
-  if( ret != 0 )
-    throw(LuaError(L, ret));
+    throw(LuaError(L));
+  pcall(L, 0, LUA_MULTRET);
 }
+
+void LuaManager::pcall(lua_State *L, int nargs, int nresults)
+{
+  lua_pushcfunction(L, pcall_error_handler);
+  // move the handler below called function and args
+  int h = lua_gettop(L) - nargs - 1;
+  lua_insert(L, h);
+
+  try
+  {
+    if( lua_pcall(L, nargs, nresults, h) != 0 )
+    {
+      // should not happen, a throw will crash the application
+      // we use a LUA error which will lead to a panic error.
+      lua_error(L);
+    }
+    lua_remove(L,h); // error handler
+  }
+  catch(const LuaError &e)
+  {
+    throw; // forward
+  }
+  catch(const Error &e)
+  {
+    throw LuaError(L, e); // add LUA error info
+  }
+}
+
+int LuaManager::pcall_error_handler(lua_State *L)
+{
+  throw(LuaError(L));
+  return 0;
+}
+
+
 
 
 int LuaManager::tocolor(lua_State *L, int index, Color4 &c)
@@ -412,5 +444,26 @@ void LuaMainModule::do_import(lua_State *L)
   LUA_IMPORT_CLASS(Task);
   LUA_IMPORT_CLASS(Display);
   LUA_IMPORT_CLASS(OSD);
+}
+
+
+#define LUA_ERROR_PREFIX "[LUA] "
+
+LuaError::LuaError(lua_State *L):
+  Error(LUA_ERROR_PREFIX "%s", lua_tostring(L, -1))
+{
+  lua_pop(L, 1);
+}
+
+void LuaError::setLuaMsg(lua_State *L, const char *msg)
+{
+  lua_Debug ar;
+  if( lua_getstack(L, 1, &ar) )
+  {
+    lua_getinfo(L, "Sl", &ar);
+    setMsg(LUA_ERROR_PREFIX "%s:%d: %s", ar.short_src, ar.currentline, msg);
+  }
+  else
+    setMsg(LUA_ERROR_PREFIX "%s", msg);
 }
 
