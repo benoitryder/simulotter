@@ -26,6 +26,7 @@ config.log_flush = true
 
 physics = Physics()
 display = Display()
+display:init()
 
 
 trace("------ SCRIPT START ------")

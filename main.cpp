@@ -64,14 +64,8 @@ int main(int argc, char **argv)
     }
 
     // Simulation displayed: control speed
-    if( display != NULL )
+    if( display != NULL && display->isInitialized() )
     {
-      if( !display->isInitialized() )
-      {
-        LOG->trace("display created but not initialized: init it");
-        display->init();
-      }
-
       unsigned int disp_dt = (unsigned int)(1000.0/cfg->fps);
       unsigned int step_dt = (unsigned int)(1000.0*cfg->step_dt);
       unsigned long time;
