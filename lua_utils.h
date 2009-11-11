@@ -194,6 +194,8 @@ private:
 
   /// Write a string line on stdout
   static int lua_trace(lua_State *L);
+  /// Exit with a given status code.
+  static int lua_exit(lua_State *L);
 
   static LuaMainModule main_module;
 };

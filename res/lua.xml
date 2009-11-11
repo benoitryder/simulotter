@@ -28,6 +28,11 @@
       <value name="log_flush" type="bool">Flush logs after each write</value>
     </object>
 
+    <function name="trace">Send a single string to logs.</function>
+    <function name="exit">Exit with the given status code (default: <tt>0</tt>).
+      <arg name="code" required="0"/>
+    </function>
+
     <class name="Physics">
       Physics environment, used as a singleton.<br/>
       It must be created.

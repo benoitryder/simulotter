@@ -66,7 +66,7 @@ void Object::drawShape(const btCollisionShape *shape)
         const btCylinderShape *cylinder_shape = static_cast<const btCylinderShape*>(shape);
         const int axis = cylinder_shape->getUpAxis();
         const btScalar r   = cylinder_shape->getRadius();
-        //XXX there is not a getHalfHeight() function
+        // there is not a getHalfHeight() function
         const btVector3 &size = cylinder_shape->getHalfExtentsWithMargin();
         const btScalar len = size[axis];
         switch( axis )

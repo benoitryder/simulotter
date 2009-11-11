@@ -180,6 +180,7 @@ namespace eurobot2009
     protected:
       /// Reset pàchev's transform according to robot's transform
       void resetTrans();
+
     private:
       static btBoxShape shape;
       Galipeur2009 *robot;
@@ -187,6 +188,9 @@ namespace eurobot2009
 
     Pachev *pachev;
     btSliderConstraint *pachev_link;
+
+    /// Release constraints on caught objects.
+    void releaseObjects();
 
     /// Pachev states
     typedef enum

@@ -188,7 +188,7 @@ namespace eurobot2010
   OTomato::OTomato()
   {
     setShape( shape );
-    setColor( Color4(0xff, 0,0) ); //TODO
+    setColor( Color4(0xff, 0,0) );
     setMass( 0.150 );
   }
 
@@ -198,7 +198,7 @@ namespace eurobot2010
   OOrange::OOrange()
   {
     setShape( shape );
-    setColor( Color4(0xff, 0x80,0) ); //TODO
+    setColor( Color4(0xff, 0x80,0) );
     setMass( 0.300 );
   }
 

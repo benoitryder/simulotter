@@ -126,7 +126,6 @@ public:
   /** @brief Add an object in a physics world.
    *
    * Object has to be initialized before being added to a world.
-   * @todo Define Physics::addObject() instead.
    */
   virtual void addToWorld(Physics *physics);
   virtual void removeFromWorld();

@@ -195,6 +195,7 @@
         <xsl:with-param name="name" select="@name"/>
         <xsl:with-param name="content">
           <p class="module desc"><xsl:call-template name="xhtml"/></p>
+          <xsl:apply-templates select="function"/>
           <xsl:apply-templates select="object"/>
           <xsl:call-template name="values"/>
           <xsl:apply-templates select="class"/>

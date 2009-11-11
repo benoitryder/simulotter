@@ -109,7 +109,7 @@ int main(int argc, char **argv)
   }
   catch(int i)
   {
-    LOG->trace("EXIT");
+    LOG->trace("EXIT (%d)", i);
     ret = i;
   }
   catch(const Error &e)

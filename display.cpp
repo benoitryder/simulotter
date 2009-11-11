@@ -155,8 +155,8 @@ void Display::update()
       0.0, 0.0, up);
 
   // Draw objects
-  std::set< SmartPtr<Object> > &objs = physics->getObjs();
-  std::set< SmartPtr<Object> >::iterator it_obj;
+  const std::set< SmartPtr<Object> > &objs = physics->getObjs();
+  std::set< SmartPtr<Object> >::const_iterator it_obj;
   for( it_obj = objs.begin(); it_obj != objs.end(); ++it_obj )
     (*it_obj)->draw();
 

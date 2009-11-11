@@ -35,6 +35,7 @@ LuaManager::LuaManager()
 
   // Register global functions
   lua_register(L, "trace", lua_trace);
+  lua_register(L, "exit", lua_exit);
 
   // Init Lua stuff of other classes
   cfg->lua_init(L);
@@ -215,6 +216,13 @@ int LuaManager::lua_trace(lua_State *L)
 {
   LOG->trace("== %s", luaL_checkstring(L,1) );
   return 0;
+}
+
+int LuaManager::lua_exit(lua_State *L)
+{
+  int code = lua_isnone(L,1) ? 0 : luaL_checkinteger(L,1);
+  throw(code);
+  return 0; // never reached
 }
 
 

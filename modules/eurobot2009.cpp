@@ -169,7 +169,6 @@ namespace eurobot2009
 
   Galipeur2009::~Galipeur2009()
   {
-    //TODO remove elements from the world
     delete pachev;
     delete pachev_link;
   }
@@ -186,7 +185,6 @@ namespace eurobot2009
 
   Galipeur2009::Pachev::~Pachev()
   {
-    //TODO remove constraints (?)
   }
 
   bool Galipeur2009::Pachev::checkCollideWithOverride(btCollisionObject *co)
@@ -263,6 +261,7 @@ namespace eurobot2009
   void Galipeur2009::removeFromWorld()
   {
     Physics *ph_bak = this->physics;
+    releaseObjects();
     Galipeur::removeFromWorld();
     ph_bak->getWorld()->removeConstraint(pachev_link);
     ph_bak->getWorld()->removeRigidBody(pachev);
@@ -292,6 +291,19 @@ namespace eurobot2009
     tr.setIdentity();
     tr.setOrigin( btVector3(-Galipeur2009::d_side-width/2, 0, height/2) );
     this->setCenterOfMassTransform(robot->body->getCenterOfMassTransform()*tr);
+  }
+
+  void Galipeur2009::releaseObjects()
+  {
+    for(int i=pachev->getNumConstraintRefs()-1; i>=0; i--)
+    {
+      btTypedConstraint *constraint = pachev->getConstraintRef(i);
+      if( constraint != pachev_link )
+      {
+        physics->getWorld()->removeConstraint(constraint);
+        delete constraint;
+      }
+    }
   }
 
 
@@ -329,15 +341,7 @@ namespace eurobot2009
   void Galipeur2009::order_pachev_release()
   {
     LOG->trace("PACHEV RELEASE");
-    for(int i=pachev->getNumConstraintRefs()-1; i>=0; i--)
-    {
-      btTypedConstraint *constraint = pachev->getConstraintRef(i);
-      if( &constraint->getRigidBodyA() != body )
-      {
-        physics->getWorld()->removeConstraint(constraint);
-        delete constraint;
-      }
-    }
+    releaseObjects();
     pachev_state = PACHEV_RELEASE;
   }
 

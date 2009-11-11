@@ -35,7 +35,6 @@ void RBasic::setup(btCollisionShape *shape, btScalar m)
 
 RBasic::~RBasic()
 {
-  //TODO remove from the world
   if( body != NULL )
   {
     SmartPtr_release(body->getCollisionShape());

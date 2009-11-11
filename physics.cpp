@@ -31,8 +31,11 @@ Physics::~Physics()
 {
   // removeFromWorld() modify the set, don't use an iterator
   while( ! objs.empty() )
-    (*objs.begin())->removeFromWorld();
-  objs.clear();
+  {
+    // keep a reference to avoid deleting the objing during the call
+    SmartPtr<Object> obj = *objs.begin();
+    obj->removeFromWorld();
+  }
   delete world;
   delete solver;
   delete dispatcher;
@@ -139,6 +142,7 @@ void TaskLua::do_process_function(lua_State *L)
 void TaskLua::do_process_thread(lua_State *L)
 {
   lua_State *L_cb = lua_tothread(L, -1);
+  lua_pop(L,1);
   int ret = lua_resume(L_cb, 0);
   if( ret == 0 )
     cancelled = true; // coroutine returned
