@@ -29,9 +29,9 @@ Physics::Physics()
 
 Physics::~Physics()
 {
-  std::set< SmartPtr<Object> >::iterator it_obj;
-  for( it_obj = objs.begin(); it_obj != objs.end(); ++it_obj )
-    (*it_obj)->removeFromWorld();
+  // removeFromWorld() modify the set, don't use an iterator
+  while( ! objs.empty() )
+    (*objs.begin())->removeFromWorld();
   objs.clear();
   delete world;
   delete solver;
