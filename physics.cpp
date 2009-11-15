@@ -70,8 +70,11 @@ void Physics::step()
   // Scheduled tasks
   while( !task_queue.empty() && task_queue.top().first <= time )
   {
-    task_queue.top().second->process(this);
+    // the task may push other tasks
+    // popping after processing may pop one of these tasks
+    SmartPtr<TaskPhysics> task = task_queue.top().second;
     task_queue.pop();
+    task->process(this);
   }
 }
 
