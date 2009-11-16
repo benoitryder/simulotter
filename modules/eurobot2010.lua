@@ -99,9 +99,6 @@ do
   -- Make all trees with the same height but use different z position
   OBranch.sh_h = 0.25
   OBranch.shape = Shape:cylinderZ(0.025, OBranch.sh_h/2)
-  function OBranch.set_top_pos(self, x, y)
-    self:set_pos(x, y+TABLE.sy/2-0.250, RAISED.z-OBranch.sh_h/2+self.h)
-  end
 
   function OBranch.add_orange(self)
     local x,y,z = self:get_pos()
@@ -112,22 +109,30 @@ do
     oranges[#oranges+1] = o
   end
 
-  -- Add a tree (3 branches) at a given position
+  -- Compute tree position (x, y and z)
+  -- x and y are -1 or 1 and give tree position
+  function branch_pos(x,y,h)
+    assert( x==1 or x==-1 and y==1 or y==-1, "invalid tree position")
+    assert( h==0.25 or h==0.20 or h==0.15, "invalid tree height")
+    local dx = ({[0.25]=0, [0.20]=0.055, [0.15]=0.080})[h]
+    local dy = ({[0.25]=0, [0.20]=0.075, [0.15]=-0.050})[h]
+    local px = x * (0.500/2-0.080-0.055 + dx)
+    local py = (y==1 and 0.250-0.070-0.075 or -0.250+0.080+0.050) + dy + TABLE.sy/2-0.250
+    local pz = RAISED.z-OBranch.sh_h/2+h
+    return px, py, pz
+  end
+
+  -- Add a tree (3 branches and their oranges)
+  -- x and y are -1 or 1 and give tree position
   function add_tree(x, y)
     local o
-    for k,v in ipairs(OBranch.tree_branches) do
-      o = OBranch(v.h)
+    for k,h in ipairs({0.25, 0.20, 0.15}) do
+      o = OBranch(h)
       o:add_to_world()
-      o:set_top_pos( (x<0 and x-v.x or x+v.x), y+v.y )
+      o:set_pos( branch_pos(x, y, h) )
       o:add_orange()
     end
   end
-  -- branch offset (origin at the tallest branch)
-  OBranch.tree_branches = {
-    { h=0.25, x=0, y=0 },
-    { h=0.20, x=0.055, y=0.075 },
-    { h=0.15, x=0.080, y=-0.050 },
-  }
 
 end
 
@@ -300,12 +305,10 @@ function init(fconf)
   -- Oranges and trees
   trace("  oranges and trees")
   do
-    local tree_offset_x = 0.500/2-0.080-0.055
-    local tree_offset_y = 0.100
-    add_tree( tree_offset_x,  0.250-0.070-0.075)
-    add_tree(-tree_offset_x,  0.250-0.070-0.075)
-    add_tree( tree_offset_x, -0.250+0.080+0.050)
-    add_tree(-tree_offset_x, -0.250+0.080+0.050)
+    add_tree(-1,-1)
+    add_tree(-1, 1)
+    add_tree( 1,-1)
+    add_tree( 1, 1)
   end
 
 end
