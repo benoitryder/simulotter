@@ -93,7 +93,6 @@ do
   OBranch = class(OSimple, function(self,h)
     OSimple._ctor(self)
     self:set_shape( self.shape )
-    self:add_to_world()
     self:set_color(colors.white)
     self.h = h
   end)
@@ -113,17 +112,18 @@ do
     oranges[#oranges+1] = o
   end
 
-  -- Tree class
-  OTree = class(OSimple, function(self, x, y)
+  -- Add a tree (3 branches) at a given position
+  function add_tree(x, y)
     local o
-    for k,v in ipairs(self.branches) do
+    for k,v in ipairs(OBranch.tree_branches) do
       o = OBranch(v.h)
+      o:add_to_world()
       o:set_top_pos( (x<0 and x-v.x or x+v.x), y+v.y )
       o:add_orange()
     end
-  end)
+  end
   -- branch offset (origin at the tallest branch)
-  OTree.branches = {
+  OBranch.tree_branches = {
     { h=0.25, x=0, y=0 },
     { h=0.20, x=0.055, y=0.075 },
     { h=0.15, x=0.080, y=-0.050 },
@@ -302,10 +302,10 @@ function init(fconf)
   do
     local tree_offset_x = 0.500/2-0.080-0.055
     local tree_offset_y = 0.100
-    OTree( tree_offset_x,  0.250-0.070-0.075)
-    OTree(-tree_offset_x,  0.250-0.070-0.075)
-    OTree( tree_offset_x, -0.250+0.080+0.050)
-    OTree(-tree_offset_x, -0.250+0.080+0.050)
+    add_tree( tree_offset_x,  0.250-0.070-0.075)
+    add_tree(-tree_offset_x,  0.250-0.070-0.075)
+    add_tree( tree_offset_x, -0.250+0.080+0.050)
+    add_tree(-tree_offset_x, -0.250+0.080+0.050)
   end
 
 end
