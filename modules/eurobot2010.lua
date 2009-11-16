@@ -148,8 +148,8 @@ function init(fconf)
     conf_side   = math.random(9)
     conf_center = math.random(4)
   else
-    conf_side   = fconf % 16 + 1
-    conf_center = math.floor(fconf/16) + 1
+    conf_side   = fconf % 16
+    conf_center = math.floor(fconf/16)
   end
   if conf_side < 1 or conf_side > 9 or conf_center < 1 or conf_center > 4 then
     error("invalid field configuration")
