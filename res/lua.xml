@@ -542,6 +542,10 @@
         <arg name="mass" type="float"/>
       </constructor>
 
+      <function name="set_color">
+        <arg type="Color"/>
+      </function>
+
       <function name="get_xy"><return type="float"/><return type="float"/></function>
       <function name="get_v"><return type="float"/><return type="float"/></function>
       <function name="get_a"><return type="float"/></function>

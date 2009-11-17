@@ -24,6 +24,8 @@ public:
   virtual void addToWorld(Physics *physics);
   virtual void removeFromWorld();
 
+  void setColor(const Color4 &color) { this->color = color; }
+
   /** @brief Draw the robot
    *
    * Assumes that the robot is not rotated (robot's Z axis aligned with world's
@@ -86,6 +88,8 @@ public:
 
 protected:
   btRigidBody *body;
+
+  Color4 color;
 
   /// Sharp positions
   std::vector<btTransform> sharps_trans;

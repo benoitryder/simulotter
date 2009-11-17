@@ -67,6 +67,8 @@ Galipeur::Galipeur(btScalar m)
 
   // Init order
   this->order = ORDER_NONE;
+
+  color = Color4(0.3);
 }
 
 Galipeur::~Galipeur()
@@ -88,7 +90,7 @@ void Galipeur::removeFromWorld()
 
 void Galipeur::draw()
 {
-  glColor4fv(Color4(0.3)); //XXX
+  glColor4fv(color);
 
   glPushMatrix();
   drawTransform(body->getCenterOfMassTransform());
@@ -296,6 +298,14 @@ class LuaGalipeur: public LuaClass<Galipeur>
     return 0;
   }
 
+  static int set_color(lua_State *L)
+  {
+    Color4 color;
+    LuaManager::checkcolor(L, 2, color);
+    get_ptr(L,1)->setColor( color );
+    return 0;
+  }
+
   LUA_DEFINE_GETN_SCALED(2, get_xy, get_xy)
   LUA_DEFINE_GETN_SCALED(2, get_v, get_v)
   LUA_DEFINE_GET(get_a , get_a)
@@ -366,6 +376,7 @@ class LuaGalipeur: public LuaClass<Galipeur>
   virtual void init_members(lua_State *L)
   {
     LUA_CLASS_MEMBER(_ctor);
+    LUA_CLASS_MEMBER(set_color);
 
     LUA_CLASS_MEMBER(get_xy);
     LUA_CLASS_MEMBER(get_v);
