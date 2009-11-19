@@ -11,14 +11,8 @@
 #define CLAMP(v,a,b) (((v)<(a))?(a):((v)>(b)?(b):(v)))
 
 #ifdef BT_USE_DOUBLE_PRECISION
-#if BT_BULLET_VERSION < 275
-inline btScalar btFmod(btScalar x, btScalar y) { return fmod(x,y);  }
-#endif
 inline btScalar btCeil(btScalar x) { return ceil(x); }
 #else
-#if BT_BULLET_VERSION < 275
-inline btScalar btFmod(btScalar x, btScalar y) { return fmodf(x,y);  }
-#endif
 inline btScalar btCeil(btScalar x) { return ceilf(x); }
 #endif
 
@@ -144,20 +138,5 @@ inline btSpheric3 operator*(const btSpheric3 &v, const btScalar &s) { return s*v
 inline btSpheric3 operator/(const btSpheric3 &v, const btScalar &s) { btFullAssert(s != btScalar(0.0)); return v * (btScalar(1.0)/s); }
 
 //@}
-
-
-#if BT_BULLET_VERSION < 275
-/// Normalize angle in [-Pi,Pi]
-inline btScalar btNormalizeAngle(btScalar a)
-{
-  a = btFmod(a, SIMD_2_PI);
-  if( a < -SIMD_PI )
-    a += SIMD_2_PI;
-  else if( a > SIMD_PI )
-    a -= SIMD_2_PI;
-  return a;
-}
-#endif
-
 
 #endif

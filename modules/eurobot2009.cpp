@@ -412,7 +412,7 @@ namespace eurobot2009
 
     static int fill(lua_State *L)
     {
-      Object *o = LuaClass<Object>::get_ptr(L,2);
+      Object *o = LuaClass<Object>::get_ptr(L,2); //TODO type is not checked
       get_ptr(L,1)->fill(o, LARG_scaled(3));
       return 0;
     }

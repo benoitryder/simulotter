@@ -695,6 +695,16 @@
     <class name="OCorn" base="main.OSimple">
       Ear of corn.
       <constructor></constructor>
+      <function name="plant">Plant the corn in the ground.
+        <arg name="ground" type="OGround" />
+        <arg name="x" type="float" />
+        <arg name="y" type="float" />
+      </function>
+    </class>
+
+    <class name="OCornFake" base="main.OSimple">
+      Fake ear of corn.
+      <constructor></constructor>
     </class>
 
     <class name="OTomato" base="main.OSimple">

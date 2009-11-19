@@ -48,19 +48,32 @@ public:
   btDynamicsWorld *getWorld() { return this->world; }
 
   std::set<SmartPtr<Object> > &getObjs() { return this->objs; }
+  std::set<SmartPtr<Object> > &getTickObjs() { return this->tick_objs; }
 
   /// Common static rigid body for constraints
   static btRigidBody static_body;
 
 private:
+  /** @brief Encapsulated world.
+   *
+   * The world user info is set to the physics instance pointer.
+   */
   btDynamicsWorld          *world;
   btDispatcher             *dispatcher;
   btConstraintSolver       *solver;
   btBroadphaseInterface    *broadphase;
   btCollisionConfiguration *col_config;
 
-  /// All simulateed objects
+  /// All simulated objects
   std::set<SmartPtr<Object> > objs;
+
+  /** @brief Object whose tick callback must be called.
+   * @sa Object::tickCallback()
+   */
+  std::set<SmartPtr<Object> > tick_objs;
+
+  /// Tick callback called by Bullet.
+  static void worldTickCallback(btDynamicsWorld *world, btScalar step);
 
   /// Simulation pause state
   bool pause_state;

@@ -40,6 +40,14 @@ public:
    */
   virtual void removeFromWorld();
 
+  /** @brief Callback for when a simulation substep happens.
+   *
+   * This method is intended to be defined by each subclasse and should not be called, except by Physics.
+   *
+   * The callback is disabled until enableTickCallback() is called.
+   */
+  virtual void tickCallback();
+
   /// Draw the whole object
   virtual void draw() = 0;
 
@@ -78,6 +86,11 @@ protected:
    * world.
    */
   Physics *physics;
+
+  /// Enable the tick callback.
+  void enableTickCallback();
+  /// Disable the tick callback.
+  void disableTickCallback();
 };
 
 

@@ -107,8 +107,28 @@ void Object::removeFromWorld()
 {
   if( physics == NULL )
     throw(Error("object is not in a world"));
+  this->disableTickCallback();
   physics->getObjs().erase(this); // should return 1
   physics = NULL;
+}
+
+void Object::tickCallback()
+{
+  throw(Error("non-implemented tickCallback() called"));
+}
+
+void Object::enableTickCallback()
+{
+  if( physics == NULL )
+    throw(Error("object is not in a world"));
+  physics->getTickObjs().insert(this);
+}
+
+void Object::disableTickCallback()
+{
+  if( physics == NULL )
+    throw(Error("object is not in a world"));
+  physics->getTickObjs().erase(this);
 }
 
 

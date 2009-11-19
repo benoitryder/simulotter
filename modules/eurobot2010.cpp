@@ -176,10 +176,63 @@ namespace eurobot2010
 
   SmartPtr<btCylinderShapeZ> OCorn::shape(new btCylinderShapeZ(scale(btVector3(0.025,0.025,0.075))));
 
-  OCorn::OCorn()
+  OCorn::OCorn(): ground_attach(NULL)
   {
     setShape( shape );
     setMass( 0.250 );
+    setColor(Color4( 0xff, 0xf5, 0xe3 )); // RAL 1013
+  }
+
+  void OCorn::plant(OGround *ground, btScalar x, btScalar y)
+  {
+    uproot();
+
+    btScalar h = shape->getHalfExtentsWithMargin().getZ();
+    ground_attach = new btPoint2PointConstraint(*this, *ground,
+        btVector3(0, 0, -2*h), btVector3(x, y, 0)
+        );
+    physics->getWorld()->addConstraint(ground_attach, true);
+    this->ground = ground;
+    ground_attach->enableFeedback(true);
+    enableTickCallback();
+
+    setPos( btVector3( x, y, h ) );
+  }
+
+  void OCorn::uproot()
+  {
+    if( ! physics || ! ground_attach )
+      return;
+    physics->getWorld()->removeConstraint(ground_attach);
+    delete ground_attach;
+    ground_attach = NULL;
+    ground = NULL;
+    disableTickCallback();
+  }
+
+  void OCorn::removeFromWorld()
+  {
+    uproot();
+    OSimple::removeFromWorld();
+  }
+
+  void OCorn::tickCallback()
+  {
+    // remove constraint if corn angle is not null
+    btQuaternion q;
+    getRot().getRotation(q);
+    if( btFabs(q.getAngle()) > 0.5 ) //XXX adjust value
+      uproot();
+  }
+
+
+  SmartPtr<btCylinderShapeZ> OCornFake::shape(new btCylinderShapeZ(scale(btVector3(0.025,0.025,0.075))));
+
+  OCornFake::OCornFake()
+  {
+    setShape( shape );
+    setMass(0);
+    setColor(Color4( 0x14, 0x17, 0x1c )); // RAL 9017
   }
 
 
@@ -227,6 +280,33 @@ namespace eurobot2010
       return 0;
     }
 
+    static int plant(lua_State *L)
+    {
+      OGround *o = LuaClass<OGround>::get_ptr(L,2); //TODO type is not checked
+      get_ptr(L,1)->plant(o, LARG_scaled(3), LARG_scaled(4));
+      return 0;
+    }
+
+    LUA_DEFINE_SET0(uproot,uproot);
+
+
+    virtual void init_members(lua_State *L)
+    {
+      LUA_CLASS_MEMBER(_ctor);
+      LUA_CLASS_MEMBER(plant);
+      LUA_CLASS_MEMBER(uproot);
+    }
+  };
+
+
+  class LuaOCornFake: public LuaClass<OCornFake>
+  {
+    static int _ctor(lua_State *L)
+    {
+      store_ptr(L, new OCornFake());
+      return 0;
+    }
+
 
     virtual void init_members(lua_State *L)
     {
@@ -271,6 +351,7 @@ namespace eurobot2010
   {
     LUA_IMPORT_CLASS_NS(eurobot2010,ORaisedZone);
     LUA_IMPORT_CLASS_NS(eurobot2010,OCorn);
+    LUA_IMPORT_CLASS_NS(eurobot2010,OCornFake);
     LUA_IMPORT_CLASS_NS(eurobot2010,OTomato);
     LUA_IMPORT_CLASS_NS(eurobot2010,OOrange);
     LUA_IMPORT_CLASS(Galipeur);
@@ -279,6 +360,7 @@ namespace eurobot2010
 
   LUA_REGISTER_SUB_CLASS_NS(eurobot2010,ORaisedZone,OSimple);
   LUA_REGISTER_SUB_CLASS_NS(eurobot2010,OCorn,OSimple);
+  LUA_REGISTER_SUB_CLASS_NS(eurobot2010,OCornFake,OSimple);
   LUA_REGISTER_SUB_CLASS_NS(eurobot2010,OTomato,OSimple);
   LUA_REGISTER_SUB_CLASS_NS(eurobot2010,OOrange,OSimple);
 

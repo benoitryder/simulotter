@@ -7,6 +7,11 @@
  * @brief Bullet related declarations.
  */
 
+// check bullet version
+#if BT_BULLET_VERSION < 275
+#error "Bullet >= 2.75 is required"
+#endif
+
 
 /** @name GL aliases to use Bullet float precision
  */

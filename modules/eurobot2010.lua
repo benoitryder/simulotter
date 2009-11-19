@@ -76,12 +76,15 @@ function add_tomato(x,y)
 end
 
 -- Add a corn at given position, fake if f is true
-function add_corn(x,y,f)
-  local o = OCorn()
-  if f then o:set_mass(0) end
+function add_corn(grnd,x,y,f)
+  local o = f and OCornFake() or OCorn()
   o:add_to_world()
-  o:set_color( f and colors.ral_9017 or colors.ral_1013 )
-  o:set_pos( field_pos(x,y) )
+  local ox, oy = field_pos(x,y)
+  if f then
+    o:set_pos( ox, oy )
+  else
+    o:plant( grnd, ox, oy )
+  end
   corns[#corns+1] = o
 end
 
@@ -202,14 +205,14 @@ function init(fconf)
   end
 
 
-  local o, sh
+  local o, ground, sh
 
 
   -- Ground and raised zone
   trace("  ground")
 
-  o = OGround(colors.ral_6018, color1, color2)
-  o:add_to_world()
+  ground = OGround(colors.ral_6018, color1, color2)
+  ground:add_to_world()
   o = ORaisedZone()
   o:set_pos(0, TABLE.sy/2-0.250, 0)
   o:add_to_world()
@@ -272,8 +275,8 @@ function init(fconf)
     local t2 = fake_pos_side[conf_side]
     local fakes = { [0]= t1[1], [1]= t1[2], [2]= t2[1], [3]= t2[2] }
 
-    add_corn(0, 0, fakes[0]==0)
-    add_corn(0, 2, fakes[0]==2)
+    add_corn(ground, 0, 0, fakes[0]==0)
+    add_corn(ground, 0, 2, fakes[0]==2)
     for i=1,3 do
       for j=i+2,0,-2 do
         local f = false
@@ -283,8 +286,8 @@ function init(fconf)
             break
           end
         end
-        add_corn( i,j,f)
-        add_corn(-i,j,f)
+        add_corn(ground,  i,j,f)
+        add_corn(ground, -i,j,f)
       end
     end
   end

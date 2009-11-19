@@ -21,6 +21,7 @@ Physics::Physics()
   world = new btDiscreteDynamicsWorld(
       dispatcher, broadphase, solver, col_config
       );
+  world->setInternalTickCallback(worldTickCallback, this);
 
   pause_state = false;
   step_dt = 0;
@@ -29,6 +30,8 @@ Physics::Physics()
 
 Physics::~Physics()
 {
+  tick_objs.clear();
+
   // removeFromWorld() modify the set, don't use an iterator
   while( ! objs.empty() )
   {
@@ -82,6 +85,15 @@ void Physics::step()
 void Physics::scheduleTask(TaskPhysics *task, btScalar time)
 {
   task_queue.push( TaskQueueValue(time, SmartPtr<TaskPhysics>(task)) );
+}
+
+void Physics::worldTickCallback(btDynamicsWorld *world, btScalar step)
+{
+  Physics *physics = (Physics*)world->getWorldUserInfo();
+
+  std::set< SmartPtr<Object> >::const_iterator it_obj;
+  for( it_obj = physics->tick_objs.begin(); it_obj != physics->tick_objs.end(); ++it_obj )
+    (*it_obj)->tickCallback();
 }
 
 

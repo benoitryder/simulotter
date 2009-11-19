@@ -43,6 +43,29 @@ namespace eurobot2010
   {
   public:
     OCorn();
+
+    /// Plant the corn in the ground.
+    void plant(OGround *ground, btScalar x, btScalar y);
+    /// Remove ground attach (if any).
+    void uproot();
+
+    void removeFromWorld();
+    /// Remove the ground attach when the corn falls.
+    void tickCallback();
+
+  private:
+    static SmartPtr<btCylinderShapeZ> shape;
+    /// Ground the corn was planted in.
+    SmartPtr<OGround> ground;
+    /// Attach point with the ground.
+    btPoint2PointConstraint *ground_attach;
+  };
+
+  /// Fake ear of corn
+  class OCornFake: public OSimple
+  {
+  public:
+    OCornFake();
   private:
     static SmartPtr<btCylinderShapeZ> shape;
   };
