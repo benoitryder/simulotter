@@ -217,13 +217,15 @@ void Galipeur::draw()
 
 void Galipeur::asserv()
 {
+  unsigned int order_xya = order & (ORDER_GO_XY|ORDER_GO_A);
+
   // Go in position
-  if( order & ORDER_GO_XY )
+  if( order_xya & ORDER_GO_XY )
   {
     if( distance2(get_xy(), target_xy) < threshold_xy )
     {
       set_v( btVector2(0,0) );
-      order &= ~ORDER_GO_XY;
+      order_xya &= ~ORDER_GO_XY;
     }
     else
     {
@@ -232,19 +234,25 @@ void Galipeur::asserv()
   }
 
   // Turn
-  if( order & ORDER_GO_A )
+  if( order_xya & ORDER_GO_A )
   {
     btScalar da = btNormalizeAngle( target_a-get_a() );
     if( btFabs( da ) < threshold_a )
     {
       set_av(0);
-      order &= ~ORDER_GO_A;
+      order_xya &= ~ORDER_GO_A;
     }
     else
     {
       set_av( btFsel(da, av_max, -av_max) );
     }
   }
+
+  // An xya order is carried out only when both xy and a order are.
+  // For instance, if Galipeur hit something during an xya order and its angle
+  // change, it will go back to the target angle.
+  if( order_xya == 0 )
+    order &= ~(ORDER_GO_XY|ORDER_GO_A);
 }
 
 void Galipeur::set_v(btVector2 vxy)
