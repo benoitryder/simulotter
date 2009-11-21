@@ -38,27 +38,41 @@ namespace eurobot2010
     static btConvexHullShape wall_shape;
   };
 
-  /// Ear of corn
+  /** @brief Ear of corn
+   *
+   * Ears of corn are \e planted in the ground with a plug making it pivoting
+   * around the contact point with the ground.
+   *
+   * This pivot is simulated by a heavy and tiny rigid body, linked to the ear
+   * of corn by a point-to-point constraint.
+   * If the ear is hit with a sufficient force and begins to fall, the pivot
+   * body and constraint are removed.
+   */
   class OCorn: public OSimple
   {
   public:
     OCorn();
 
     /// Plant the corn in the ground.
-    void plant(OGround *ground, btScalar x, btScalar y);
-    /// Remove ground attach (if any).
+    void plant(btScalar x, btScalar y);
+    /// Uproot the corn, opposite of plant().
     void uproot();
 
     void removeFromWorld();
     /// Remove the ground attach when the corn falls.
-    void tickCallback();
+    virtual void tickCallback();
 
   private:
     static SmartPtr<btCylinderShapeZ> shape;
-    /// Ground the corn was planted in.
-    SmartPtr<OGround> ground;
-    /// Attach point with the ground.
-    btPoint2PointConstraint *ground_attach;
+
+    static const btScalar pivot_radius;
+    static const btScalar pivot_mass;
+    static SmartPtr<btCollisionShape> pivot_shape;
+
+    /// Pivot rigid body.
+    btRigidBody *opivot;
+    /// Attach point with the pivot rigid body.
+    btPoint2PointConstraint *pivot_attach;
   };
 
   /// Fake ear of corn

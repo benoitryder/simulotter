@@ -76,14 +76,14 @@ function add_tomato(x,y)
 end
 
 -- Add a corn at given position, fake if f is true
-function add_corn(grnd,x,y,f)
+function add_corn(x,y,f)
   local o = f and OCornFake() or OCorn()
   o:add_to_world()
   local ox, oy = field_pos(x,y)
   if f then
     o:set_pos( ox, oy )
   else
-    o:plant( grnd, ox, oy )
+    o:plant( ox, oy )
   end
   corns[#corns+1] = o
 end
@@ -275,8 +275,8 @@ function init(fconf)
     local t2 = fake_pos_side[conf_side]
     local fakes = { [0]= t1[1], [1]= t1[2], [2]= t2[1], [3]= t2[2] }
 
-    add_corn(ground, 0, 0, fakes[0]==0)
-    add_corn(ground, 0, 2, fakes[0]==2)
+    add_corn(0, 0, fakes[0]==0)
+    add_corn(0, 2, fakes[0]==2)
     for i=1,3 do
       for j=i+2,0,-2 do
         local f = false
@@ -286,8 +286,8 @@ function init(fconf)
             break
           end
         end
-        add_corn(ground,  i,j,f)
-        add_corn(ground, -i,j,f)
+        add_corn( i,j,f)
+        add_corn(-i,j,f)
       end
     end
   end

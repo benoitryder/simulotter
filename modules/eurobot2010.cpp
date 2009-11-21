@@ -175,25 +175,44 @@ namespace eurobot2010
 
 
   SmartPtr<btCylinderShapeZ> OCorn::shape(new btCylinderShapeZ(scale(btVector3(0.025,0.025,0.075))));
+  const btScalar OCorn::pivot_radius = scale(0.005);
+  const btScalar OCorn::pivot_mass = 50;
+  SmartPtr<btCollisionShape> OCorn::pivot_shape(new btSphereShape(pivot_radius));
 
-  OCorn::OCorn(): ground_attach(NULL)
+  OCorn::OCorn(): opivot(NULL), pivot_attach(NULL)
   {
     setShape( shape );
     setMass( 0.250 );
     setColor(Color4( 0xff, 0xf5, 0xe3 )); // RAL 1013
   }
 
-  void OCorn::plant(OGround *ground, btScalar x, btScalar y)
+  void OCorn::plant(btScalar x, btScalar y)
   {
+    if( physics == NULL )
+      throw(Error("cannot plant a corn which is not in a world"));
+
     uproot();
 
     btScalar h = shape->getHalfExtentsWithMargin().getZ();
-    ground_attach = new btPoint2PointConstraint(*this, *ground,
-        btVector3(0, 0, -2*h), btVector3(x, y, 0)
+
+    // Create the pivot rigid body.
+    opivot = new btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL));
+    opivot->setCollisionShape(pivot_shape);
+    btVector3 inertia;
+    pivot_shape->calculateLocalInertia(pivot_mass, inertia);
+    opivot->setMassProps(pivot_mass, inertia);
+    opivot->updateInertiaTensor();
+    opivot->setCenterOfMassTransform( btTransform(
+          btMatrix3x3::getIdentity(), btVector3(x, y, pivot_radius)
+          ) );
+    physics->getWorld()->addRigidBody(opivot);
+
+    // Create the pivot constraint
+    pivot_attach = new btPoint2PointConstraint(*this, *opivot,
+        btVector3(0, 0, -h), btVector3(0, 0, -0.9*pivot_radius)
         );
-    physics->getWorld()->addConstraint(ground_attach, true);
-    this->ground = ground;
-    ground_attach->enableFeedback(true);
+    physics->getWorld()->addConstraint(pivot_attach, true);
+
     enableTickCallback();
 
     setPos( btVector3( x, y, h ) );
@@ -201,12 +220,17 @@ namespace eurobot2010
 
   void OCorn::uproot()
   {
-    if( ! physics || ! ground_attach )
+    if( ! physics || ! pivot_attach )
       return;
-    physics->getWorld()->removeConstraint(ground_attach);
-    delete ground_attach;
-    ground_attach = NULL;
-    ground = NULL;
+
+    physics->getWorld()->removeConstraint(pivot_attach);
+    delete pivot_attach;
+
+    pivot_attach = NULL;
+    physics->getWorld()->removeRigidBody(opivot);
+    delete opivot;
+    opivot = NULL;
+
     disableTickCallback();
   }
 
@@ -221,7 +245,7 @@ namespace eurobot2010
     // remove constraint if corn angle is not null
     btQuaternion q;
     getRot().getRotation(q);
-    if( btFabs(q.getAngle()) > 0.5 ) //XXX adjust value
+    if( btFabs(q.getAngle()) > 0.3 )
       uproot();
   }
 
@@ -280,13 +304,7 @@ namespace eurobot2010
       return 0;
     }
 
-    static int plant(lua_State *L)
-    {
-      OGround *o = LuaClass<OGround>::get_ptr(L,2); //TODO type is not checked
-      get_ptr(L,1)->plant(o, LARG_scaled(3), LARG_scaled(4));
-      return 0;
-    }
-
+    LUA_DEFINE_SET2(plant,plant, LARG_scaled, LARG_scaled);
     LUA_DEFINE_SET0(uproot,uproot);
 
 

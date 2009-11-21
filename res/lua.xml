@@ -696,7 +696,6 @@
       Ear of corn.
       <constructor></constructor>
       <function name="plant">Plant the corn in the ground.
-        <arg name="ground" type="OGround" />
         <arg name="x" type="float" />
         <arg name="y" type="float" />
       </function>
