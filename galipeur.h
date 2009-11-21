@@ -74,7 +74,10 @@ public:
   /** @name Shape constants
    */
   //@{
-  static const btScalar height;
+  static const btScalar z_mass;   ///< Z position of the center of mass
+  static const btScalar ground_clearance;
+
+  static const btScalar height;   ///< body height
   static const btScalar side;     ///< triangle side half size
   static const btScalar r_wheel;  ///< wheel radius
   static const btScalar h_wheel;  ///< wheel height (when laid flat)

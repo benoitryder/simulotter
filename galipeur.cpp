@@ -2,6 +2,9 @@
 
 #include "galipeur.h"
 
+const btScalar Galipeur::z_mass = scale(0.05);
+const btScalar Galipeur::ground_clearance = scale(0.008);
+
 const btScalar Galipeur::height  = scale(0.200);
 const btScalar Galipeur::side    = scale(0.110);
 const btScalar Galipeur::r_wheel = scale(0.025);
@@ -39,21 +42,23 @@ Galipeur::Galipeur(btScalar m)
         p.rotate(a_side);
       }
     }
-    shape->addChildShape(btTransform::getIdentity(), &body_shape);
+    shape->addChildShape( btTransform(
+          btMatrix3x3::getIdentity(), btVector3(0,0,ground_clearance-(z_mass-height/2))),
+        &body_shape);
 
     // Wheels (use boxes instead of cylinders)
     btTransform tr = btTransform::getIdentity();
     btVector2 vw( d_wheel+h_wheel/2, 0 );
-    tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - r_wheel)) );
+    tr.setOrigin( btVector3(vw.x, vw.y, -(z_mass - r_wheel)) );
     shape->addChildShape(tr, &wheel_shape);
 
     vw.rotate(2*M_PI/3);
-    tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - r_wheel)) );
+    tr.setOrigin( btVector3(vw.x, vw.y, -(z_mass - r_wheel)) );
     tr.setRotation( btQuaternion(btVector3(0,0,1), 2*M_PI/3) );
     shape->addChildShape(tr, &wheel_shape);
 
     vw.rotate(-4*M_PI/3);
-    tr.setOrigin( btVector3(vw.x, vw.y, -(height/2 - r_wheel)) );
+    tr.setOrigin( btVector3(vw.x, vw.y, -(z_mass - r_wheel)) );
     tr.setRotation( btQuaternion(btVector3(0,0,1), -2*M_PI/3) );
     shape->addChildShape(tr, &wheel_shape);
   }
@@ -105,11 +110,13 @@ void Galipeur::draw()
 
     glPushMatrix();
 
-    btglTranslate(0, 0, -height/2);
+    btglTranslate(0, 0, -z_mass);
 
     // Faces
 
     glPushMatrix();
+
+    btglTranslate(0, 0, ground_clearance);
 
     btglScale(radius, radius, height);
     btVector2 v;
@@ -257,7 +264,6 @@ void Galipeur::asserv()
 
 void Galipeur::set_v(btVector2 vxy)
 {
-  //XXX we have to force activation, is it a Bullet bug?
   body->activate();
   body->setLinearVelocity( btVector3(vxy.x, vxy.y,
         body->getLinearVelocity().z()) );
@@ -265,9 +271,10 @@ void Galipeur::set_v(btVector2 vxy)
 
 inline void Galipeur::set_av(btScalar v)
 {
-  //XXX we have to force activation, is it a Bullet bug?
   body->activate();
-  body->setAngularVelocity( btVector3(0,0,v) );
+  btVector3 v3 = body->getAngularVelocity();
+  v3.setZ(v);
+  body->setAngularVelocity(v3);
 }
 
 

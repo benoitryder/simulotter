@@ -178,7 +178,6 @@ void RBasic::update()
 
 inline void RBasic::set_v(btScalar v)
 {
-  //XXX we have to force activation, is it a Bullet bug?
   body->activate();
   btVector2 vxy = btVector2(v,0).rotated(a);
   body->setLinearVelocity( btVector3(vxy.x, vxy.y,
@@ -187,7 +186,6 @@ inline void RBasic::set_v(btScalar v)
 
 inline void RBasic::set_av(btScalar v)
 {
-  //XXX we have to force activation, is it a Bullet bug?
   body->activate();
   body->setAngularVelocity( btVector3(0,0,v) );
 }

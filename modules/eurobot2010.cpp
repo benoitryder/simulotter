@@ -245,7 +245,7 @@ namespace eurobot2010
     // remove constraint if corn angle is not null
     btQuaternion q;
     getRot().getRotation(q);
-    if( btFabs(q.getAngle()) > 0.3 )
+    if( btFabs(q.getAngle()) > 0.1 )
       uproot();
   }
 
