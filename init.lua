@@ -38,11 +38,8 @@ r1:add_to_world()
 r1:set_pos(-(3.0-.5)/2, (2.1-.5)/2, 0.1001)
 r1:set_rot( -math.pi/2, 0, 0 )
 
-x,y,z = r1:get_pos()
-trace("R1: "..x..","..y..","..z)
-
-r1:set_v_max(0.8)
-r1:set_av_max(4)
+r1:set_ramp_xy(0.6, 1.0);
+r1:set_ramp_a(4, 6)
 r1:set_threshold_xy(0.001)
 r1:set_threshold_a(0.010)
 
@@ -167,6 +164,13 @@ do
     coroutine.resume(cam_modes_iter)
   end)
 end
+
+-- Screenshots with 'o'
+local screen_n = 0
+display:set_handler({ t=display.EVENT.KEYUP, key='o'} , function(ev)
+  display:save_screenshot(string.format('screenshot%03d.png', screen_n))
+  screen_n = screen_n + 1
+end)
 
 
 trace("------ SCRIPT END ------")

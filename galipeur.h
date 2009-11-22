@@ -57,19 +57,58 @@ public:
 
   void order_xy(btVector2 xy, bool rel=false);
   void order_a(btScalar a, bool rel=false);
-  void order_xya(btVector2 xy, btScalar a, bool rel=false) { order_xy(xy,rel); order_a(a,rel); }
-  void order_stop() { order = ORDER_NONE; }
+  void order_xya(btVector2 xy, btScalar a, bool rel=false);
+  void order_stop() { order = ORDER_STOP; }
 
   bool is_waiting() { return order == ORDER_NONE; }
 
   btScalar test_sensor(unsigned int i);
   //@}
 
-  void set_v_max(btScalar v)  { this->v_max  = v; }
-  void set_av_max(btScalar v) { this->av_max = v; }
+  /** @name Asserv configuration.
+   */
+  //@{
+  void set_ramp_xy(btScalar v, btScalar a) { ramp_xy.var_v = v; ramp_xy.var_a = a; }
+  void set_ramp_a (btScalar v, btScalar a) { ramp_a .var_v = v; ramp_a .var_a = a; }
+  void set_threshold_xy(btScalar t) { ramp_xy.threshold = t; }
+  void set_threshold_a (btScalar t) { ramp_a .threshold = t; }
+  //@}
 
-  void set_threshold_xy(btScalar t) { this->threshold_xy = t; }
-  void set_threshold_a(btScalar t)  { this->threshold_a  = t; }
+  /** @brief Implementation of the aversive quadramp filter.
+   *
+   * It is not an exact equivalent of the aversive module, it is only intended
+   * to have the same behavior.
+   *
+   * Deceleration distance can be computed as following:
+   * \f{eqnarray*}{
+   *   v_{dec}(t) & = & v_0 - a t \\
+   *   x_{dec}(t) & = & v_0 t - \frac12 a t^2 \\
+   *   t_{dec}    & = & \frac{v_0}a \\
+   *   d_{dec}    & = & x_{dec}(t_{dec}) = \frac12 \frac{v_0^2}a
+   * \f}
+   *
+   * @todo poper time processing
+   */
+  class Quadramp
+  {
+  public:
+    Quadramp(): var_v(0), var_a(0), threshold(0), cur_v(0) {}
+    /// Reset current values.
+    void reset(btScalar v=0) { cur_v = v; }
+    /** @brief Feed the filter.
+     *
+     * @param d   actual distance to target
+     * @param dt  elapsed time since the last step
+     * @return the new velocity (which is 0 if target is reached)
+     */
+    btScalar step(btScalar d, btScalar dt);
+
+  public:
+    btScalar var_v, var_a;
+    btScalar threshold;
+  private:
+    btScalar cur_v;
+  };
 
   /** @name Shape constants
    */
@@ -97,9 +136,6 @@ protected:
   /// Sharp positions
   std::vector<btTransform> sharps_trans;
 
-  btScalar v_max;
-  btScalar av_max;
-
   /** @name Order targets
    */
   //@{
@@ -107,26 +143,24 @@ protected:
   btScalar  target_a;
   //@}
 
+  Quadramp ramp_xy, ramp_a;
+  btScalar ramp_last_t; ///< Last update time of ramps.
+
   /** @brief Order types
    *
    * Orders are given as a bitset.
    */
   enum
   {
-    ORDER_NONE    =  0x0,
-    ORDER_GO_XY   =  0x1,  // Position order
-    ORDER_GO_A    =  0x2,  // Angle order
+    ORDER_NONE =  0x0,
+    ORDER_GO   =  0x1, ///< Position and/or angle order
+    ORDER_STOP =  0x2, ///< Galipeur must not move.
   };
 
   unsigned int order;
 
   void set_v(btVector2 vxy);
   void set_av(btScalar v);
-
-  /// Asserv position threshold
-  btScalar threshold_xy;
-  /// Asserv angle threshold
-  btScalar threshold_a;
 
 private:
   static SmartPtr<btCompoundShape> shape;

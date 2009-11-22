@@ -71,7 +71,7 @@ Galipeur::Galipeur(btScalar m)
   SmartPtr_add_ref(shape);
 
   // Init order
-  this->order = ORDER_NONE;
+  this->order = ORDER_STOP;
 
   color = Color4(0.3);
 }
@@ -224,42 +224,47 @@ void Galipeur::draw()
 
 void Galipeur::asserv()
 {
-  unsigned int order_xya = order & (ORDER_GO_XY|ORDER_GO_A);
+  if( physics == NULL )
+    throw(Error("Galipeur is not in a world"));
 
-  // Go in position
-  if( order_xya & ORDER_GO_XY )
+  if( order == ORDER_STOP )
+    return;
+
+  const btScalar dt = physics->getTime() - ramp_last_t;
+  if( dt == 0 )
+    return; // ramp start, wait for the next step
+
+  bool in_position_xy = false;
+  bool in_position_a  = false;
+
+  // Position
+  const btVector2 dxy = target_xy - get_xy();
+  const btScalar vxy = ramp_xy.step(dt, dxy.length());
+  if( vxy == 0 )
   {
-    if( distance2(get_xy(), target_xy) < threshold_xy )
-    {
-      set_v( btVector2(0,0) );
-      order_xya &= ~ORDER_GO_XY;
-    }
-    else
-    {
-      set_v( v_max * (target_xy-get_xy()).normalize() );
-    }
+    set_v(btVector2(0,0));
+    in_position_xy = true;
+  }
+  else
+  {
+    set_v( vxy * dxy.normalized() );
   }
 
-  // Turn
-  if( order_xya & ORDER_GO_A )
+  // Position
+  const btScalar da = btNormalizeAngle( target_a-get_a() );
+  const btScalar va = ramp_a.step(dt, da);
+  if( va == 0 )
   {
-    btScalar da = btNormalizeAngle( target_a-get_a() );
-    if( btFabs( da ) < threshold_a )
-    {
-      set_av(0);
-      order_xya &= ~ORDER_GO_A;
-    }
-    else
-    {
-      set_av( btFsel(da, av_max, -av_max) );
-    }
+    set_av(0);
+    in_position_a = true;
+  }
+  else
+  {
+    set_av( va );
   }
 
-  // An xya order is carried out only when both xy and a order are.
-  // For instance, if Galipeur hit something during an xya order and its angle
-  // change, it will go back to the target angle.
-  if( order_xya == 0 )
-    order &= ~(ORDER_GO_XY|ORDER_GO_A);
+  if( order & ORDER_GO && in_position_xy && in_position_a )
+    order = ORDER_NONE;
 }
 
 void Galipeur::set_v(btVector2 vxy)
@@ -280,21 +285,33 @@ inline void Galipeur::set_av(btScalar v)
 
 void Galipeur::order_xy(btVector2 xy, bool rel)
 {
-  target_xy = xy;
-  if( rel )
-    target_xy += this->get_xy();
-
-  order |= ORDER_GO_XY;
+  order_xya( xy, rel ? 0 : get_a(), rel );
 }
 
 void Galipeur::order_a(btScalar a, bool rel)
 {
+  order_xya( rel ? btVector2(0,0) : get_xy(), a, rel );
+}
+
+void Galipeur::order_xya(btVector2 xy, btScalar a, bool rel)
+{
+  if( physics == NULL )
+    throw(Error("Galipeur is not in a world"));
+
+  target_xy = xy;
   target_a = a;
   if( rel )
+  {
+    target_xy += this->get_xy();
     target_a += this->get_a();
+  }
   target_a = btNormalizeAngle(target_a);
 
-  order |= ORDER_GO_A;
+  order |= ORDER_GO;
+  // reset ramps
+  ramp_last_t = physics->getTime();
+  ramp_xy.reset(get_v().length());
+  ramp_a.reset(get_av());
 }
 
 btScalar Galipeur::test_sensor(unsigned int i)
@@ -303,6 +320,38 @@ btScalar Galipeur::test_sensor(unsigned int i)
     throw(Error("invalid sensor index: %u"));
   return SRay::gp2d12.hitTest( getTrans() * sharps_trans[i] );
 }
+
+
+btScalar Galipeur::Quadramp::step(btScalar dt, btScalar d)
+{
+  if( btFabs(d) < threshold && btFabs(cur_v) < var_a )
+  {
+    // target reached
+    cur_v = 0;
+  }
+  else
+  {
+    const btScalar d_dec = 0.5 * cur_v*cur_v / var_a;
+    if( d < 0 )
+    {
+      if( -d < d_dec )
+        cur_v = MIN(0, cur_v + dt*var_a );
+      else if( cur_v > -var_v )
+        cur_v = MAX( -var_v, cur_v - dt*var_a );
+    }
+    else
+    {
+      if( d < d_dec )
+        cur_v = MAX(0, cur_v - dt*var_a );
+      else if( cur_v < var_v )
+        cur_v = MIN( var_v, cur_v + dt*var_a );
+    }
+  }
+
+  return cur_v;
+}
+
+
 
 
 class LuaGalipeur: public LuaClass<Galipeur>
@@ -326,8 +375,8 @@ class LuaGalipeur: public LuaClass<Galipeur>
   LUA_DEFINE_GET(get_a , get_a)
   LUA_DEFINE_GET(get_av, get_av)
 
-  LUA_DEFINE_SET1(set_v_max,        set_v_max,        LARG_scaled)
-  LUA_DEFINE_SET1(set_av_max,       set_av_max,       LARG_f)
+  LUA_DEFINE_SET2(set_ramp_xy,      set_ramp_xy,      LARG_scaled, LARG_scaled)
+  LUA_DEFINE_SET2(set_ramp_a,       set_ramp_a,       LARG_f, LARG_f)
   LUA_DEFINE_SET1(set_threshold_xy, set_threshold_xy, LARG_scaled)
   LUA_DEFINE_SET1(set_threshold_a,  set_threshold_a,  LARG_f)
 
@@ -374,7 +423,7 @@ class LuaGalipeur: public LuaClass<Galipeur>
       if( x < 0 )
         LuaManager::push(L, false);
       else
-        LuaManager::push(L, x);
+        LuaManager::push(L, unscale(x));
     }
     else
       lua_pushnil(L);
@@ -398,8 +447,8 @@ class LuaGalipeur: public LuaClass<Galipeur>
     LUA_CLASS_MEMBER(get_a);
     LUA_CLASS_MEMBER(get_av);
 
-    LUA_CLASS_MEMBER(set_v_max);
-    LUA_CLASS_MEMBER(set_av_max);
+    LUA_CLASS_MEMBER(set_ramp_xy);
+    LUA_CLASS_MEMBER(set_ramp_a);
     LUA_CLASS_MEMBER(set_threshold_xy);
     LUA_CLASS_MEMBER(set_threshold_a);
 
