@@ -135,12 +135,12 @@ public:
   static void push(lua_State *L, unsigned int    n) { lua_pushinteger(L, n); }
   static void push(lua_State *L, unsigned long   n) { lua_pushinteger(L, n); }
   static void push(lua_State *L, lua_CFunction f) { lua_pushcfunction(L, f); }
-  static void push(lua_State *L, const btVector2 &v) { lua_pushnumber(L, unscale(v.x)); lua_pushnumber(L, unscale(v.y)); }
+  static void push(lua_State *L, const btVector2 &v) { lua_pushnumber(L, v.x); lua_pushnumber(L, v.y); }
   static void push(lua_State *L, const btVector3 &v)
   {
-    lua_pushnumber(L, unscale(v[0]));
-    lua_pushnumber(L, unscale(v[1]));
-    lua_pushnumber(L, unscale(v[2]));
+    lua_pushnumber(L, v[0]);
+    lua_pushnumber(L, v[1]);
+    lua_pushnumber(L, v[2]);
   }
   static void push(lua_State *L, const Color4 &c)
   {

@@ -9,7 +9,7 @@ Config::Config()
   time_scale = 1.0;
   drop_epsilon = scale(0.001);
 
-  draw_epsilon = scale(0.0001);
+  draw_epsilon = scale(0.0005);
   draw_div = 20;
   draw_direction_r = scale(0.05);
   draw_direction_h = scale(0.10);
