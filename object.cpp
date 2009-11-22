@@ -300,7 +300,7 @@ class LuaObject: public LuaClass<Object>
     return luaL_error(L, "Object class is abstract, no constructor");
   }
 
-  LUA_DEFINE_GETN(3, get_pos, getPos);
+  LUA_DEFINE_GETN_SCALED(3, get_pos, getPos);
   LUA_DEFINE_GETN(3, get_rot, getRot);
 
   static int set_pos(lua_State *L)
