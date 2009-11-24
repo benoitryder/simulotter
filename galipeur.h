@@ -118,6 +118,7 @@ public:
 
   static const btScalar height;   ///< body height
   static const btScalar side;     ///< triangle side half size
+  static const btScalar w_block;  ///< motor block half width (small side)
   static const btScalar r_wheel;  ///< wheel radius
   static const btScalar h_wheel;  ///< wheel height (when laid flat)
 

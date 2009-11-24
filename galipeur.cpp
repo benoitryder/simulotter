@@ -7,13 +7,14 @@ const btScalar Galipeur::ground_clearance = scale(0.008);
 
 const btScalar Galipeur::height  = scale(0.200);
 const btScalar Galipeur::side    = scale(0.110);
-const btScalar Galipeur::r_wheel = scale(0.025);
-const btScalar Galipeur::h_wheel = scale(0.020);
+const btScalar Galipeur::w_block = scale(0.030);
+const btScalar Galipeur::r_wheel = scale(0.0246);
+const btScalar Galipeur::h_wheel = scale(0.0127);
 
-const btScalar Galipeur::d_side  = ( side + 2*r_wheel ) / btSqrt(3);
-const btScalar Galipeur::d_wheel = ( r_wheel + 2*side ) / btSqrt(3);
+const btScalar Galipeur::d_side  = ( side + 2*w_block ) / btSqrt(3);
+const btScalar Galipeur::d_wheel = ( w_block + 2*side ) / btSqrt(3);
 const btScalar Galipeur::a_side  = 2*btAtan2( side,    d_side  );
-const btScalar Galipeur::a_wheel = 2*btAtan2( r_wheel, d_wheel );
+const btScalar Galipeur::a_wheel = 2*btAtan2( w_block, d_wheel );
 const btScalar Galipeur::radius  = btSqrt(side*side+d_side*d_side);
 
 SmartPtr<btCompoundShape> Galipeur::shape;
