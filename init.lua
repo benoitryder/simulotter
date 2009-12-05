@@ -33,15 +33,15 @@ trace("------ SCRIPT START ------")
 
 require('modules/eurobot2010')
 
-r1 = eurobot2010.Galipeur(10)
+r1 = eurobot2010.Galipeur(3.2)
 r1:add_to_world()
 r1:set_pos(-(3.0-.5)/2, (2.1-.5)/2, 0.1001)
 r1:set_rot( -math.pi/2, 0, 0 )
 
-r1:set_ramp_xy(0.6, 1.0);
-r1:set_ramp_a(4, 6)
-r1:set_threshold_xy(0.001)
-r1:set_threshold_a(0.010)
+r1:set_speed_xy(0.4, 1.33);
+r1:set_speed_a(2.46, 12.3)
+r1:set_threshold_xy(0.003)
+r1:set_threshold_a(0.01*math.pi)
 
 osd = OSD()
 osd.x, osd.y = 10, 20

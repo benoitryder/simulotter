@@ -58,9 +58,9 @@ public:
   void order_xy(btVector2 xy, bool rel=false);
   void order_a(btScalar a, bool rel=false);
   void order_xya(btVector2 xy, btScalar a, bool rel=false);
-  void order_stop() { order = ORDER_STOP; }
+  void order_stop() { stopped = false; }
 
-  bool is_waiting() { return order == ORDER_NONE; }
+  bool is_waiting() { return in_position; }
 
   btScalar test_sensor(unsigned int i);
   //@}
@@ -68,10 +68,10 @@ public:
   /** @name Asserv configuration.
    */
   //@{
-  void set_ramp_xy(btScalar v, btScalar a) { ramp_xy.var_v = v; ramp_xy.var_a = a; }
-  void set_ramp_a (btScalar v, btScalar a) { ramp_a .var_v = v; ramp_a .var_a = a; }
-  void set_threshold_xy(btScalar t) { ramp_xy.threshold = t; }
-  void set_threshold_a (btScalar t) { ramp_a .threshold = t; }
+  void set_speed_xy(btScalar v, btScalar a) { ramp_xy.var_v = v; ramp_xy.var_a = a; }
+  void set_speed_a (btScalar v, btScalar a) { ramp_a .var_v = v; ramp_a .var_a = a; }
+  void set_threshold_xy(btScalar t) { threshold_xy = t; }
+  void set_threshold_a (btScalar t) { threshold_a  = t; }
   //@}
 
   /** @brief Implementation of the aversive quadramp filter.
@@ -86,26 +86,22 @@ public:
    *   t_{dec}    & = & \frac{v_0}a \\
    *   d_{dec}    & = & x_{dec}(t_{dec}) = \frac12 \frac{v_0^2}a
    * \f}
-   *
-   * @todo poper time processing
    */
   class Quadramp
   {
   public:
-    Quadramp(): var_v(0), var_a(0), threshold(0), cur_v(0) {}
+    Quadramp(): var_v(0), var_a(0), cur_v(0) {}
     /// Reset current values.
     void reset(btScalar v=0) { cur_v = v; }
-    /** @brief Feed the filter.
+    /** @brief Feed the filter and return the new velocity.
      *
      * @param d   actual distance to target
      * @param dt  elapsed time since the last step
-     * @return the new velocity (which is 0 if target is reached)
      */
     btScalar step(btScalar d, btScalar dt);
 
   public:
     btScalar var_v, var_a;
-    btScalar threshold;
   private:
     btScalar cur_v;
   };
@@ -137,28 +133,21 @@ protected:
   /// Sharp positions
   std::vector<btTransform> sharps_trans;
 
-  /** @name Order targets
+  /** @name Orders.
    */
   //@{
+
+  bool in_position; ///< \e true if target has been reached
+  bool stopped;     ///< \e true if asserv is not running
+
   btVector2 target_xy;
   btScalar  target_a;
+
   //@}
 
   Quadramp ramp_xy, ramp_a;
   btScalar ramp_last_t; ///< Last update time of ramps.
-
-  /** @brief Order types
-   *
-   * Orders are given as a bitset.
-   */
-  enum
-  {
-    ORDER_NONE =  0x0,
-    ORDER_GO   =  0x1, ///< Position and/or angle order
-    ORDER_STOP =  0x2, ///< Galipeur must not move.
-  };
-
-  unsigned int order;
+  btScalar threshold_xy, threshold_a;
 
   void set_v(btVector2 vxy);
   void set_av(btScalar v);

@@ -549,10 +549,9 @@
       <function name="get_xy"><return type="float"/><return type="float"/></function>
       <function name="get_v"><return type="float"/><return type="float"/></function>
       <function name="get_a"><return type="float"/></function>
-      <function name="get_av"><return type="float"/></function>
 
-      <function name="set_v_max"><arg type="float"/>Set maximum linear velocity.</function>
-      <function name="set_av_max"><arg type="float"/>Set maximum angular velocity.</function>
+      <function name="set_speed_xy"><arg type="float"/>Set parameters of quadramps X/Y.</function>
+      <function name="set_speed_a"><arg type="float"/>Set parameters of angle quadramp.</function>
       <function name="set_threshold_xy"><arg type="float"/>Set distance precision for XY orders.</function>
       <function name="set_threshold_a"><arg type="float"/>Set angle precision for angle orders.</function>
 

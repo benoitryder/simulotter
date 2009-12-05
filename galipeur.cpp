@@ -2,8 +2,8 @@
 
 #include "galipeur.h"
 
-const btScalar Galipeur::z_mass = scale(0.05);
-const btScalar Galipeur::ground_clearance = scale(0.008);
+const btScalar Galipeur::z_mass = scale(0.08);
+const btScalar Galipeur::ground_clearance = scale(0.009);
 
 const btScalar Galipeur::height  = scale(0.200);
 const btScalar Galipeur::side    = scale(0.110);
@@ -72,7 +72,8 @@ Galipeur::Galipeur(btScalar m)
   SmartPtr_add_ref(shape);
 
   // Init order
-  this->order = ORDER_STOP;
+  stopped = true;
+  in_position = false;
 
   color = Color4(0.3);
 }
@@ -225,47 +226,28 @@ void Galipeur::draw()
 
 void Galipeur::asserv()
 {
+  if( stopped )
+    return;
+
   if( physics == NULL )
     throw(Error("Galipeur is not in a world"));
-
-  if( order == ORDER_STOP )
-    return;
 
   const btScalar dt = physics->getTime() - ramp_last_t;
   if( dt == 0 )
     return; // ramp start, wait for the next step
 
-  bool in_position_xy = false;
-  bool in_position_a  = false;
-
-  // Position
   const btVector2 dxy = target_xy - get_xy();
-  const btScalar vxy = ramp_xy.step(dt, dxy.length());
-  if( vxy == 0 )
-  {
-    set_v(btVector2(0,0));
-    in_position_xy = true;
-  }
-  else
-  {
-    set_v( vxy * dxy.normalized() );
-  }
-
-  // Position
+  const btScalar dr = dxy.length();
   const btScalar da = btNormalizeAngle( target_a-get_a() );
-  const btScalar va = ramp_a.step(dt, da);
-  if( va == 0 )
-  {
-    set_av(0);
-    in_position_a = true;
-  }
-  else
-  {
-    set_av( va );
-  }
 
-  if( order & ORDER_GO && in_position_xy && in_position_a )
-    order = ORDER_NONE;
+  // Update speeds
+  set_v( dxy.normalized() * ramp_xy.step(dt, dr) );
+  set_av( ramp_a.step(dt, da) );
+
+  // Update in_position flag
+  if( ! in_position )
+    if( dr <= threshold_xy && btFabs(da) <= threshold_a )
+      in_position = true;
 }
 
 void Galipeur::set_v(btVector2 vxy)
@@ -308,7 +290,8 @@ void Galipeur::order_xya(btVector2 xy, btScalar a, bool rel)
   }
   target_a = btNormalizeAngle(target_a);
 
-  order |= ORDER_GO;
+  in_position = false;
+  stopped = false;
   // reset ramps
   ramp_last_t = physics->getTime();
   ramp_xy.reset(get_v().length());
@@ -325,28 +308,20 @@ btScalar Galipeur::test_sensor(unsigned int i)
 
 btScalar Galipeur::Quadramp::step(btScalar dt, btScalar d)
 {
-  if( btFabs(d) < threshold && btFabs(cur_v) < var_a )
+  const btScalar d_dec = 0.5 * cur_v*cur_v / var_a;
+  if( d < 0 )
   {
-    // target reached
-    cur_v = 0;
+    if( -d < d_dec )
+      cur_v = MIN(0, cur_v + dt*var_a );
+    else if( cur_v > -var_v )
+      cur_v = MAX( -var_v, cur_v - dt*var_a );
   }
   else
   {
-    const btScalar d_dec = 0.5 * cur_v*cur_v / var_a;
-    if( d < 0 )
-    {
-      if( -d < d_dec )
-        cur_v = MIN(0, cur_v + dt*var_a );
-      else if( cur_v > -var_v )
-        cur_v = MAX( -var_v, cur_v - dt*var_a );
-    }
-    else
-    {
-      if( d < d_dec )
-        cur_v = MAX(0, cur_v - dt*var_a );
-      else if( cur_v < var_v )
-        cur_v = MIN( var_v, cur_v + dt*var_a );
-    }
+    if( d < d_dec )
+      cur_v = MAX(0, cur_v - dt*var_a );
+    else if( cur_v < var_v )
+      cur_v = MIN( var_v, cur_v + dt*var_a );
   }
 
   return cur_v;
@@ -376,8 +351,8 @@ class LuaGalipeur: public LuaClass<Galipeur>
   LUA_DEFINE_GET(get_a , get_a)
   LUA_DEFINE_GET(get_av, get_av)
 
-  LUA_DEFINE_SET2(set_ramp_xy,      set_ramp_xy,      LARG_scaled, LARG_scaled)
-  LUA_DEFINE_SET2(set_ramp_a,       set_ramp_a,       LARG_f, LARG_f)
+  LUA_DEFINE_SET2(set_speed_xy,      set_speed_xy,      LARG_scaled, LARG_scaled)
+  LUA_DEFINE_SET2(set_speed_a,       set_speed_a,       LARG_f, LARG_f)
   LUA_DEFINE_SET1(set_threshold_xy, set_threshold_xy, LARG_scaled)
   LUA_DEFINE_SET1(set_threshold_a,  set_threshold_a,  LARG_f)
 
@@ -448,8 +423,8 @@ class LuaGalipeur: public LuaClass<Galipeur>
     LUA_CLASS_MEMBER(get_a);
     LUA_CLASS_MEMBER(get_av);
 
-    LUA_CLASS_MEMBER(set_ramp_xy);
-    LUA_CLASS_MEMBER(set_ramp_a);
+    LUA_CLASS_MEMBER(set_speed_xy);
+    LUA_CLASS_MEMBER(set_speed_a);
     LUA_CLASS_MEMBER(set_threshold_xy);
     LUA_CLASS_MEMBER(set_threshold_a);
 
