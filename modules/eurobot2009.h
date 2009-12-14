@@ -138,10 +138,6 @@ namespace eurobot2009
 
     btScalar target_pachev_pos;
 
-    enum {
-      ORDER_PACHEV_MOVE = 0x100,
-    };
-
     void set_pachev_v(btScalar v)  { this->pachev_v  = v; }
     void set_pachev_eject_v(btScalar f)  { this->pachev_eject_v = f; }
     void set_threshold_pachev(btScalar t) { this->threshold_pachev = t; }
@@ -201,6 +197,7 @@ namespace eurobot2009
     } PachevState;
 
     PachevState pachev_state;
+    bool pachev_moving; ///< true if the pàchev moving order is active
 
     /// Pàchev slider velocity
     btScalar pachev_v;

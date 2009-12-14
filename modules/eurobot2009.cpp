@@ -165,6 +165,7 @@ namespace eurobot2009
     pachev_link->setUpperLinLimit(0);
 
     pachev_state = PACHEV_RELEASE;
+    pachev_moving = false;
   }
 
   Galipeur2009::~Galipeur2009()
@@ -311,7 +312,7 @@ namespace eurobot2009
   {
     Galipeur::asserv();
 
-    if( order & ORDER_PACHEV_MOVE )
+    if( pachev_moving )
     {
       if( btFabs(get_pachev_pos()-target_pachev_pos) < threshold_pachev )
       {
@@ -319,7 +320,7 @@ namespace eurobot2009
         pachev_link->setLowerLinLimit( target_pachev_pos );
         pachev_link->setUpperLinLimit( target_pachev_pos );
 
-        order &= ~ORDER_PACHEV_MOVE;
+        pachev_moving = false;
       }
     }
   }
@@ -335,7 +336,7 @@ namespace eurobot2009
         (h > get_pachev_pos()) ? pachev_v : -pachev_v
         );
 
-    order |= ORDER_PACHEV_MOVE;
+    pachev_moving = true;
   }
 
   void Galipeur2009::order_pachev_release()
