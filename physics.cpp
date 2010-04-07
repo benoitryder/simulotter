@@ -1,7 +1,12 @@
-#include <string.h>
-#include "global.h"
-#include "robot.h"
-#include "maths.h"
+#include <cstring>
+#include "physics.h"
+#include "object.h"
+#include "lua_utils.h"
+#include "config.h"
+#include "log.h"
+
+
+SmartPtr<Physics> Physics::physics;
 
 
 Physics::Physics()
@@ -50,13 +55,13 @@ void Physics::init()
 {
   if( isInitialized() )
   {
-    LOG->trace("physics already initialized, init() call skipped");
+    LOG("physics already initialized, init() call skipped");
     return;
   }
-  if( cfg->step_dt <= 0 )
+  if( cfg.step_dt <= 0 )
     throw(Error("invalid step_dt value for Physics initialization"));
-  step_dt = cfg->step_dt;
-  world->setGravity(btVector3(0,0,cfg->gravity_z));
+  step_dt = cfg.step_dt;
+  world->setGravity(btVector3(0,0,cfg.gravity_z));
 }
 
 
@@ -173,9 +178,9 @@ class LuaPhysics: public LuaClass<Physics>
 {
   static int _ctor(lua_State *L)
   {
-    if( physics == NULL )
-      physics = new Physics();
-    store_ptr(L, physics);
+    if( Physics::physics == NULL )
+      Physics::physics = new Physics();
+    store_ptr(L, Physics::physics);
     return 0;
   }
 
@@ -224,13 +229,13 @@ class LuaTask: public LuaClass<TaskLua>
 
   static int schedule(lua_State *L)
   {
-    if( !physics )
+    if( !Physics::physics )
       return luaL_error(L, "physics is not created, cannot schedule");
     SmartPtr<TaskLua> task = get_ptr(L,1);
     if( lua_isnoneornil(L, 2) )
-      physics->scheduleTask(task);
+      Physics::physics->scheduleTask(task);
     else
-      physics->scheduleTask(task, LARG_f(2));
+      Physics::physics->scheduleTask(task, LARG_f(2));
     return 0;
   }
 

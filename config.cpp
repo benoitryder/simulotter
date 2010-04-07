@@ -1,5 +1,7 @@
-#include <string.h>
-#include "global.h"
+#include <cstring>
+#include "config.h"
+#include "bullet.h"
+#include "lua_utils.h"
 
 
 Config::Config()
@@ -130,4 +132,7 @@ int Config::lua_newindex(lua_State *L)
 
   return luaL_error(L, "invalid configuration value: %s", name);
 }
+
+
+Config cfg;
 

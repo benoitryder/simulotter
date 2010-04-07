@@ -1,12 +1,12 @@
-#ifndef EUROBOT2010_H
-#define EUROBOT2010_H
-
-#include "global.h"
-#include "galipeur.h"
+#ifndef EUROBOT2010_H_
+#define EUROBOT2010_H_
 
 /** @file
  * @brief Implementation of Eurobot 2010 rules, Feed the World
  */
+
+#include "galipeur.h"
+#include "lua_utils.h"
 
 
 namespace eurobot2010

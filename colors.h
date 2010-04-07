@@ -1,5 +1,5 @@
-#ifndef COLORS_H
-#define COLORS_H
+#ifndef COLORS_H_
+#define COLORS_H_
 
 #include <GL/gl.h>
 #include "maths.h"

@@ -1,9 +1,9 @@
 #ifndef SENSOR_H
 #define SENSOR_H
 
-#include "global.h"
-
 ///@file
+
+#include "smart.h"
 
 
 /** @brief Ray sensor

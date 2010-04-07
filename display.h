@@ -1,14 +1,17 @@
-#ifndef DISPLAY_H
-#define DISPLAY_H
+#ifndef DISPLAY_H_
+#define DISPLAY_H_
+
+///@file
 
 #include <SDL/SDL.h>
 #include <map>
 #include <set>
-#include "global.h"
+#include "smart.h"
+#include "maths.h"
+#include "colors.h"
+#include "lua_utils.h"
 
-
-///@file
-
+class Object;
 class EventHandler;
 class OSDMessage;
 
@@ -107,12 +110,12 @@ public:
    *
    * @note \e cart and \e spheric are not used simultaneously.
    */
-  typedef struct
+  struct CameraPoint
   {
     btVector3  cart;
     btSpheric3 spheric;
     SmartPtr<Object> obj;
-  } CameraPoint;
+  };
 
   const CameraPoint &getCameraEye()    const { return camera_eye;    }
   const CameraPoint &getCameraTarget() const { return camera_target; }
@@ -243,6 +246,9 @@ private:
 
   //@}
 
+public:
+  /// Display singleton.
+  static SmartPtr<Display> display;
 };
 
 

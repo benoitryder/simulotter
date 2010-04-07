@@ -1,7 +1,8 @@
-#ifndef SMART_H
-#define SMART_H
+#ifndef SMART_H_
+#define SMART_H_
 
 ///@file
+
 
 /** @brief Smart pointer class
  *

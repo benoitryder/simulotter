@@ -1,5 +1,7 @@
 #include <GL/freeglut.h>
 #include "modules/eurobot2009.h"
+#include "physics.h"
+#include "config.h"
 
 
 namespace eurobot2009
@@ -64,7 +66,7 @@ namespace eurobot2009
     glPushMatrix();
     drawTransform(m_worldTransform);
     glTranslatef(0, 0, -height/2);
-    glutWireCylinder(radius, height, cfg->draw_div, 10);
+    glutWireCylinder(radius, height, cfg.draw_div, 10);
     glPopMatrix();
   }
 
@@ -129,7 +131,7 @@ namespace eurobot2009
   void OLintelStorage::fill(OLintel *o)
   {
     btVector3 pos = getPos();
-    pos[2] += scale(0.015)+WALL_HALF_WIDTH+cfg->drop_epsilon;
+    pos[2] += scale(0.015)+WALL_HALF_WIDTH+cfg.drop_epsilon;
     o->setPos(pos);
   }
 
@@ -328,7 +330,7 @@ namespace eurobot2009
   void Galipeur2009::order_pachev_move(btScalar h)
   {
     target_pachev_pos = CLAMP(h,0,Galipeur2009::Pachev::z_max);
-    LOG->trace("PACHEV MOVE  %f (%f)", target_pachev_pos, h);
+    LOG("PACHEV MOVE  %f (%f)", target_pachev_pos, h);
 
     pachev_link->setLowerLinLimit( 1 );
     pachev_link->setUpperLinLimit( 0 );
@@ -341,14 +343,14 @@ namespace eurobot2009
 
   void Galipeur2009::order_pachev_release()
   {
-    LOG->trace("PACHEV RELEASE");
+    LOG("PACHEV RELEASE");
     releaseObjects();
     pachev_state = PACHEV_RELEASE;
   }
 
   void Galipeur2009::order_pachev_grab()
   {
-    LOG->trace("PACHEV GRAB");
+    LOG("PACHEV GRAB");
     pachev_state = PACHEV_GRAB;
   }
 
@@ -357,7 +359,7 @@ namespace eurobot2009
     if( pachev_state != PACHEV_RELEASE )
       order_pachev_release();
 
-    LOG->trace("PACHEV EJECT");
+    LOG("PACHEV EJECT");
     pachev_state = PACHEV_EJECT;
   }
 

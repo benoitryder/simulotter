@@ -1,10 +1,12 @@
-#ifndef CONFIG_H
-#define CONFIG_H
-
-#include "lua_utils.h"
-#include "colors.h"
+#ifndef CONFIG_H_
+#define CONFIG_H_
 
 ///@file
+
+#include "colors.h"
+
+struct lua_State;
+
 
 /// Gravity at the Earth's surface
 #define CONST_EARTH_GRAVITY   9.80665f
@@ -140,5 +142,10 @@ private:
 
   //@}
 };
+
+
+/// Global configuration.
+extern Config cfg;
+
 
 #endif

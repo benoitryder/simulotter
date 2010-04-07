@@ -1,4 +1,6 @@
 #include "modules/eurobot2010.h"
+#include "physics.h"
+#include "config.h"
 
 
 namespace eurobot2010
@@ -104,10 +106,10 @@ namespace eurobot2010
       glBegin(GL_QUADS);
       // bottom (with strips)
       btglNormal3( 0, 0, 1 );
-      btglVertex3( -bottom_length/2-strip_length, -width/2, cfg->draw_epsilon );
-      btglVertex3( -bottom_length/2-strip_length, +width/2, cfg->draw_epsilon );
-      btglVertex3( +bottom_length/2+strip_length, +width/2, cfg->draw_epsilon );
-      btglVertex3( +bottom_length/2+strip_length, -width/2, cfg->draw_epsilon );
+      btglVertex3( -bottom_length/2-strip_length, -width/2, cfg.draw_epsilon );
+      btglVertex3( -bottom_length/2-strip_length, +width/2, cfg.draw_epsilon );
+      btglVertex3( +bottom_length/2+strip_length, +width/2, cfg.draw_epsilon );
+      btglVertex3( +bottom_length/2+strip_length, -width/2, cfg.draw_epsilon );
       glEnd();
 
       glTranslatef(0, -(width+wall_width)/2, 0);

@@ -1,158 +1,44 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <malloc.h>
-
-#include "global.h"
-
+#include <cstdio>
+#include <cstring>
+#include <cstdarg>
+#include <cstdlib>
+#include "config.h"
+#include "log.h"
 
 
-/** @brief Compute approximated formatted string length
- *
- * @note This function does not invoke \e va_end. As it invokes \e va_arg, the
- * value of \e ap after the return is indeterminate.
- */
-static int len_fmt(const char *fmt, va_list ap)
-{
-  int len = 0;
-  int n;
 
-  while( *fmt != '\0' )
-  {
-    if( *fmt++ != '%' )
-    {
-      len++;
-      continue;
-    }
-
-    if( *fmt == '%' )
-    {
-      fmt++;
-      len++;
-      continue;
-    }
-
-    // Flags
-    while( strchr("'-+ #0", *fmt) != NULL )
-      fmt++;
-
-    // Width
-    if( *fmt == '*' )
-    {
-      fmt++;
-      n = va_arg(ap, int);
-      len += ( n<0 ) ? -n : n;
-    }
-    else
-      len += strtoul(fmt, (char **)&fmt, 10);
-
-    // Precision
-    if( *fmt == '.' )
-    {
-      fmt++;
-      if( *fmt == '*' )
-      {
-        fmt++;
-        n = va_arg(ap, int);
-        len += ( n<0 ) ? -n : n;
-      }
-      else
-        len += strtoul(fmt, (char **)&fmt, 10);
-    }
-
-    // Size modifier
-    while( strchr("hlL", *fmt) != NULL )
-      fmt++;
-
-    switch( *fmt )
-    {
-      case 'd': case 'i': case 'o': case 'u': case 'x': case 'X':
-        va_arg(ap, int);
-        // Max integer size + sign (hint: 2^64 has 20 characters)
-        len += 25;
-        break;
-      case 'f':
-        // Max 64b float: ~10^308 (+ sign + ...)
-        va_arg(ap, double);
-        len += 320;
-        break;
-      case 'e': case 'E': case 'g': case 'G':
-        va_arg(ap, double);
-        // Max 64bit exposant: 308 (+ ...)
-        len += 20;
-        break;
-      case 'c': case 'C':
-        va_arg(ap, int);
-        len += 1;
-        break;
-      case 's': case 'S':
-        // + 10, to write "(null)" or something for null pointers
-        len += strlen( va_arg(ap, char*) ) + 10;
-        break;
-      case 'p':
-        va_arg(ap, void*);
-        // Converted in "an implementation-dependant manner"
-        len += 25;
-        break;
-      case 'n':
-        va_arg(ap, int*);
-        break;
-    }
-  }
-
-  return len+1;
-}
-
-
-int ssprintf(char **ptr, const char *fmt, ...)
+void Logger::log(const char *fmt, ...)
 {
   va_list ap;
-  int ret;
-
   va_start(ap, fmt);
-  ret = vssprintf(ptr, fmt, ap);
+  this->vlog(fmt, ap);
   va_end(ap);
-
-  return ret;
 }
 
-int vssprintf(char **ptr, const char *fmt, va_list ap)
+void Logger::vlog(const char *fmt, va_list ap)
 {
+  // build the message string
   va_list ap2;
-  int len;
-  int ret;
-
-  va_copy(ap2, ap);
-  len = len_fmt(fmt, ap2);
+  va_copy(ap2,ap);
+  int n = vsnprintf(NULL, 0, fmt, ap2) + 1;
   va_end(ap2);
+  char msg[n];
+  vsnprintf(msg, n, fmt, ap);
 
-  *ptr = (char *)malloc(len);
-  if( *ptr == NULL )
-    return -1;
-
-  ret = vsnprintf(*ptr, len, fmt, ap);
-  (*ptr)[len-1] = '\0';
-  va_end(ap);
-
-  return ret;
+  fprintf(stdout, "%s\n", msg);
+  if( cfg.log_flush )
+    fflush(stdout);
 }
 
-
-void Log::trace(const char *fmt, ...)
+void Logger::glog(const char *fmt, ...)
 {
   va_list ap;
-  char *s;
-
   va_start(ap, fmt);
-  vssprintf(&s, fmt, ap);
+  logger_.vlog(fmt, ap);
   va_end(ap);
-
-  fprintf(stdout, "%s\n", s);
-  if( cfg != NULL && cfg->log_flush )
-    fflush(stdout);
-  free(s);
 }
+
+Logger Logger::logger_;
 
 
 
@@ -164,10 +50,14 @@ Error::Error(const char *fmt, ...): msg(NULL)
   va_end(ap);
 }
 
-
 Error::Error(const Error &e): std::exception(e)
 {
   operator=(e);
+}
+
+Error::~Error() throw()
+{
+  delete this->msg;
 }
 
 Error &Error::operator=(const Error &e)
@@ -176,9 +66,11 @@ Error &Error::operator=(const Error &e)
     this->msg = NULL;
   else
   {
-    int n = strlen(e.msg);
-    this->msg = (char *)malloc(n+1);
-    strncpy(this->msg, e.msg, n);
+    delete[] this->msg;
+    this->msg = NULL;
+    int n = ::strlen(e.msg);
+    this->msg = new char[n+1];
+    ::strncpy(this->msg, e.msg, n);
     this->msg[n] = '\0';
   }
   return *this;
@@ -194,7 +86,15 @@ void Error::setMsg(const char *fmt, ...)
 
 void Error::setMsg(const char *fmt, va_list ap)
 {
-  free(msg);
-  vssprintf(&msg, fmt, ap);
+  delete[] this->msg;
+  msg = NULL;
+
+  // build the message string
+  va_list ap2;
+  va_copy(ap2,ap);
+  int n = ::vsnprintf(NULL, 0, fmt, ap2) + 1;
+  va_end(ap2);
+  this->msg = new char[n];
+  ::vsnprintf(this->msg, n, fmt, ap);
 }
 

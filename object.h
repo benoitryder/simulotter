@@ -1,13 +1,14 @@
-#ifndef OBJECT_H
-#define OBJECT_H
-
-
-#include <map>
-#include <GL/gl.h>
-#include "global.h"
-
+#ifndef OBJECT_H_
+#define OBJECT_H_
 
 ///@file
+
+#include <GL/gl.h>
+#include <map>
+#include "smart.h"
+#include "colors.h"
+
+class Physics;
 
 
 /** @brief Object abstract class

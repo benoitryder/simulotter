@@ -1,4 +1,7 @@
+#include <GL/GL.h>
 #include "sensors.h"
+#include "physics.h"
+#include "log.h"
 
 
 SRay::SRay(btScalar min, btScalar max):
@@ -28,7 +31,7 @@ btScalar SRay::hitTest(const btTransform &origin) const
   btVector3 ray_to   = origin * btVector3(range_max,0,0);
   btCollisionWorld::ClosestRayResultCallback ray_cb( ray_from, ray_to );
 
-  physics->getWorld()->rayTest( ray_from, ray_to, ray_cb );
+  Physics::physics->getWorld()->rayTest( ray_from, ray_to, ray_cb );
 
   if( ray_cb.hasHit() )
     return ray_cb.m_closestHitFraction + range_min;

@@ -1,12 +1,12 @@
-#ifndef EUROBOT2009_H
-#define EUROBOT2009_H
-
-#include "global.h"
-#include "galipeur.h"
+#ifndef EUROBOT2009_H_
+#define EUROBOT2009_H_
 
 /** @file
  * @brief Implementation of Eurobot 2009 rules, Atlantis
  */
+
+#include "galipeur.h"
+#include "lua_utils.h"
 
 
 namespace eurobot2009

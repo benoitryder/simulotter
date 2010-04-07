@@ -1,16 +1,17 @@
-#ifndef PHYSICS_H
-#define PHYSICS_H
+#ifndef PHYSICS_H_
+#define PHYSICS_H_
+
+///@file
 
 #include <set>
 #include <queue>
 #include <vector>
-#include "global.h"
+#include "smart.h"
 
+struct lua_State;
 class Object;
 class TaskPhysics;
 
-
-///@file
 
 
 /** @brief Physics environment
@@ -87,6 +88,10 @@ private:
   typedef std::priority_queue< TaskQueueValue, std::vector<TaskQueueValue>, std::greater<TaskQueueValue> > TaskQueue;
   /// Scheduled tasks
   TaskQueue task_queue;
+
+public:
+  /// Physics singleton.
+  static SmartPtr<Physics> physics;
 };
 
 

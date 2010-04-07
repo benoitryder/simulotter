@@ -1,7 +1,10 @@
-#include <math.h>
+#include <cmath>
 #include <GL/freeglut.h>
-
-#include "global.h"
+#include "robot.h"
+#include "physics.h"
+#include "config.h"
+#include "lua_utils.h"
+#include "log.h"
 
 
 Robot::Robot()
@@ -71,9 +74,9 @@ void RBasic::drawDirection()
   btVector3 aabb_min, aabb_max;
   body->getAabb(aabb_min, aabb_max);
 
-  btglTranslate(0, 0, aabb_max.getZ()-getPos().getZ()+cfg->draw_direction_r+cfg->draw_epsilon);
+  btglTranslate(0, 0, aabb_max.getZ()-getPos().getZ()+cfg.draw_direction_r+cfg.draw_epsilon);
   btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
-  glutSolidCone(cfg->draw_direction_r, cfg->draw_direction_h, cfg->draw_div, cfg->draw_div);
+  glutSolidCone(cfg.draw_direction_r, cfg.draw_direction_h, cfg.draw_div, cfg.draw_div);
 }
 
 

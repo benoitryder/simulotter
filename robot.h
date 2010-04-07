@@ -1,13 +1,12 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 
-#include <SDL/SDL.h>
-#include <math.h>
-#include <vector>
-#include "global.h"
-
-
 ///@file
+
+#include <cmath>
+#include <vector>
+#include "object.h"
+
 
 
 /** @brief Robot base class

@@ -1,10 +1,11 @@
-#ifndef MATHS_H
-#define MATHS_H
-
-#include <LinearMath/btScalar.h>
-
+#ifndef MATHS_H_
+#define MATHS_H_
 
 ///@file
+
+#include <LinearMath/btScalar.h>
+#include <LinearMath/btVector3.h>
+
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))

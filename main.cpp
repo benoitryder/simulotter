@@ -1,10 +1,11 @@
-#include <stdio.h>
+#include <cstdio>
 #include <SDL/SDL.h>
 #include <GL/freeglut.h>
-
-#include "global.h"
 #include "modules/eurobot2009.h"
 #include "modules/eurobot2010.h"
+#include "display.h"
+#include "physics.h"
+#include "config.h"
 
 
 #ifdef WIN32
@@ -20,21 +21,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 #endif
 
 
-Config  *cfg     = NULL;
-Log *LOG         = NULL;
-SmartPtr<Physics> physics;
-SmartPtr<Display> display;
-
-
 int main(int argc, char **argv)
 {
-  LOG = new Log();
   LuaManager *lm = NULL;
 
   int ret = 0;
   try
   {
-    cfg = new Config();
     lm = new LuaManager();
 
     eurobot2009::LuaEurobotModule module2009;
@@ -44,35 +37,35 @@ int main(int argc, char **argv)
 
     if( argc > 1 )
     {
-      LOG->trace("load Lua script: %s", argv[1]);
+      LOG("load Lua script: %s", argv[1]);
       lm->do_file(argv[1]);
     }
     else
     {
-      LOG->trace("no input script, use default: init.lua");
+      LOG("no input script, use default: init.lua");
       lm->do_file("init.lua");
     }
-    LOG->trace("Lua script loaded, prepare simulation");
+    LOG("Lua script loaded, prepare simulation");
 
-    if( !physics )
+    if( !Physics::physics )
       throw(Error("physics not created"));
 
-    if( !physics->isInitialized() )
+    if( !Physics::physics->isInitialized() )
     {
-      LOG->trace("physics not initialized: init it");
-      physics->init();
+      LOG("physics not initialized: init it");
+      Physics::physics->init();
     }
 
     // Simulation displayed: control speed
-    if( display != NULL && display->isInitialized() )
+    if( Display::display != NULL && Display::display->isInitialized() )
     {
-      unsigned int disp_dt = (unsigned int)(1000.0/cfg->fps);
-      unsigned int step_dt = (unsigned int)(1000.0*cfg->step_dt);
+      unsigned int disp_dt = (unsigned int)(1000.0/cfg.fps);
+      unsigned int step_dt = (unsigned int)(1000.0*cfg.step_dt);
       unsigned long time;
       unsigned long time_disp, time_step;
       signed long time_wait;
 
-      LOG->trace("**** simulation starts");
+      LOG("**** simulation starts");
 
       time_disp = time_step = SDL_GetTicks();
       while(1)
@@ -80,13 +73,13 @@ int main(int argc, char **argv)
         time = SDL_GetTicks();
         if( time >= time_step )
         {
-          physics->step();
-          time_step += (unsigned long)(step_dt * cfg->time_scale);
+          Physics::physics->step();
+          time_step += (unsigned long)(step_dt * cfg.time_scale);
         }
         if( time >= time_disp )
         {
-          display->processEvents();
-          display->update();
+          Display::display->processEvents();
+          Display::display->update();
           time_disp = time + disp_dt;
         }
 
@@ -98,18 +91,18 @@ int main(int argc, char **argv)
     }
     else
     {
-      LOG->trace("no display: simulation run at full speed");
-      LOG->trace("**** simulation starts");
+      LOG("no display: simulation run at full speed");
+      LOG("**** simulation starts");
 
       for(;;)
       {
-        physics->step();
+        Physics::physics->step();
       }
     }
   }
   catch(int i)
   {
-    LOG->trace("EXIT (%d)", i);
+    LOG("EXIT (%d)", i);
     ret = i;
   }
   catch(const Error &e)
@@ -118,11 +111,9 @@ int main(int argc, char **argv)
     ret = 1;
   }
 
-  display = NULL;
-  physics = NULL;
+  Physics::physics = NULL;
+  Display::display = NULL;
   delete lm;
-  delete cfg;
-  delete LOG;
 
   return ret;
 }

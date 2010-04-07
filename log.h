@@ -1,36 +1,30 @@
-#ifndef LOG_H
-#define LOG_H
-
-#include <stdarg.h>
-#include <exception>
-#include <malloc.h>
+#ifndef LOG_H_
+#define LOG_H_
 
 ///@file
 
+#include <cstdarg>
+#include <exception>
 
-/** @brief Allocate a formatted string
- *
- * The returned string should be freed using \e free.
- * If the function fails <tt>ptr</tt> points to the null pointer.
- *
- * @return The number of characters written (not including the trailing NUL) or
- * a negative number on error.
- *
- * @note This function is equivalent to the non POSIX asprintf function.
- */
-int ssprintf(char **ptr, const char *fmt, ...);
-
-/// Allocate a formatted string, \e va_list version
-int vssprintf(char **ptr, const char *fmt, va_list ap);
+/// Logging macro, for convenience.
+#define LOG (::Logger::glog)
 
 
-class Log
+class Logger
 {
 public:
-  Log() { trace("log is running"); }
-  ~Log() {}
+  Logger() { log("log is running"); }
+  ~Logger() {}
 
-  void trace(const char *fmt, ...);
+  void log(const char *fmt, ...);
+  void vlog(const char *fmt, va_list ap);
+
+  /// Global logging method.
+  static void glog(const char *fmt, ...);
+
+private:
+  /// Global logger instance.
+  static Logger logger_;
 };
 
 
@@ -40,7 +34,7 @@ public:
 
   Error(const char *fmt, ...);
   Error(): msg(NULL) {}
-  ~Error() throw() { free(msg); }
+  ~Error() throw();
   Error(const Error &e);
   Error &operator=(const Error &e);
 

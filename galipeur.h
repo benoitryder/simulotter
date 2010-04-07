@@ -1,10 +1,10 @@
-#ifndef GALIPEUR_H
-#define GALIPEUR_H
-
-#include <vector>
-#include "global.h"
+#ifndef GALIPEUR_H_
+#define GALIPEUR_H_
 
 ///@file
+
+#include <vector>
+#include "robot.h"
 
 
 /** @brief Rob'Otter robot, Galipeur

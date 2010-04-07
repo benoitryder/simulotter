@@ -1,5 +1,5 @@
-#ifndef BULLET_H
-#define BULLET_H
+#ifndef BULLET_H_
+#define BULLET_H_
 
 #include <btBulletDynamicsCommon.h>
 

@@ -1,5 +1,6 @@
-#include <time.h>
-#include "global.h"
+#include <ctime>
+#include "config.h"
+#include "lua_utils.h"
 
 
 /// Convenient macro for adding a function in an object at the top of the top stack
@@ -38,7 +39,7 @@ LuaManager::LuaManager()
   lua_register(L, "exit", lua_exit);
 
   // Init Lua stuff of other classes
-  cfg->lua_init(L);
+  cfg.lua_init(L);
   LuaClassBase::init(L);
 
   // Import main module
@@ -214,7 +215,7 @@ void LuaManager::checktransform(lua_State *L, int narg, btTransform &tr)
 
 int LuaManager::lua_trace(lua_State *L)
 {
-  LOG->trace("== %s", luaL_checkstring(L,1) );
+  LOG("== %s", luaL_checkstring(L,1) );
   return 0;
 }
 

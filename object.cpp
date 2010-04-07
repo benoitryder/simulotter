@@ -1,7 +1,10 @@
 #include <SDL/SDL.h>
 #include <GL/freeglut.h>
-#include "global.h"
+#include "physics.h"
 #include "object.h"
+#include "config.h"
+#include "lua_utils.h"
+#include "log.h"
 
 
 void Object::drawTransform(const btTransform &transform)
@@ -30,7 +33,7 @@ void Object::drawShape(const btCollisionShape *shape)
     case SPHERE_SHAPE_PROXYTYPE:
       {
         const btSphereShape *sphere_shape = static_cast<const btSphereShape*>(shape);
-        glutSolidSphere(sphere_shape->getRadius(), cfg->draw_div, cfg->draw_div);
+        glutSolidSphere(sphere_shape->getRadius(), cfg.draw_div, cfg.draw_div);
         break;
       }
     case BOX_SHAPE_PROXYTYPE:
@@ -55,10 +58,10 @@ void Object::drawShape(const btCollisionShape *shape)
         const btScalar r = capsule_shape->getRadius();
         const btScalar len = capsule_shape->getHalfHeight();
         btglTranslate(0, 0, -len);
-        glutSolidCylinder(r, 2*len, cfg->draw_div, cfg->draw_div);
-        glutSolidSphere(r, cfg->draw_div, cfg->draw_div);
+        glutSolidCylinder(r, 2*len, cfg.draw_div, cfg.draw_div);
+        glutSolidSphere(r, cfg.draw_div, cfg.draw_div);
         btglTranslate(0, 0, 2*len);
-        glutSolidSphere(r, cfg->draw_div, cfg->draw_div);
+        glutSolidSphere(r, cfg.draw_div, cfg.draw_div);
         break;
       }
     case CYLINDER_SHAPE_PROXYTYPE:
@@ -78,7 +81,7 @@ void Object::drawShape(const btCollisionShape *shape)
             throw(Error("invalid capsule up axis"));
         }
         btglTranslate(0, 0, -len);
-        glutSolidCylinder(r, 2*len, cfg->draw_div, cfg->draw_div);
+        glutSolidCylinder(r, 2*len, cfg.draw_div, cfg.draw_div);
         break;
       }
     default:
@@ -190,7 +193,7 @@ void OSimple::setPosAbove(const btVector2 &pos)
 {
   btVector3 aabbMin, aabbMax;
   this->getAabb(aabbMin, aabbMax);
-  setPos( btVector3(pos.x, pos.y, (aabbMax.z()-aabbMin.z())/2 + cfg->drop_epsilon) );
+  setPos( btVector3(pos.x, pos.y, (aabbMax.z()-aabbMin.z())/2 + cfg.drop_epsilon) );
 }
 
 
@@ -272,7 +275,7 @@ void OGround::draw()
 
     glColor4fv(color_t1);
     btglTranslate(-size[0]+size_start/2, size[1]-size_start/2, size[2]);
-    btglScale(size_start, size_start, 2*cfg->draw_epsilon);
+    btglScale(size_start, size_start, 2*cfg.draw_epsilon);
     glutSolidCube(1.0f);
 
     glPopMatrix();
@@ -281,7 +284,7 @@ void OGround::draw()
 
     glColor4fv(color_t2);
     btglTranslate(size[0]-size_start/2, size[1]-size_start/2, size[2]);
-    btglScale(size_start, size_start, 2*cfg->draw_epsilon);
+    btglScale(size_start, size_start, 2*cfg.draw_epsilon);
     glutSolidCube(1.0f);
 
     glPopMatrix();
@@ -320,9 +323,9 @@ class LuaObject: public LuaClass<Object>
 
   static int add_to_world(lua_State *L)
   {
-    if( !physics )
+    if( !Physics::physics )
       return luaL_error(L, "physics is not created, no world to add");
-    get_ptr(L,1)->addToWorld(physics);
+    get_ptr(L,1)->addToWorld(Physics::physics);
     return 0;
   }
 

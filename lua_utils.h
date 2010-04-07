@@ -3,15 +3,21 @@
 
 ///@file
 
+extern "C"
+{
+#include <lualib.h>
+#include <lauxlib.h>
+}
 #include <vector>
-
-#include "global.h"
-
+#include "bullet.h"
+#include "colors.h"
+#include "log.h"
 
 class LuaClassBase;
 class LuaMainModule;
 class LuaError;
 template <class T> class LuaClass;
+
 
 
 /** @brief Lua state and various functions.

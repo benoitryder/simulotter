@@ -1,15 +1,19 @@
+#include <cmath>
+#include <cstring>
+#include <cstdio>
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
-#include <SDL/SDL_endian.h>
 #include <GL/freeglut.h>
-#include <math.h>
-#include <string.h>
-#include <stdio.h>
 #include <png.h>
-#include <vector>
-#include "global.h"
+#include "display.h"
+#include "physics.h"
+#include "object.h"
+#include "config.h"
 #include "icon.h"
 
+
+
+SmartPtr<Display> Display::display;
 
 
 Display::Display()
@@ -90,7 +94,7 @@ void Display::init()
 {
   if( isInitialized() )
   {
-    LOG->trace("display already initialized, init() call skipped");
+    LOG("display already initialized, init() call skipped");
     return;
   }
   windowInit();
@@ -107,7 +111,7 @@ void Display::resize(int width, int height, int mode)
   else
     fullscreen = this->fullscreen;
 
-  LOG->trace("Display resize: %d x %d, %s mode",
+  LOG("Display resize: %d x %d, %s mode",
       width, height, fullscreen ? "fullscreen" : "window");
 
   Uint32 flags = SDL_OPENGL;
@@ -133,8 +137,8 @@ void Display::update()
 
   glMatrixMode(GL_PROJECTION); 
   glLoadIdentity();
-  gluPerspective(cfg->perspective_fov, ((float)screen_x)/screen_y,
-      cfg->perspective_near, cfg->perspective_far);
+  gluPerspective(cfg.perspective_fov, ((float)screen_x)/screen_y,
+      cfg.perspective_near, cfg.perspective_far);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -155,7 +159,7 @@ void Display::update()
       0.0, 0.0, up);
 
   // Draw objects
-  const std::set< SmartPtr<Object> > &objs = physics->getObjs();
+  const std::set< SmartPtr<Object> > &objs = Physics::physics->getObjs();
   std::set< SmartPtr<Object> >::const_iterator it_obj;
   for( it_obj = objs.begin(); it_obj != objs.end(); ++it_obj )
     (*it_obj)->draw();
@@ -211,7 +215,7 @@ static void png_handler_error(png_struct *png_ptr, const char *msg)
 
 static void png_handler_warning(png_struct *png_ptr, const char *msg)
 {
-  LOG->trace("PNG: warning: %s", msg);
+  LOG("PNG: warning: %s", msg);
 }
 
 //@}
@@ -291,7 +295,7 @@ void Display::doSavePNGScreenshot(const char *filename)
     delete[] pixels; pixels = NULL;
     fclose(fp); fp = NULL;
 
-    LOG->trace("screenshot saved: %s", filename);
+    LOG("screenshot saved: %s", filename);
   }
   catch(const Error &e)
   {
@@ -335,15 +339,15 @@ void Display::windowInit()
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-  if( cfg->antialias > 0 )
+  if( cfg.antialias > 0 )
   {
     if( SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) < 0 )
       throw(Error("SDL: cannot enable multisample buffers"));
-    if( SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, cfg->antialias) < 0 )
-      throw(Error("SDL: cannot set multisample sample count to %d", cfg->antialias));
+    if( SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, cfg.antialias) < 0 )
+      throw(Error("SDL: cannot set multisample sample count to %d", cfg.antialias));
   }
 
-  resize(cfg->screen_x, cfg->screen_y, cfg->fullscreen);
+  resize(cfg.screen_x, cfg.screen_y, cfg.fullscreen);
 }
 
 void Display::windowDestroy()
@@ -355,8 +359,8 @@ void Display::windowDestroy()
 void Display::sceneInit()
 {
   // Clear the background color
-  glClearColor(cfg->bg_color[0], cfg->bg_color[1],
-      cfg->bg_color[2], cfg->bg_color[3]);
+  glClearColor(cfg.bg_color[0], cfg.bg_color[1],
+      cfg.bg_color[2], cfg.bg_color[3]);
 
   glShadeModel(GL_SMOOTH);
   glEnable(GL_LIGHTING);
@@ -630,7 +634,7 @@ void Display::setCameraMode(int mode)
   }
 
   camera_mode = mode;
-  LOG->trace("camera mode: %x < %x", mode&CAM_EYE_MASK, (mode&CAM_TARGET_MASK)>>8);
+  LOG("camera mode: %x < %x", mode&CAM_EYE_MASK, (mode&CAM_TARGET_MASK)>>8);
 }
 
 
@@ -641,17 +645,17 @@ void Display::handlerResize(Display *d, const SDL_Event *event)
 
 void Display::handlerPause(Display *d, const SDL_Event *event)
 {
-  physics->togglePause();
+  Physics::physics->togglePause();
 }
 
 void Display::handlerCamMouse(Display *d, const SDL_Event *event)
 {
-  float dx = event->motion.xrel * cfg->camera_mouse_coef;
-  float dy = event->motion.yrel * cfg->camera_mouse_coef;
+  float dx = event->motion.xrel * cfg.camera_mouse_coef;
+  float dy = event->motion.yrel * cfg.camera_mouse_coef;
   if( d->camera_mode & CAM_EYE_REL )
-    d->camera_eye.spheric.rotate( dy*cfg->camera_step_angle, -dx*cfg->camera_step_angle );
+    d->camera_eye.spheric.rotate( dy*cfg.camera_step_angle, -dx*cfg.camera_step_angle );
   else if( d->camera_mode & CAM_TARGET_REL )
-    d->camera_target.spheric.rotate( dy*cfg->camera_step_angle, -dx*cfg->camera_step_angle );
+    d->camera_target.spheric.rotate( dy*cfg.camera_step_angle, -dx*cfg.camera_step_angle );
 }
 
 
@@ -659,7 +663,7 @@ void Display::handlerCamAhead(Display *d, const SDL_Event *event)
 {
   if( d->camera_mode & CAM_EYE_REL )
   {
-    d->camera_eye.spheric.r -= cfg->camera_step_linear;
+    d->camera_eye.spheric.r -= cfg.camera_step_linear;
     if( d->camera_eye.spheric.r < 0 )
       d->camera_eye.spheric.r = 0;
   }
@@ -672,7 +676,7 @@ void Display::handlerCamAhead(Display *d, const SDL_Event *event)
       dir = d->camera_target.spheric;
     else if( d->camera_mode & CAM_TARGET_OBJECT )
       dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
-    dir.r = cfg->camera_step_linear;
+    dir.r = cfg.camera_step_linear;
     d->camera_eye.cart += dir;
   }
 }
@@ -680,7 +684,7 @@ void Display::handlerCamAhead(Display *d, const SDL_Event *event)
 void Display::handlerCamBack(Display *d, const SDL_Event *event)
 {
   if( d->camera_mode & CAM_EYE_REL )
-    d->camera_eye.spheric.r += cfg->camera_step_linear;
+    d->camera_eye.spheric.r += cfg.camera_step_linear;
   else
   {
     btSpheric3 dir;
@@ -690,7 +694,7 @@ void Display::handlerCamBack(Display *d, const SDL_Event *event)
       dir = d->camera_target.spheric;
     else if( d->camera_mode & CAM_TARGET_OBJECT )
       dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
-    dir.r = -cfg->camera_step_linear;
+    dir.r = -cfg.camera_step_linear;
     d->camera_eye.cart += dir;
   }
 }
@@ -698,7 +702,7 @@ void Display::handlerCamBack(Display *d, const SDL_Event *event)
 void Display::handlerCamLeft(Display *d, const SDL_Event *event)
 {
   if( d->camera_mode & CAM_EYE_REL )
-    d->camera_eye.spheric.phi -= cfg->camera_step_angle;
+    d->camera_eye.spheric.phi -= cfg.camera_step_angle;
   else
   {
     btSpheric3 dir;
@@ -708,7 +712,7 @@ void Display::handlerCamLeft(Display *d, const SDL_Event *event)
       dir = d->camera_target.spheric;
     else if( d->camera_mode & CAM_TARGET_OBJECT )
       dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
-    dir.r = cfg->camera_step_linear;
+    dir.r = cfg.camera_step_linear;
     dir.theta = M_PI_2;
     dir.phi += M_PI_2;
     d->camera_eye.cart += dir;
@@ -718,7 +722,7 @@ void Display::handlerCamLeft(Display *d, const SDL_Event *event)
 void Display::handlerCamRight(Display *d, const SDL_Event *event)
 {
   if( d->camera_mode & CAM_EYE_REL )
-    d->camera_eye.spheric.phi += cfg->camera_step_angle;
+    d->camera_eye.spheric.phi += cfg.camera_step_angle;
   else
   {
     btSpheric3 dir;
@@ -728,7 +732,7 @@ void Display::handlerCamRight(Display *d, const SDL_Event *event)
       dir = d->camera_target.spheric;
     else if( d->camera_mode & CAM_TARGET_OBJECT )
       dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
-    dir.r = -cfg->camera_step_linear;
+    dir.r = -cfg.camera_step_linear;
     dir.theta = M_PI_2;
     dir.phi += M_PI_2;
     d->camera_eye.cart += dir;
@@ -738,7 +742,7 @@ void Display::handlerCamRight(Display *d, const SDL_Event *event)
 void Display::handlerCamUp(Display *d, const SDL_Event *event)
 {
   if( d->camera_mode & CAM_EYE_REL )
-    d->camera_eye.spheric.theta -= cfg->camera_step_angle;
+    d->camera_eye.spheric.theta -= cfg.camera_step_angle;
   else
   {
     btSpheric3 dir;
@@ -748,7 +752,7 @@ void Display::handlerCamUp(Display *d, const SDL_Event *event)
       dir = d->camera_target.spheric;
     else if( d->camera_mode & CAM_TARGET_OBJECT )
       dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
-    dir.r = -cfg->camera_step_linear;
+    dir.r = -cfg.camera_step_linear;
     dir.theta -= M_PI_2;
     d->camera_eye.cart += dir;
   }
@@ -757,7 +761,7 @@ void Display::handlerCamUp(Display *d, const SDL_Event *event)
 void Display::handlerCamDown(Display *d, const SDL_Event *event)
 {
   if( d->camera_mode & CAM_EYE_REL )
-    d->camera_eye.spheric.theta += cfg->camera_step_angle;
+    d->camera_eye.spheric.theta += cfg.camera_step_angle;
   else
   {
     btSpheric3 dir;
@@ -767,7 +771,7 @@ void Display::handlerCamDown(Display *d, const SDL_Event *event)
       dir = d->camera_target.spheric;
     else if( d->camera_mode & CAM_TARGET_OBJECT )
       dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
-    dir.r = cfg->camera_step_linear;
+    dir.r = cfg.camera_step_linear;
     dir.theta -= M_PI_2;
     d->camera_eye.cart += dir;
   }
@@ -857,9 +861,9 @@ class LuaDisplay: public LuaClass<Display>
 {
   static int _ctor(lua_State *L)
   {
-    if( display == NULL )
-      display = new Display();
-    store_ptr(L, display);
+    if( Display::display == NULL )
+      Display::display = new Display();
+    store_ptr(L, Display::display);
     return 0;
   }
 
@@ -1202,17 +1206,17 @@ class LuaOSD: public LuaClass<OSDLua>
 
   static int show(lua_State *L)
   {
-    if( !display )
+    if( !Display::display )
       throw(LuaError(L, "no display"));
     SmartPtr<OSDMessage> osd = get_ptr(L,1);
-    display->getOsds().insert( osd );
+    Display::display->getOsds().insert( osd );
     return 0;
   }
   static int hide(lua_State *L)
   {
-    if( !display )
+    if( !Display::display )
       throw(LuaError(L, "no display"));
-    display->getOsds().erase( SmartPtr<OSDMessage>(get_ptr(L,1)) );
+    Display::display->getOsds().erase( SmartPtr<OSDMessage>(get_ptr(L,1)) );
     return 0;
   }
 
