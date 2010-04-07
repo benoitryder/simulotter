@@ -184,8 +184,12 @@ namespace eurobot2010
   OCorn::OCorn(): opivot(NULL), pivot_attach(NULL)
   {
     setShape( shape );
+    /* actual weight and colors of official elements differs from rules
     setMass( 0.250 );
     setColor(Color4( 0xff, 0xf5, 0xe3 )); // RAL 1013
+    */
+    setMass( 0.285 );
+    setColor(Color4( 0xd0, 0xd0, 0xd0 )); // gray
   }
 
   void OCorn::plant(btScalar x, btScalar y)

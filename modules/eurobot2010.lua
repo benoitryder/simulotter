@@ -96,7 +96,9 @@ do
   OBranch = class(OSimple, function(self,h)
     OSimple._ctor(self)
     self:set_shape( self.shape )
-    self:set_color(colors.white)
+    -- actual color differs from rules
+    -- self:set_color(colors.white)
+    self:set_color(colors.plexi)
     self.h = h
   end)
   -- Make all trees with the same height but use different z position
