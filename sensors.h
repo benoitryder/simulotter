@@ -31,7 +31,7 @@ public:
 
 protected:
   /// Hit range
-  btScalar range_min, range_max;
+  btScalar range_min_, range_max_;
 
 public:
 

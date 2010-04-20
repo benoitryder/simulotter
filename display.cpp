@@ -21,14 +21,14 @@ Display::Display()
   int argc = 1;
   glutInit(&argc, NULL);
 
-  this->screen = NULL;
-  this->screenshot_filename = NULL;
+  screen_ = NULL;
+  screenshot_filename_ = NULL;
 
-  camera_mode = CAM_FIXED;
-  camera_eye.spheric = scale( btSpheric3(4.0, M_PI/6, -M_PI/3) );
-  camera_target.cart = btVector3(0,0,0);
-  camera_eye.obj    = NULL;
-  camera_target.obj = NULL;
+  camera_mode_ = CAM_FIXED;
+  camera_eye_.spheric = btScale( btSpheric3(4.0, M_PI/6, -M_PI/3) );
+  camera_target_.cart = btVector3(0,0,0);
+  camera_eye_.obj    = NULL;
+  camera_target_.obj = NULL;
 
   // Default handlers
 
@@ -109,7 +109,7 @@ void Display::resize(int width, int height, int mode)
   else if( mode > 0 )
     fullscreen = true;
   else
-    fullscreen = this->fullscreen;
+    fullscreen = fullscreen_;
 
   LOG("Display resize: %d x %d, %s mode",
       width, height, fullscreen ? "fullscreen" : "window");
@@ -117,15 +117,15 @@ void Display::resize(int width, int height, int mode)
   Uint32 flags = SDL_OPENGL;
   flags |= fullscreen ? SDL_FULLSCREEN : SDL_RESIZABLE;
 
-  if( (screen = SDL_SetVideoMode(width, height, 0, flags)) == NULL )
+  if( (screen_ = SDL_SetVideoMode(width, height, 0, flags)) == NULL )
   {
     windowDestroy();
     throw(Error("SDL: cannot change video mode"));
   }
 
-  this->screen_x = width;
-  this->screen_y = height;
-  this->fullscreen = fullscreen;
+  screen_x_ = width;
+  screen_y_ = height;
+  fullscreen_ = fullscreen;
 
   sceneInit();
 }
@@ -137,7 +137,7 @@ void Display::update()
 
   glMatrixMode(GL_PROJECTION); 
   glLoadIdentity();
-  gluPerspective(cfg.perspective_fov, ((float)screen_x)/screen_y,
+  gluPerspective(cfg.perspective_fov, ((float)screen_x_)/screen_y_,
       cfg.perspective_near, cfg.perspective_far);
 
   glMatrixMode(GL_MODELVIEW);
@@ -147,10 +147,10 @@ void Display::update()
   getCameraPos(eye_pos, target_pos);
 
   float up = (
-      ( (camera_mode & CAM_EYE_REL) &&
-        ((int)btCeil(camera_eye.spheric.theta/M_PI))%2==0 ) ||
-      ( (camera_mode & CAM_TARGET_REL) &&
-        ((int)btCeil(camera_target.spheric.theta/M_PI))%2==0 )
+      ( (camera_mode_ & CAM_EYE_REL) &&
+        ((int)btCeil(camera_eye_.spheric.theta/M_PI))%2==0 ) ||
+      ( (camera_mode_ & CAM_TARGET_REL) &&
+        ((int)btCeil(camera_target_.spheric.theta/M_PI))%2==0 )
       ) ? -1.0 : 1.0;
 
   gluLookAt(
@@ -166,14 +166,14 @@ void Display::update()
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluOrtho2D(0.0, screen_x, 0.0, screen_y);
+  gluOrtho2D(0.0, screen_x_, 0.0, screen_y_);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   // OSD
   glDisable(GL_LIGHTING);
   std::set< SmartPtr<OSDMessage> >::iterator it_osd;
-  for( it_osd = osds.begin(); it_osd != osds.end(); ++it_osd )
+  for( it_osd = osds_.begin(); it_osd != osds_.end(); ++it_osd )
     drawString( (*it_osd)->getText(),
         (*it_osd)->getX(), (*it_osd)->getY(),
         (*it_osd)->getColor(), GLUT_BITMAP_8_BY_13
@@ -184,11 +184,11 @@ void Display::update()
   glFlush();
 
   // Save screenshot
-  if( screenshot_filename != NULL )
+  if( screenshot_filename_ != NULL )
   {
-    doSavePNGScreenshot(screenshot_filename);
-    delete[] screenshot_filename;
-    screenshot_filename = NULL;
+    doSavePNGScreenshot(screenshot_filename_);
+    delete[] screenshot_filename_;
+    screenshot_filename_ = NULL;
   }
 }
 
@@ -213,7 +213,7 @@ static void png_handler_error(png_struct *png_ptr, const char *msg)
   longjmp(png_ptr->jmpbuf, 1);
 }
 
-static void png_handler_warning(png_struct *png_ptr, const char *msg)
+static void png_handler_warning(png_struct * /*png_ptr*/, const char *msg)
 {
   LOG("PNG: warning: %s", msg);
 }
@@ -224,12 +224,12 @@ void Display::savePNGScreenshot(const char *filename)
 {
   if( filename == NULL )
     return;
-  if( screenshot_filename != NULL )
-    delete[] screenshot_filename;
+  if( screenshot_filename_ != NULL )
+    delete[] screenshot_filename_;
   int n = ::strlen(filename);
-  screenshot_filename = new char[n+1];
-  strncpy(screenshot_filename, filename, n);
-  screenshot_filename[n] = '\0';
+  screenshot_filename_ = new char[n+1];
+  strncpy(screenshot_filename_, filename, n);
+  screenshot_filename_[n] = '\0';
 }
 
 void Display::doSavePNGScreenshot(const char *filename)
@@ -271,20 +271,20 @@ void Display::doSavePNGScreenshot(const char *filename)
 
     png_init_io(png_ptr, fp);
 
-    png_set_IHDR(png_ptr, info_ptr, screen_x, screen_y, 8, PNG_COLOR_TYPE_RGB,
+    png_set_IHDR(png_ptr, info_ptr, screen_x_, screen_y_, 8, PNG_COLOR_TYPE_RGB,
         PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
         PNG_FILTER_TYPE_DEFAULT);
 
     // Get pixels, create pixel rows
-    SDL_LockSurface(this->screen);
+    SDL_LockSurface(screen_);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    SDL_UnlockSurface(this->screen);
-    pixels = new unsigned char[4*screen_x*screen_y];
-    glReadPixels(0, 0, screen_x, screen_y, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-    row_pointers = new png_bytep[screen_y];
+    SDL_UnlockSurface(screen_);
+    pixels = new unsigned char[4*screen_x_*screen_y_];
+    glReadPixels(0, 0, screen_x_, screen_y_, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    row_pointers = new png_bytep[screen_y_];
     int i;
-    for( i=0; i<screen_y; i++ )
-      row_pointers[screen_y-i-1] = (png_bytep)pixels+3*i*screen_x;
+    for( i=0; i<screen_y_; i++ )
+      row_pointers[screen_y_-i-1] = (png_bytep)pixels+3*i*screen_x_;
     png_set_rows(png_ptr, info_ptr, row_pointers);
 
     // Write data
@@ -311,7 +311,7 @@ void Display::doSavePNGScreenshot(const char *filename)
 
 void Display::drawString(const char *s, int x, int y, Color4 color, void *font)
 {
-  y = screen_y - y;
+  y = screen_y_ - y;
   glColor4fv(color);
   glRasterPos2f(x,y);
   for( unsigned int i=0; i<strlen(s); i++)
@@ -365,7 +365,7 @@ void Display::sceneInit()
   glShadeModel(GL_SMOOTH);
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
-  const GLfloat light_pos[4] = {0,scale(.3),scale(.8),0};
+  const GLfloat light_pos[4] = {0,btScale(.3),btScale(.8),0};
   glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
   glEnable(GL_DEPTH_TEST); 
@@ -392,8 +392,8 @@ void Display::processEvents()
 
   while(SDL_PollEvent(&event))
   {
-    it_h = handlers.find(event);
-    if( it_h != handlers.end() )
+    it_h = handlers_.find(event);
+    if( it_h != handlers_.end() )
       (*it_h).second(this, &event);
   }
 }
@@ -424,110 +424,110 @@ bool Display::EventCmp::operator()(const SDL_Event &a, const SDL_Event &b)
 
 void Display::setHandler(const SDL_Event &ev, const EventHandler &h)
 {
-  handlers.insert( EventHandlerContainer::value_type(ev, h) );
+  handlers_.insert( EventHandlerContainer::value_type(ev, h) );
 }
 
-Display::EventHandler::EventHandler(lua_State *L, int ref): ptr_cb(NULL), L(L), ref_cb(ref)
+Display::EventHandler::EventHandler(lua_State *L, int ref): ptr_cb_(NULL), L_(L), ref_cb_(ref)
 {
-  if( ref_cb == LUA_NOREF || ref_cb == LUA_REFNIL )
-    throw(LuaError(L, "invalid object reference for EventHandler"));
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_cb);
-  if( !lua_isfunction(L, -1) )
-    throw(LuaError(L, "EventHandler: invalid callback type"));
-  lua_pop(L,1);
+  if( ref_cb_ == LUA_NOREF || ref_cb_ == LUA_REFNIL )
+    throw(LuaError(L_, "invalid object reference for EventHandler"));
+  lua_rawgeti(L_, LUA_REGISTRYINDEX, ref_cb_);
+  if( !lua_isfunction(L_, -1) )
+    throw(LuaError(L_, "EventHandler: invalid callback type"));
+  lua_pop(L_,1);
 }
 
-Display::EventHandler::EventHandler(const EventHandler &h): ptr_cb(h.ptr_cb)
+Display::EventHandler::EventHandler(const EventHandler &h): ptr_cb_(h.ptr_cb_)
 {
-  if( h.ref_cb != LUA_NOREF )
+  if( h.ref_cb_ != LUA_NOREF )
   {
     // Copy the reference and the state
-    L = h.L;
-    lua_rawgeti(L, LUA_REGISTRYINDEX, h.ref_cb);
-    ref_cb = luaL_ref(L, LUA_REGISTRYINDEX);
+    L_ = h.L_;
+    lua_rawgeti(L_, LUA_REGISTRYINDEX, h.ref_cb_);
+    ref_cb_ = luaL_ref(L_, LUA_REGISTRYINDEX);
   }
   else
   {
-    L = NULL;
-    ref_cb = LUA_NOREF;
+    L_ = NULL;
+    ref_cb_ = LUA_NOREF;
   }
 }
 
 Display::EventHandler::~EventHandler()
 {
-  if( L != NULL )
-    luaL_unref(L, LUA_REGISTRYINDEX, ref_cb);
+  if( L_ != NULL )
+    luaL_unref(L_, LUA_REGISTRYINDEX, ref_cb_);
 }
 
 void Display::EventHandler::operator()(Display *d, const SDL_Event *ev) const
 {
-  if( ptr_cb )
-    ptr_cb(d, ev);
-  else if( L != NULL && ref_cb != LUA_NOREF )
+  if( ptr_cb_ )
+    ptr_cb_(d, ev);
+  else if( L_ != NULL && ref_cb_ != LUA_NOREF )
   {
-    lua_rawgeti(L, LUA_REGISTRYINDEX, ref_cb);
+    lua_rawgeti(L_, LUA_REGISTRYINDEX, ref_cb_);
     // callback type has already been checked in constructor
     // push the event
-    lua_newtable(L);
-    LuaManager::setfield(L, -1, "t", ev->type);
+    lua_newtable(L_);
+    LuaManager::setfield(L_, -1, "t", ev->type);
     switch( ev->type )
     {
       case SDL_KEYDOWN:
       case SDL_KEYUP:
-        LuaManager::setfield(L, -1, "state", ev->key.state == SDL_PRESSED);
-        LuaManager::setfield(L, -1, "key", ev->key.keysym.sym);
-        lua_newtable(L);
+        LuaManager::setfield(L_, -1, "state", ev->key.state == SDL_PRESSED);
+        LuaManager::setfield(L_, -1, "key", ev->key.keysym.sym);
+        lua_newtable(L_);
         if( ev->key.keysym.mod != KMOD_NONE )
         {
           SDLMod mod = ev->key.keysym.mod;
-          if( mod & KMOD_LSHIFT ) LuaManager::setfield(L, -1, "LSHIFT", true);
-          if( mod & KMOD_RSHIFT ) LuaManager::setfield(L, -1, "RSHIFT", true);
-          if( mod & KMOD_LCTRL  ) LuaManager::setfield(L, -1, "LCTRL" , true);
-          if( mod & KMOD_RCTRL  ) LuaManager::setfield(L, -1, "RCTRL" , true);
-          if( mod & KMOD_LALT   ) LuaManager::setfield(L, -1, "LALT"  , true);
-          if( mod & KMOD_RALT   ) LuaManager::setfield(L, -1, "RALT"  , true);
-          if( mod & KMOD_LMETA  ) LuaManager::setfield(L, -1, "LMETA" , true);
-          if( mod & KMOD_RMETA  ) LuaManager::setfield(L, -1, "RMETA" , true);
-          if( mod & KMOD_NUM    ) LuaManager::setfield(L, -1, "NUM"   , true);
-          if( mod & KMOD_CAPS   ) LuaManager::setfield(L, -1, "CAPS"  , true);
-          if( mod & KMOD_MODE   ) LuaManager::setfield(L, -1, "MODE"  , true);
-          if( mod & KMOD_SHIFT  ) LuaManager::setfield(L, -1, "SHIFT" , true);
-          if( mod & KMOD_CTRL   ) LuaManager::setfield(L, -1, "CTRL"  , true);
-          if( mod & KMOD_ALT    ) LuaManager::setfield(L, -1, "ALT"   , true);
-          if( mod & KMOD_META   ) LuaManager::setfield(L, -1, "META"  , true);
+          if( mod & KMOD_LSHIFT ) LuaManager::setfield(L_, -1, "LSHIFT", true);
+          if( mod & KMOD_RSHIFT ) LuaManager::setfield(L_, -1, "RSHIFT", true);
+          if( mod & KMOD_LCTRL  ) LuaManager::setfield(L_, -1, "LCTRL" , true);
+          if( mod & KMOD_RCTRL  ) LuaManager::setfield(L_, -1, "RCTRL" , true);
+          if( mod & KMOD_LALT   ) LuaManager::setfield(L_, -1, "LALT"  , true);
+          if( mod & KMOD_RALT   ) LuaManager::setfield(L_, -1, "RALT"  , true);
+          if( mod & KMOD_LMETA  ) LuaManager::setfield(L_, -1, "LMETA" , true);
+          if( mod & KMOD_RMETA  ) LuaManager::setfield(L_, -1, "RMETA" , true);
+          if( mod & KMOD_NUM    ) LuaManager::setfield(L_, -1, "NUM"   , true);
+          if( mod & KMOD_CAPS   ) LuaManager::setfield(L_, -1, "CAPS"  , true);
+          if( mod & KMOD_MODE   ) LuaManager::setfield(L_, -1, "MODE"  , true);
+          if( mod & KMOD_SHIFT  ) LuaManager::setfield(L_, -1, "SHIFT" , true);
+          if( mod & KMOD_CTRL   ) LuaManager::setfield(L_, -1, "CTRL"  , true);
+          if( mod & KMOD_ALT    ) LuaManager::setfield(L_, -1, "ALT"   , true);
+          if( mod & KMOD_META   ) LuaManager::setfield(L_, -1, "META"  , true);
         }
-        lua_setfield(L, -2, "mod");
+        lua_setfield(L_, -2, "mod");
         break;
 
       case SDL_MOUSEMOTION:
-        lua_newtable(L);
+        lua_newtable(L_);
         if( ev->motion.state )
         {
           Uint8 state = ev->motion.state;
-          if( state & SDL_BUTTON_LMASK ) LuaManager::setfield(L, -1, "LEFT",   true);
-          if( state & SDL_BUTTON_MMASK ) LuaManager::setfield(L, -1, "MIDDLE", true);
-          if( state & SDL_BUTTON_RMASK ) LuaManager::setfield(L, -1, "RIGHT",  true);
+          if( state & SDL_BUTTON_LMASK ) LuaManager::setfield(L_, -1, "LEFT",   true);
+          if( state & SDL_BUTTON_MMASK ) LuaManager::setfield(L_, -1, "MIDDLE", true);
+          if( state & SDL_BUTTON_RMASK ) LuaManager::setfield(L_, -1, "RIGHT",  true);
         }
-        lua_setfield(L, -2, "state");
-        LuaManager::setfield(L, -1, "x", ev->motion.x);
-        LuaManager::setfield(L, -1, "y", ev->motion.y);
-        LuaManager::setfield(L, -1, "xrel", ev->motion.xrel);
-        LuaManager::setfield(L, -1, "yrel", ev->motion.yrel);
+        lua_setfield(L_, -2, "state");
+        LuaManager::setfield(L_, -1, "x", ev->motion.x);
+        LuaManager::setfield(L_, -1, "y", ev->motion.y);
+        LuaManager::setfield(L_, -1, "xrel", ev->motion.xrel);
+        LuaManager::setfield(L_, -1, "yrel", ev->motion.yrel);
         break;
 
       case SDL_MOUSEBUTTONDOWN:
       case SDL_MOUSEBUTTONUP:
-        LuaManager::setfield(L, -1, "button", ev->button.button);
-        LuaManager::setfield(L, -1, "state", ev->button.state == SDL_PRESSED);
-        LuaManager::setfield(L, -1, "x", ev->motion.x);
-        LuaManager::setfield(L, -1, "y", ev->motion.y);
+        LuaManager::setfield(L_, -1, "button", ev->button.button);
+        LuaManager::setfield(L_, -1, "state", ev->button.state == SDL_PRESSED);
+        LuaManager::setfield(L_, -1, "x", ev->motion.x);
+        LuaManager::setfield(L_, -1, "y", ev->motion.y);
         break;
 
       default:
         throw(Error("EventHandler: event type not supported: %d", ev->type));
     }
 
-    LuaManager::pcall(L, 1, 0);
+    LuaManager::pcall(L_, 1, 0);
   }
   else
     throw(Error("EventHandler: attempt to process an handler without callback"));
@@ -539,45 +539,45 @@ void Display::getCameraPos(btVector3 &eye_pos, btVector3 &target_pos) const
   // ref positions depends on the other point.
   // Thus, fixed and mobile positions are retrieved first.
 
-  if( camera_mode & CAM_EYE_FIXED )
+  if( camera_mode_ & CAM_EYE_FIXED )
   {
-    eye_pos = camera_eye.cart;
+    eye_pos = camera_eye_.cart;
   }
-  else if( camera_mode & CAM_EYE_OBJECT )
+  else if( camera_mode_ & CAM_EYE_OBJECT )
   {
     // Convert offset in global coordinates and add it
-    eye_pos = camera_eye.obj->getTrans() * camera_eye.cart;
+    eye_pos = camera_eye_.obj->getTrans() * camera_eye_.cart;
   }
 
-  if( camera_mode & CAM_TARGET_FIXED )
+  if( camera_mode_ & CAM_TARGET_FIXED )
   {
-    target_pos = camera_target.cart;
+    target_pos = camera_target_.cart;
   }
-  else if( camera_mode & CAM_TARGET_OBJECT )
+  else if( camera_mode_ & CAM_TARGET_OBJECT )
   {
     // Convert offset in global coordinates and add it
-    target_pos = camera_target.obj->getTrans() * camera_target.cart;
+    target_pos = camera_target_.obj->getTrans() * camera_target_.cart;
   }
 
-  if( camera_mode & CAM_EYE_REL )
+  if( camera_mode_ & CAM_EYE_REL )
   {
-    eye_pos = camera_eye.spheric;
+    eye_pos = camera_eye_.spheric;
 
     // Object relative coordinates are in object coordinates
     // Convert them to global coordinates
-    if( camera_mode & CAM_TARGET_OBJECT )
-      eye_pos = quatRotate(camera_target.obj->getTrans().getRotation(), eye_pos);
+    if( camera_mode_ & CAM_TARGET_OBJECT )
+      eye_pos = quatRotate(camera_target_.obj->getTrans().getRotation(), eye_pos);
 
     eye_pos += target_pos;
   }
-  else if( camera_mode & CAM_TARGET_REL )
+  else if( camera_mode_ & CAM_TARGET_REL )
   {
-    target_pos = camera_target.spheric;
+    target_pos = camera_target_.spheric;
 
     // Object relative coordinates are in object coordinates
     // Convert them to global coordinates
-    if( camera_mode & CAM_EYE_OBJECT )
-      target_pos = quatRotate(camera_eye.obj->getTrans().getRotation(), target_pos);
+    if( camera_mode_ & CAM_EYE_OBJECT )
+      target_pos = quatRotate(camera_eye_.obj->getTrans().getRotation(), target_pos);
 
     target_pos += eye_pos;
   }
@@ -586,7 +586,7 @@ void Display::getCameraPos(btVector3 &eye_pos, btVector3 &target_pos) const
 
 void Display::setCameraMode(int mode)
 {
-  if( camera_mode == mode )
+  if( camera_mode_ == mode )
     return;
 
   if( (mode & CAM_EYE_REL) && (mode & CAM_TARGET_REL) )
@@ -601,15 +601,15 @@ void Display::setCameraMode(int mode)
   switch( mode & CAM_EYE_MASK )
   {
     case CAM_EYE_FIXED:
-      camera_eye.cart = eye_pos;
+      camera_eye_.cart = eye_pos;
       break;
     case CAM_EYE_REL:
-      camera_eye.spheric = btSpheric3( eye_pos - target_pos );
+      camera_eye_.spheric = btSpheric3( eye_pos - target_pos );
       break;
     case CAM_EYE_OBJECT:
-      if( camera_eye.obj == NULL )
+      if( camera_eye_.obj == NULL )
         throw(Error("object must be set before setting an object camera mode"));
-      camera_eye.cart = btVector3(0,0,0);
+      camera_eye_.cart = btVector3(0,0,0);
       break;
     default:
       throw(Error("invalid camera mode"));
@@ -619,21 +619,21 @@ void Display::setCameraMode(int mode)
   {
     case CAM_TARGET_FIXED:
       for( int i=0; i<3; i++ )
-        camera_target.cart = target_pos;
+        camera_target_.cart = target_pos;
       break;
     case CAM_TARGET_REL:
-      camera_target.spheric = btSpheric3( target_pos - eye_pos );
+      camera_target_.spheric = btSpheric3( target_pos - eye_pos );
       break;
     case CAM_TARGET_OBJECT:
-      if( camera_target.obj == NULL )
+      if( camera_target_.obj == NULL )
         throw(Error("object must be set before setting an object camera mode"));
-      camera_target.cart = btVector3(0,0,0);
+      camera_target_.cart = btVector3(0,0,0);
       break;
     default:
       throw(Error("invalid camera mode"));
   }
 
-  camera_mode = mode;
+  camera_mode_ = mode;
   LOG("camera mode: %x < %x", mode&CAM_EYE_MASK, (mode&CAM_TARGET_MASK)>>8);
 }
 
@@ -652,202 +652,202 @@ void Display::handlerCamMouse(Display *d, const SDL_Event *event)
 {
   float dx = event->motion.xrel * cfg.camera_mouse_coef;
   float dy = event->motion.yrel * cfg.camera_mouse_coef;
-  if( d->camera_mode & CAM_EYE_REL )
-    d->camera_eye.spheric.rotate( dy*cfg.camera_step_angle, -dx*cfg.camera_step_angle );
-  else if( d->camera_mode & CAM_TARGET_REL )
-    d->camera_target.spheric.rotate( dy*cfg.camera_step_angle, -dx*cfg.camera_step_angle );
+  if( d->camera_mode_ & CAM_EYE_REL )
+    d->camera_eye_.spheric.rotate( dy*cfg.camera_step_angle, -dx*cfg.camera_step_angle );
+  else if( d->camera_mode_ & CAM_TARGET_REL )
+    d->camera_target_.spheric.rotate( dy*cfg.camera_step_angle, -dx*cfg.camera_step_angle );
 }
 
 
 void Display::handlerCamAhead(Display *d, const SDL_Event *event)
 {
-  if( d->camera_mode & CAM_EYE_REL )
+  if( d->camera_mode_ & CAM_EYE_REL )
   {
-    d->camera_eye.spheric.r -= cfg.camera_step_linear;
-    if( d->camera_eye.spheric.r < 0 )
-      d->camera_eye.spheric.r = 0;
+    d->camera_eye_.spheric.r -= cfg.camera_step_linear;
+    if( d->camera_eye_.spheric.r < 0 )
+      d->camera_eye_.spheric.r = 0;
   }
   else
   {
     btSpheric3 dir;
-    if( d->camera_mode & CAM_TARGET_FIXED )
-      dir = d->camera_target.cart - d->camera_eye.cart;
-    else if( d->camera_mode & CAM_TARGET_REL )
-      dir = d->camera_target.spheric;
-    else if( d->camera_mode & CAM_TARGET_OBJECT )
-      dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
+    if( d->camera_mode_ & CAM_TARGET_FIXED )
+      dir = d->camera_target_.cart - d->camera_eye_.cart;
+    else if( d->camera_mode_ & CAM_TARGET_REL )
+      dir = d->camera_target_.spheric;
+    else if( d->camera_mode_ & CAM_TARGET_OBJECT )
+      dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
     dir.r = cfg.camera_step_linear;
-    d->camera_eye.cart += dir;
+    d->camera_eye_.cart += dir;
   }
 }
 
 void Display::handlerCamBack(Display *d, const SDL_Event *event)
 {
-  if( d->camera_mode & CAM_EYE_REL )
-    d->camera_eye.spheric.r += cfg.camera_step_linear;
+  if( d->camera_mode_ & CAM_EYE_REL )
+    d->camera_eye_.spheric.r += cfg.camera_step_linear;
   else
   {
     btSpheric3 dir;
-    if( d->camera_mode & CAM_TARGET_FIXED )
-      dir = d->camera_target.cart - d->camera_eye.cart;
-    else if( d->camera_mode & CAM_TARGET_REL )
-      dir = d->camera_target.spheric;
-    else if( d->camera_mode & CAM_TARGET_OBJECT )
-      dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
+    if( d->camera_mode_ & CAM_TARGET_FIXED )
+      dir = d->camera_target_.cart - d->camera_eye_.cart;
+    else if( d->camera_mode_ & CAM_TARGET_REL )
+      dir = d->camera_target_.spheric;
+    else if( d->camera_mode_ & CAM_TARGET_OBJECT )
+      dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
     dir.r = -cfg.camera_step_linear;
-    d->camera_eye.cart += dir;
+    d->camera_eye_.cart += dir;
   }
 }
 
 void Display::handlerCamLeft(Display *d, const SDL_Event *event)
 {
-  if( d->camera_mode & CAM_EYE_REL )
-    d->camera_eye.spheric.phi -= cfg.camera_step_angle;
+  if( d->camera_mode_ & CAM_EYE_REL )
+    d->camera_eye_.spheric.phi -= cfg.camera_step_angle;
   else
   {
     btSpheric3 dir;
-    if( d->camera_mode & CAM_TARGET_FIXED )
-      dir = d->camera_target.cart - d->camera_eye.cart;
-    else if( d->camera_mode & CAM_TARGET_REL )
-      dir = d->camera_target.spheric;
-    else if( d->camera_mode & CAM_TARGET_OBJECT )
-      dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
+    if( d->camera_mode_ & CAM_TARGET_FIXED )
+      dir = d->camera_target_.cart - d->camera_eye_.cart;
+    else if( d->camera_mode_ & CAM_TARGET_REL )
+      dir = d->camera_target_.spheric;
+    else if( d->camera_mode_ & CAM_TARGET_OBJECT )
+      dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
     dir.r = cfg.camera_step_linear;
     dir.theta = M_PI_2;
     dir.phi += M_PI_2;
-    d->camera_eye.cart += dir;
+    d->camera_eye_.cart += dir;
   }
 }
 
 void Display::handlerCamRight(Display *d, const SDL_Event *event)
 {
-  if( d->camera_mode & CAM_EYE_REL )
-    d->camera_eye.spheric.phi += cfg.camera_step_angle;
+  if( d->camera_mode_ & CAM_EYE_REL )
+    d->camera_eye_.spheric.phi += cfg.camera_step_angle;
   else
   {
     btSpheric3 dir;
-    if( d->camera_mode & CAM_TARGET_FIXED )
-      dir = d->camera_target.cart - d->camera_eye.cart;
-    else if( d->camera_mode & CAM_TARGET_REL )
-      dir = d->camera_target.spheric;
-    else if( d->camera_mode & CAM_TARGET_OBJECT )
-      dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
+    if( d->camera_mode_ & CAM_TARGET_FIXED )
+      dir = d->camera_target_.cart - d->camera_eye_.cart;
+    else if( d->camera_mode_ & CAM_TARGET_REL )
+      dir = d->camera_target_.spheric;
+    else if( d->camera_mode_ & CAM_TARGET_OBJECT )
+      dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
     dir.r = -cfg.camera_step_linear;
     dir.theta = M_PI_2;
     dir.phi += M_PI_2;
-    d->camera_eye.cart += dir;
+    d->camera_eye_.cart += dir;
   }
 }
 
 void Display::handlerCamUp(Display *d, const SDL_Event *event)
 {
-  if( d->camera_mode & CAM_EYE_REL )
-    d->camera_eye.spheric.theta -= cfg.camera_step_angle;
+  if( d->camera_mode_ & CAM_EYE_REL )
+    d->camera_eye_.spheric.theta -= cfg.camera_step_angle;
   else
   {
     btSpheric3 dir;
-    if( d->camera_mode & CAM_TARGET_FIXED )
-      dir = d->camera_target.cart - d->camera_eye.cart;
-    else if( d->camera_mode & CAM_TARGET_REL )
-      dir = d->camera_target.spheric;
-    else if( d->camera_mode & CAM_TARGET_OBJECT )
-      dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
+    if( d->camera_mode_ & CAM_TARGET_FIXED )
+      dir = d->camera_target_.cart - d->camera_eye_.cart;
+    else if( d->camera_mode_ & CAM_TARGET_REL )
+      dir = d->camera_target_.spheric;
+    else if( d->camera_mode_ & CAM_TARGET_OBJECT )
+      dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
     dir.r = -cfg.camera_step_linear;
     dir.theta -= M_PI_2;
-    d->camera_eye.cart += dir;
+    d->camera_eye_.cart += dir;
   }
 }
 
 void Display::handlerCamDown(Display *d, const SDL_Event *event)
 {
-  if( d->camera_mode & CAM_EYE_REL )
-    d->camera_eye.spheric.theta += cfg.camera_step_angle;
+  if( d->camera_mode_ & CAM_EYE_REL )
+    d->camera_eye_.spheric.theta += cfg.camera_step_angle;
   else
   {
     btSpheric3 dir;
-    if( d->camera_mode & CAM_TARGET_FIXED )
-      dir = d->camera_target.cart - d->camera_eye.cart;
-    else if( d->camera_mode & CAM_TARGET_REL )
-      dir = d->camera_target.spheric;
-    else if( d->camera_mode & CAM_TARGET_OBJECT )
-      dir = d->camera_target.obj->getPos() - d->camera_eye.cart;
+    if( d->camera_mode_ & CAM_TARGET_FIXED )
+      dir = d->camera_target_.cart - d->camera_eye_.cart;
+    else if( d->camera_mode_ & CAM_TARGET_REL )
+      dir = d->camera_target_.spheric;
+    else if( d->camera_mode_ & CAM_TARGET_OBJECT )
+      dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
     dir.r = cfg.camera_step_linear;
     dir.theta -= M_PI_2;
-    d->camera_eye.cart += dir;
+    d->camera_eye_.cart += dir;
   }
 }
 
 
-OSDLua::OSDLua(lua_State *L, int ref_obj): L(L), ref_obj(ref_obj), ref_text(LUA_NOREF)
+OSDLua::OSDLua(lua_State *L, int ref_obj): L_(L), ref_obj_(ref_obj), ref_text_(LUA_NOREF)
 {
-  if( this->ref_obj == LUA_NOREF || this->ref_obj == LUA_REFNIL )
-    throw(LuaError(L, "OSDLua: invalid object reference"));
+  if( ref_obj_ == LUA_NOREF || ref_obj_ == LUA_REFNIL )
+    throw(LuaError(L_, "OSDLua: invalid object reference"));
 }
 
 OSDLua::~OSDLua()
 {
-  luaL_unref(L, LUA_REGISTRYINDEX, ref_obj);
-  luaL_unref(L, LUA_REGISTRYINDEX, ref_text);
+  luaL_unref(L_, LUA_REGISTRYINDEX, ref_obj_);
+  luaL_unref(L_, LUA_REGISTRYINDEX, ref_text_);
 }
 
 const char *OSDLua::getText()
 {
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
-  lua_remove(L, -2);
-  lua_getfield(L, -1, "text");
-  if( lua_isfunction(L, -1) )
-    LuaManager::pcall(L, 0, 1);
-  const char *s = lua_tostring(L, -1);
+  lua_rawgeti(L_, LUA_REGISTRYINDEX, ref_obj_);
+  lua_remove(L_, -2);
+  lua_getfield(L_, -1, "text");
+  if( lua_isfunction(L_, -1) )
+    LuaManager::pcall(L_, 0, 1);
+  const char *s = lua_tostring(L_, -1);
   if( s == NULL )
     throw(Error("OSDLua: invalid 'text' field value"));
 
   // Hold a reference to avoid returned string to be collected
-  if( ref_text != LUA_NOREF )
-    luaL_unref(L, LUA_REGISTRYINDEX, ref_text);
-  ref_text = luaL_ref(L, LUA_REGISTRYINDEX);
+  if( ref_text_ != LUA_NOREF )
+    luaL_unref(L_, LUA_REGISTRYINDEX, ref_text_);
+  ref_text_ = luaL_ref(L_, LUA_REGISTRYINDEX);
 
   return s;
 }
 
 int OSDLua::getX()
 {
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
-  lua_remove(L, -2);
-  lua_getfield(L, -1, "x");
-  if( lua_isfunction(L, -1) )
-    LuaManager::pcall(L, 0, 1);
-  if( !lua_isnumber(L, -1) )
+  lua_rawgeti(L_, LUA_REGISTRYINDEX, ref_obj_);
+  lua_remove(L_, -2);
+  lua_getfield(L_, -1, "x");
+  if( lua_isfunction(L_, -1) )
+    LuaManager::pcall(L_, 0, 1);
+  if( !lua_isnumber(L_, -1) )
     throw(Error("OSDLua: invalid 'x' field value"));
-  int i = lua_tointeger(L, -1);
-  lua_pop(L, 1);
+  int i = lua_tointeger(L_, -1);
+  lua_pop(L_, 1);
   return i;
 }
 
 int OSDLua::getY()
 {
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
-  lua_remove(L, -2);
-  lua_getfield(L, -1, "y");
-  if( lua_isfunction(L, -1) )
-    LuaManager::pcall(L, 0, 1);
-  if( !lua_isnumber(L, -1) )
+  lua_rawgeti(L_, LUA_REGISTRYINDEX, ref_obj_);
+  lua_remove(L_, -2);
+  lua_getfield(L_, -1, "y");
+  if( lua_isfunction(L_, -1) )
+    LuaManager::pcall(L_, 0, 1);
+  if( !lua_isnumber(L_, -1) )
     throw(Error("OSDLua: invalid 'y' field value"));
-  int i = lua_tointeger(L, -1);
-  lua_pop(L, 1);
+  int i = lua_tointeger(L_, -1);
+  lua_pop(L_, 1);
   return i;
 }
 
 Color4 OSDLua::getColor()
 {
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref_obj);
-  lua_remove(L, -2);
-  lua_getfield(L, -1, "color");
-  if( lua_isfunction(L, -1) )
-    LuaManager::pcall(L, 0, 1);
+  lua_rawgeti(L_, LUA_REGISTRYINDEX, ref_obj_);
+  lua_remove(L_, -2);
+  lua_getfield(L_, -1, "color");
+  if( lua_isfunction(L_, -1) )
+    LuaManager::pcall(L_, 0, 1);
   Color4 c;
-  if( LuaManager::tocolor(L, -1, c) != 0 )
+  if( LuaManager::tocolor(L_, -1, c) != 0 )
     throw(Error("OSDLua: invalid 'color' field value"));
-  lua_pop(L, 1);
+  lua_pop(L_, 1);
   return c;
 }
 
@@ -875,13 +875,13 @@ class LuaDisplay: public LuaClass<Display>
 
   static int set_camera_eye(lua_State *L)
   {
-    toCameraPoint(L, 2, &get_ptr(L,1)->camera_eye);
+    toCameraPoint(L, 2, &get_ptr(L,1)->camera_eye_);
     return 0;
   }
 
   static int set_camera_target(lua_State *L)
   {
-    toCameraPoint(L, 2, &get_ptr(L,1)->camera_target);
+    toCameraPoint(L, 2, &get_ptr(L,1)->camera_target_);
     return 0;
   }
 
@@ -890,14 +890,14 @@ class LuaDisplay: public LuaClass<Display>
   static int get_camera_eye(lua_State *L)
   {
     lua_newtable(L);
-    pushCameraPoint(L, &get_ptr(L,1)->camera_eye);
+    pushCameraPoint(L, &get_ptr(L,1)->camera_eye_);
     return 1;
   }
 
   static int get_camera_target(lua_State *L)
   {
     lua_newtable(L);
-    pushCameraPoint(L, &get_ptr(L,1)->camera_target);
+    pushCameraPoint(L, &get_ptr(L,1)->camera_target_);
     return 1;
   }
 
@@ -934,19 +934,19 @@ protected:
   {
     lua_getfield(L, narg, "x");
     if( lua_isnumber(L, -1) )
-      camera_point->cart[0] = scale(lua_tonumber(L, -1));
+      camera_point->cart[0] = btScale(lua_tonumber(L, -1));
     lua_pop(L, 1);
     lua_getfield(L, narg, "y");
     if( lua_isnumber(L, -1) )
-      camera_point->cart[1] = scale(lua_tonumber(L, -1));
+      camera_point->cart[1] = btScale(lua_tonumber(L, -1));
     lua_pop(L, 1);
     lua_getfield(L, narg, "z");
     if( lua_isnumber(L, -1) )
-      camera_point->cart[2] = scale(lua_tonumber(L, -1));
+      camera_point->cart[2] = btScale(lua_tonumber(L, -1));
     lua_pop(L, 1);
     lua_getfield(L, narg, "r");
     if( lua_isnumber(L, -1) )
-      camera_point->spheric.r = scale(lua_tonumber(L, -1));
+      camera_point->spheric.r = btScale(lua_tonumber(L, -1));
     lua_pop(L, 1);
     lua_getfield(L, narg, "theta");
     if( lua_isnumber(L, -1) )
@@ -971,10 +971,10 @@ protected:
    */
   static void pushCameraPoint(lua_State *L, Display::CameraPoint *camera_point)
   {
-    LuaManager::setfield(L, -1, "x",     unscale(camera_point->cart[0]));
-    LuaManager::setfield(L, -1, "y",     unscale(camera_point->cart[1]));
-    LuaManager::setfield(L, -1, "z",     unscale(camera_point->cart[2]));
-    LuaManager::setfield(L, -1, "r",     unscale(camera_point->spheric.r));
+    LuaManager::setfield(L, -1, "x",     btUnscale(camera_point->cart[0]));
+    LuaManager::setfield(L, -1, "y",     btUnscale(camera_point->cart[1]));
+    LuaManager::setfield(L, -1, "z",     btUnscale(camera_point->cart[2]));
+    LuaManager::setfield(L, -1, "r",     btUnscale(camera_point->spheric.r));
     LuaManager::setfield(L, -1, "theta", camera_point->spheric.theta);
     LuaManager::setfield(L, -1, "phi",   camera_point->spheric.phi);
     LuaManager::setfield(L, -1, "obj",   camera_point->obj.get());

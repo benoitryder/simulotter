@@ -57,16 +57,16 @@ private:
   /// Save a PNG screenshot into a file
   void doSavePNGScreenshot(const char *filename);
   /// Filename of the scheduled screenshot, or \e NULL
-  char *screenshot_filename;
+  char *screenshot_filename_;
 
   //@}
 
 private:
-  SDL_Surface *screen;
+  SDL_Surface *screen_;
 
-  int screen_x; ///< Screen width
-  int screen_y; ///< Screen height
-  bool fullscreen;
+  int screen_x_; ///< Screen width
+  int screen_y_; ///< Screen height
+  bool fullscreen_;
 
   void windowInit();
   void windowDestroy();
@@ -117,9 +117,9 @@ public:
     SmartPtr<Object> obj;
   };
 
-  const CameraPoint &getCameraEye()    const { return camera_eye;    }
-  const CameraPoint &getCameraTarget() const { return camera_target; }
-  int getCameraMode() const { return camera_mode;   }
+  const CameraPoint &getCameraEye()    const { return camera_eye_;    }
+  const CameraPoint &getCameraTarget() const { return camera_target_; }
+  int getCameraMode() const { return camera_mode_; }
 
   /** @brief Compute eye and target cartesian global positions
    *
@@ -134,9 +134,9 @@ public:
   void setCameraMode(int mode);
 
 private:
-  CameraPoint camera_eye;
-  CameraPoint camera_target;
-  int camera_mode;
+  CameraPoint camera_eye_;
+  CameraPoint camera_target_;
+  int camera_mode_;
 
   //@}
 
@@ -183,7 +183,7 @@ public:
     typedef void (*Callback)(Display *, const SDL_Event *);
 
     /// C++ constructor
-    EventHandler(Callback cb): ptr_cb(cb), L(NULL), ref_cb(LUA_NOREF) {}
+    EventHandler(Callback cb): ptr_cb_(cb), L_(NULL), ref_cb_(LUA_NOREF) {}
     /// Lua constructor
     EventHandler(lua_State *L, int ref);
     /// Copy constructor, to copy the Lua reference
@@ -195,11 +195,11 @@ public:
 
   private:
     /// C++ callback
-    Callback ptr_cb;
+    Callback ptr_cb_;
     /// Lua callback state
-    lua_State *L;
+    lua_State *L_;
     /// Lua callback reference
-    int ref_cb;
+    int ref_cb_;
   };
 
   /// Add, replace or remove an event handler
@@ -208,7 +208,7 @@ public:
 private:
   typedef std::map<SDL_Event, EventHandler, EventCmp> EventHandlerContainer;
   /// Event handlers
-  EventHandlerContainer handlers;
+  EventHandlerContainer handlers_;
 
   /** @name Default handlers
    */
@@ -238,11 +238,11 @@ public:
    * @note y=0 is the top of the screen
    */
   void drawString(const char *s, int x, int y, Color4 color, void *font);
-  std::set< SmartPtr<OSDMessage> > &getOsds() { return osds; }
+  std::set< SmartPtr<OSDMessage> > &getOsds() { return osds_; }
 
 private:
   /// Displayed OSDs
-  std::set< SmartPtr<OSDMessage> > osds;
+  std::set< SmartPtr<OSDMessage> > osds_;
 
   //@}
 
@@ -281,18 +281,18 @@ public:
 class OSDSimple: public OSDMessage
 {
 public:
-  OSDSimple(): text(NULL), x(0),y(0), color(Color4::black()) {}
+  OSDSimple(): text_(NULL), x_(0),y_(0), color_(Color4::black()) {}
   virtual ~OSDSimple() {}
 
-  virtual const char *getText() { return text; }
-  virtual int getX() { return x; }
-  virtual int getY() { return y; }
-  virtual Color4 getColor() { return color; }
+  virtual const char *getText() { return text_; }
+  virtual int getX() { return x_; }
+  virtual int getY() { return y_; }
+  virtual Color4 getColor() { return color_; }
 
-public:
-  const char *text;
-  int x, y;
-  Color4 color;
+private:
+  const char *text_;
+  int x_, y_;
+  Color4 color_;
 };
 
 /** @brief OSD for Lua bindings
@@ -316,11 +316,11 @@ public:
 
 protected:
   /// Lua instance state
-  lua_State *L;
+  lua_State *L_;
   /// Lua instance reference
-  int ref_obj;
+  int ref_obj_;
   /// Lua text reference
-  int ref_text;
+  int ref_text_;
 };
 
 

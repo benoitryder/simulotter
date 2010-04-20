@@ -1,11 +1,11 @@
 #ifndef BULLET_H_
 #define BULLET_H_
 
-#include <btBulletDynamicsCommon.h>
-
 /** @file
  * @brief Bullet related declarations.
  */
+
+#include <btBulletDynamicsCommon.h>
 
 // check bullet version
 #if BT_BULLET_VERSION < 275
@@ -47,9 +47,11 @@
 
 
 /// Scale from user units to Bullet units
-template<typename T> T scale(T t) { return t / BULLET_SCALE; }
+template<typename T> T btScale(T t) { return t / BULLET_SCALE; }
 
 /// Scale from Bullet units to user units
-template<typename T> T unscale(T t) { return t * BULLET_SCALE; }
+template<typename T> T btUnscale(T t) { return t * BULLET_SCALE; }
+
+#undef BULLET_SCALE
 
 #endif

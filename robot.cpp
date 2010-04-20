@@ -13,24 +13,24 @@ Robot::Robot()
 
 RBasic::RBasic()
 {
-  this->body = NULL;
-  this->order = ORDER_NONE;
+  body_ = NULL;
+  order_ = ORDER_NONE;
 }
 
 RBasic::RBasic(btCollisionShape *shape, btScalar m)
 {
-  this->body = NULL;
-  this->order = ORDER_NONE;
+  body_ = NULL;
+  order_ = ORDER_NONE;
   setup(shape, m);
 }
 
 void RBasic::setup(btCollisionShape *shape, btScalar m)
 {
-  if( this->body != NULL )
+  if( body_ != NULL )
     throw(Error("robot already setup"));
   btVector3 inertia;
   shape->calculateLocalInertia(m, inertia);
-  this->body = new btRigidBody(
+  body_ = new btRigidBody(
       btRigidBody::btRigidBodyConstructionInfo(m,NULL,shape,inertia)
       );
   SmartPtr_add_ref(shape);
@@ -38,33 +38,33 @@ void RBasic::setup(btCollisionShape *shape, btScalar m)
 
 RBasic::~RBasic()
 {
-  if( body != NULL )
+  if( body_ != NULL )
   {
-    SmartPtr_release(body->getCollisionShape());
-    delete body;
+    SmartPtr_release(body_->getCollisionShape());
+    delete body_;
   }
 }
 
 void RBasic::addToWorld(Physics *physics)
 {
-  physics->getWorld()->addRigidBody(body);
+  physics->getWorld()->addRigidBody(body_);
   Robot::addToWorld(physics);
 }
 
 void RBasic::removeFromWorld()
 {
-  Physics *ph_bak = this->physics;
+  Physics *ph_bak = physics_;
   Robot::removeFromWorld();
-  ph_bak->getWorld()->removeRigidBody(body);
+  ph_bak->getWorld()->removeRigidBody(body_);
 }
 
 
 void RBasic::draw()
 {
-  glColor4fv(color);
+  glColor4fv(color_);
   glPushMatrix();
-  drawTransform(body->getCenterOfMassTransform());
-  drawShape(body->getCollisionShape());
+  drawTransform(body_->getCenterOfMassTransform());
+  drawShape(body_->getCollisionShape());
   drawDirection();
   glPopMatrix();
 }
@@ -72,7 +72,7 @@ void RBasic::draw()
 void RBasic::drawDirection()
 {
   btVector3 aabb_min, aabb_max;
-  body->getAabb(aabb_min, aabb_max);
+  body_->getAabb(aabb_min, aabb_max);
 
   btglTranslate(0, 0, aabb_max.getZ()-getPos().getZ()+cfg.draw_direction_r+cfg.draw_epsilon);
   btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
@@ -83,58 +83,58 @@ void RBasic::drawDirection()
 void RBasic::asserv()
 {
   // Go back: order which have priority
-  if( order & ORDER_GO_BACK )
+  if( order_ & ORDER_GO_BACK )
   {
-    if( distance2(xy, target_back_xy) < threshold_xy )
+    if( distance2(xy_, target_back_xy_) < threshold_xy_ )
     {
       set_v(0);
-      order &= ~ORDER_GO_BACK;
+      order_ &= ~ORDER_GO_BACK;
     }
     else
     {
-      set_v(-v_max);
+      set_v(-v_max_);
       return;
     }
   }
 
   // Go in position
-  if( order & ORDER_GO_XY )
+  if( order_ & ORDER_GO_XY )
   {
-    if( distance2(xy, target_xy) < threshold_xy )
+    if( distance2(xy_, target_xy_) < threshold_xy_ )
     {
       set_v(0);
-      order &= ~ORDER_GO_XY;
+      order_ &= ~ORDER_GO_XY;
     }
     else
     {
       // Aim target point, then move
-      btScalar da = btNormalizeAngle( (target_xy-xy).angle() - a );
-      if( btFabs( da ) < threshold_a )
+      btScalar da = btNormalizeAngle( (target_xy_-xy_).angle() - a_ );
+      if( btFabs( da ) < threshold_a_ )
       {
         set_av(0);
-        set_v(v_max);
+        set_v(v_max_);
       }
       else
       {
         set_v(0);
-        set_av( btFsel(da, av_max, -av_max) );
+        set_av( btFsel(da, av_max_, -av_max_) );
       }
       return;
     }
   }
 
   // Turn
-  if( order & ORDER_GO_A )
+  if( order_ & ORDER_GO_A )
   {
-    btScalar da = btNormalizeAngle( target_a-a );
-    if( btFabs( da ) < threshold_a )
+    btScalar da = btNormalizeAngle( target_a_-a_ );
+    if( btFabs( da ) < threshold_a_ )
     {
       set_av(0);
-      order &= ~ORDER_GO_A;
+      order_ &= ~ORDER_GO_A;
     }
     else
     {
-      set_av( btFsel(da, av_max, -av_max) );
+      set_av( btFsel(da, av_max_, -av_max_) );
       return;
     }
   }
@@ -143,54 +143,54 @@ void RBasic::asserv()
 
 void RBasic::order_xy(btVector2 xy, bool rel)
 {
-  target_xy = xy;
+  target_xy_ = xy;
   if( rel )
-    target_xy += this->xy;
+    target_xy_ += xy_;
 
-  order |= ORDER_GO_XY;
+  order_ |= ORDER_GO_XY;
 }
 
 void RBasic::order_a(btScalar a, bool rel)
 {
-  target_a = a;
+  target_a_ = a;
   if( rel )
-    target_a += this->a;
-  target_a = btNormalizeAngle(target_a);
+    target_a_ += a_;
+  target_a_ = btNormalizeAngle(target_a_);
 
-  order |= ORDER_GO_A;
+  order_ |= ORDER_GO_A;
 }
 
 void RBasic::order_back(btScalar d)
 {
-  target_back_xy = xy - d*btVector2(1,0).rotated(a);
+  target_back_xy_ = xy_ - d*btVector2(1,0).rotated(a_);
 
-  order |= ORDER_GO_BACK;
+  order_ |= ORDER_GO_BACK;
 }
 
 
 void RBasic::update()
 {
-  xy = this->getPos();
+  xy_ = this->getPos();
   btScalar p, r;
-  this->getRot().getEulerYPR(a,p,r);
+  this->getRot().getEulerYPR(a_,p,r);
 
-  v = btVector2(body->getLinearVelocity()).length();
-  av = body->getAngularVelocity().getZ();
+  v_ = btVector2(body_->getLinearVelocity()).length();
+  av_ = body_->getAngularVelocity().getZ();
 }
 
 
 inline void RBasic::set_v(btScalar v)
 {
-  body->activate();
-  btVector2 vxy = btVector2(v,0).rotated(a);
-  body->setLinearVelocity( btVector3(vxy.x, vxy.y,
-        body->getLinearVelocity().z()) );
+  body_->activate();
+  btVector2 vxy = btVector2(v,0).rotated(a_);
+  body_->setLinearVelocity( btVector3(vxy.x, vxy.y,
+        body_->getLinearVelocity().z()) );
 }
 
 inline void RBasic::set_av(btScalar v)
 {
-  body->activate();
-  body->setAngularVelocity( btVector3(0,0,v) );
+  body_->activate();
+  body_->setAngularVelocity( btVector3(0,0,v) );
 }
 
 

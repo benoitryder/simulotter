@@ -4,34 +4,24 @@
 #include "lua_utils.h"
 
 
-Config::Config()
+Config::Config():
+    gravity_z(btScale(-CONST_EARTH_GRAVITY)),
+    step_dt(0.001), time_scale(1.0),
+    drop_epsilon(btScale(0.001)),
+    draw_epsilon(btScale(0.0005)), draw_div(20),
+    draw_direction_r(btScale(0.05)),
+    draw_direction_h(btScale(0.10)),
+    perspective_fov(45.0),
+    perspective_near(btScale(0.1)),
+    perspective_far(btScale(300.0)),
+    screen_x(800), screen_y(600),
+    fullscreen(false), fps(60),
+    antialias(0),
+    bg_color(Color4(0.8)),
+    camera_step_angle(0.1),
+    camera_step_linear(btScale(0.1)),
+    camera_mouse_coef(0.1)
 {
-  gravity_z = scale(-CONST_EARTH_GRAVITY);
-  step_dt = 0.001;
-  time_scale = 1.0;
-  drop_epsilon = scale(0.001);
-
-  draw_epsilon = scale(0.0005);
-  draw_div = 20;
-  draw_direction_r = scale(0.05);
-  draw_direction_h = scale(0.10);
-
-  perspective_fov = 45.0;
-  perspective_near = scale(0.1);
-  perspective_far = scale(300.0);
-
-  screen_x = 800;
-  screen_y = 600;
-  fullscreen = false;
-  fps = 60;
-  antialias = 0;
-  camera_step_angle  = 0.1;
-  camera_step_linear = scale(0.1);
-  camera_mouse_coef  = 0.1;
-
-  bg_color = Color4(0.8);
-
-  log_flush = true;
 }
 
 
@@ -64,7 +54,7 @@ int Config::lua_index(lua_State *L)
 #define CONFIG_INDEX_VAL(n) \
   if( strcmp(name, #n) == 0 ) {LuaManager::push(L, config->n); return 1;}
 #define CONFIG_INDEX_VAL_SCALED(n) \
-  if( strcmp(name, #n) == 0 ) {LuaManager::push(L, unscale(config->n)); return 1;}
+  if( strcmp(name, #n) == 0 ) {LuaManager::push(L, btUnscale(config->n)); return 1;}
 
   CONFIG_INDEX_VAL_SCALED(gravity_z);
   CONFIG_INDEX_VAL(step_dt);
@@ -82,7 +72,6 @@ int Config::lua_index(lua_State *L)
   CONFIG_INDEX_VAL(fps);
   CONFIG_INDEX_VAL(antialias);
   CONFIG_INDEX_VAL(fullscreen);
-  CONFIG_INDEX_VAL(log_flush);
 
 #undef CONFIG_INDEX_VAL
 #undef CONFIG_INDEX_VAL_SCALED
@@ -120,7 +109,6 @@ int Config::lua_newindex(lua_State *L)
   CONFIG_NEWINDEX_VAL(fps,              LARG_f);
   CONFIG_NEWINDEX_VAL(antialias,        LARG_i);
   CONFIG_NEWINDEX_VAL(fullscreen,       LARG_b);
-  CONFIG_NEWINDEX_VAL(log_flush,        LARG_b);
 
 #undef CONFIG_NEWINDEX_VAL
 

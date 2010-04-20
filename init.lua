@@ -22,7 +22,6 @@ config.fps = 60
 config.antialias = 0
 
 config.bg_color = { 0.8, 0.8, 0.8 }
-config.log_flush = true
 
 physics = Physics()
 display = Display()

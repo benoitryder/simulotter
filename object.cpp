@@ -103,16 +103,16 @@ void Object::addToWorld(Physics *physics)
 {
   if( physics->getObjs().insert(this).second == false )
     throw(Error("object added to the world twice"));
-  this->physics = physics;
+  physics_ = physics;
 }
 
 void Object::removeFromWorld()
 {
-  if( physics == NULL )
+  if( physics_ == NULL )
     throw(Error("object is not in a world"));
   this->disableTickCallback();
-  physics->getObjs().erase(this); // should return 1
-  physics = NULL;
+  physics_->getObjs().erase(this); // should return 1
+  physics_ = NULL;
 }
 
 void Object::tickCallback()
@@ -122,24 +122,24 @@ void Object::tickCallback()
 
 void Object::enableTickCallback()
 {
-  if( physics == NULL )
+  if( physics_ == NULL )
     throw(Error("object is not in a world"));
-  physics->getTickObjs().insert(this);
+  physics_->getTickObjs().insert(this);
 }
 
 void Object::disableTickCallback()
 {
-  if( physics == NULL )
+  if( physics_ == NULL )
     throw(Error("object is not in a world"));
-  physics->getTickObjs().erase(this);
+  physics_->getTickObjs().erase(this);
 }
 
 
-std::map<const btCollisionShape *, GLuint> OSimple::shape2dl;
+std::map<const btCollisionShape *, GLuint> OSimple::shape2dl_;
 
 OSimple::OSimple():
   btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL)),
-  dl_id(0)
+  dl_id_(0)
 {
 }
 
@@ -183,7 +183,7 @@ void OSimple::addToWorld(Physics *physics)
 
 void OSimple::removeFromWorld()
 {
-  Physics *ph_bak = this->physics;
+  Physics *ph_bak = physics_;
   Object::removeFromWorld();
   ph_bak->getWorld()->removeRigidBody(this);
 }
@@ -199,43 +199,43 @@ void OSimple::setPosAbove(const btVector2 &pos)
 
 void OSimple::draw()
 {
-  glColor4fv(color);
+  glColor4fv(color_);
   glPushMatrix();
   drawTransform(m_worldTransform);
 
-  if( dl_id == 0 )
+  if( dl_id_ == 0 )
   {
     std::map<const btCollisionShape *, GLuint>::iterator it;
     const btCollisionShape *shape = m_collisionShape;
-    it = shape2dl.find( shape );
-    if( it == shape2dl.end() )
-      shape2dl[shape] = dl_id = createDisplayList(shape);
+    it = shape2dl_.find( shape );
+    if( it == shape2dl_.end() )
+      shape2dl_[shape] = dl_id_ = createDisplayList(shape);
     else
-      dl_id = (*it).second;
+      dl_id_ = (*it).second;
   }
-  glCallList(dl_id);
+  glCallList(dl_id_);
 
   glPopMatrix();
 }
 
 
-const btScalar OGround::size_start = scale(0.5);
-SmartPtr<btBoxShape> OGround::shape( new btBoxShape( scale(btVector3(3.0/2, 2.1/2, 0.1/2)) ) );
+const btScalar OGround::size_start_ = btScale(0.5);
+SmartPtr<btBoxShape> OGround::shape_( new btBoxShape( btScale(btVector3(3.0/2, 2.1/2, 0.1/2)) ) );
 
 OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2)
 {
-  setShape( shape );
-  setPos( btVector3(0, 0, -shape->getHalfExtentsWithMargin().getZ()) );
+  setShape( shape_ );
+  setPos( btVector3(0, 0, -shape_->getHalfExtentsWithMargin().getZ()) );
   setColor(color);
-  this->color_t1 = color_t1;
-  this->color_t2 = color_t2;
+  color_t1_ = color_t1;
+  color_t2_ = color_t2;
 }
 
 OGround::~OGround()
 {
-  if( dl_id != 0 )
-    glDeleteLists(dl_id, 1);
-  dl_id = 0;
+  if( dl_id_ != 0 )
+    glDeleteLists(dl_id_, 1);
+  dl_id_ = 0;
 }
 
 
@@ -245,24 +245,24 @@ void OGround::draw()
 
   drawTransform(m_worldTransform);
 
-  if( dl_id != 0 )
-    glCallList(dl_id);
+  if( dl_id_ != 0 )
+    glCallList(dl_id_);
   else
   {
     // Create the display list
     // Their should be only one ground instance, thus we create one display
     // list per instance. This allow to put color changes in it.
 
-    const btVector3 &size = shape->getHalfExtentsWithMargin();
+    const btVector3 &size = shape_->getHalfExtentsWithMargin();
 
-    dl_id = glGenLists(1);
-    glNewList(dl_id, GL_COMPILE_AND_EXECUTE);
+    dl_id_ = glGenLists(1);
+    glNewList(dl_id_, GL_COMPILE_AND_EXECUTE);
 
     // Ground
 
     glPushMatrix();
 
-    glColor4fv(color);
+    glColor4fv(color_);
     btglScale(2*size[0], 2*size[1], 2*size[2]);
     glutSolidCube(1.0);
 
@@ -273,18 +273,18 @@ void OGround::draw()
 
     glPushMatrix();
 
-    glColor4fv(color_t1);
-    btglTranslate(-size[0]+size_start/2, size[1]-size_start/2, size[2]);
-    btglScale(size_start, size_start, 2*cfg.draw_epsilon);
+    glColor4fv(color_t1_);
+    btglTranslate(-size[0]+size_start_/2, size[1]-size_start_/2, size[2]);
+    btglScale(size_start_, size_start_, 2*cfg.draw_epsilon);
     glutSolidCube(1.0f);
 
     glPopMatrix();
 
     glPushMatrix();
 
-    glColor4fv(color_t2);
-    btglTranslate(size[0]-size_start/2, size[1]-size_start/2, size[2]);
-    btglScale(size_start, size_start, 2*cfg.draw_epsilon);
+    glColor4fv(color_t2_);
+    btglTranslate(size[0]-size_start_/2, size[1]-size_start_/2, size[2]);
+    btglScale(size_start_, size_start_, 2*cfg.draw_epsilon);
     glutSolidCube(1.0f);
 
     glPopMatrix();

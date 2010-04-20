@@ -1,10 +1,10 @@
 #ifndef COLORS_H_
 #define COLORS_H_
 
+///@file
+
 #include <GL/gl.h>
 #include "maths.h"
-
-///@file
 
 class Color4
 {
@@ -27,6 +27,7 @@ public:
 
   static Color4 white() { return Color4(1.0); }
   static Color4 black() { return Color4(0.0); }
+  static Color4 plexi() { return Color4(.70, .90, .95, 0.5); }
 
   inline operator const GLfloat *() const { return rgba; }
 
@@ -45,7 +46,5 @@ inline Color4 operator*(const Color4 &c, const GLfloat &f)
 }
 inline Color4 operator*(const GLfloat &f, const Color4 &c) { return c*f; }
 
-
-#define COLOR_PLEXI  Color4(.70, .90, .95, 0.5)
 
 #endif

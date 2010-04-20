@@ -25,7 +25,6 @@
       <value name="fullscreen" type="bool">Start fullscreen</value>
       <value name="fps" type="float">Refresh rate (frames per second) and SDL event handling rate</value>
       <value name="bg_color" type="Color">Background color</value>
-      <value name="log_flush" type="bool">Flush logs after each write</value>
     </object>
 
     <function name="trace">Send a single string to logs.</function>

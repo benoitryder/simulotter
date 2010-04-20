@@ -17,7 +17,7 @@ namespace eurobot2009
   public:
     OColElem();
   private:
-    static SmartPtr<btCylinderShapeZ> shape;
+    static SmartPtr<btCylinderShapeZ> shape_;
   };
 
   /// Lintels
@@ -26,7 +26,7 @@ namespace eurobot2009
   public:
     OLintel();
   private:
-    static SmartPtr<btBoxShape> shape;
+    static SmartPtr<btBoxShape> shape_;
   };
 
 
@@ -67,7 +67,7 @@ namespace eurobot2009
     static const btScalar radius;
     static const btScalar height;
   private:
-    static SmartPtr<btCylinderShapeZ> shape;
+    static SmartPtr<btCylinderShapeZ> shape_;
   };
 
   /// Lintel storage
@@ -89,10 +89,10 @@ namespace eurobot2009
     void fill(OLintel *o);
 
   private:
-    static SmartPtr<btCompoundShape> shape;
-    static btBoxShape arm_shape;
-    static btBoxShape back_shape;
-    static btBoxShape bottom_shape;
+    static SmartPtr<btCompoundShape> shape_;
+    static btBoxShape arm_shape_;
+    static btBoxShape back_shape_;
+    static btBoxShape bottom_shape_;
   };
 
 
@@ -129,18 +129,18 @@ namespace eurobot2009
     /** @name Strategy functions and orders
      */
     //@{
-    btScalar get_pachev_pos() const { return pachev_link->getLinearPos(); }
+    btScalar get_pachev_pos() const { return pachev_link_->getLinearPos(); }
 
     void order_pachev_move(btScalar h);
     void order_pachev_release();
     void order_pachev_grab();
     void order_pachev_eject();
 
-    btScalar target_pachev_pos;
+    btScalar target_pachev_pos_;
 
-    void set_pachev_v(btScalar v)  { this->pachev_v  = v; }
-    void set_pachev_eject_v(btScalar f)  { this->pachev_eject_v = f; }
-    void set_threshold_pachev(btScalar t) { this->threshold_pachev = t; }
+    void set_pachev_v(btScalar v)  { pachev_v_  = v; }
+    void set_pachev_eject_v(btScalar f)  { pachev_eject_v_ = f; }
+    void set_threshold_pachev(btScalar t) { threshold_pachev_ = t; }
 
     //@}
 
@@ -178,33 +178,33 @@ namespace eurobot2009
       void resetTrans();
 
     private:
-      static btBoxShape shape;
-      Galipeur2009 *robot;
+      static btBoxShape shape_;
+      Galipeur2009 *robot_;
     };
 
-    Pachev *pachev;
-    btSliderConstraint *pachev_link;
+    Pachev *pachev_;
+    btSliderConstraint *pachev_link_;
 
     /// Release constraints on caught objects.
     void releaseObjects();
 
     /// Pachev states
-    typedef enum
+    enum PachevState
     {
       PACHEV_RELEASE,
       PACHEV_GRAB,
       PACHEV_EJECT
-    } PachevState;
+    };
 
-    PachevState pachev_state;
-    bool pachev_moving; ///< true if the pàchev moving order is active
+    PachevState pachev_state_;
+    bool pachev_moving_; ///< true if the pàchev moving order is active
 
     /// Pàchev slider velocity
-    btScalar pachev_v;
+    btScalar pachev_v_;
     /// Velocity of ejected object
-    btScalar pachev_eject_v;
+    btScalar pachev_eject_v_;
     /// Asserv pàchev threshold
-    btScalar threshold_pachev;
+    btScalar threshold_pachev_;
   };
 
 

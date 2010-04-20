@@ -33,14 +33,14 @@ class Error: public std::exception
 public:
 
   Error(const char *fmt, ...);
-  Error(): msg(NULL) {}
+  Error(): msg_(NULL) {}
   ~Error() throw();
   Error(const Error &e);
   Error &operator=(const Error &e);
 
   virtual const char *what() const throw()
   {
-    return this->msg;
+    return msg_;
   }
 
 protected:
@@ -48,7 +48,7 @@ protected:
   void setMsg(const char *fmt, va_list ap);
 
 private:
-  char *msg;
+  char *msg_;
 };
 
 

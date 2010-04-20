@@ -24,7 +24,7 @@ public:
   virtual void addToWorld(Physics *physics);
   virtual void removeFromWorld();
 
-  void setColor(const Color4 &color) { this->color = color; }
+  void setColor(const Color4 &color) { color_ = color; }
 
   /** @brief Draw the robot
    *
@@ -33,8 +33,8 @@ public:
    */
   virtual void draw();
 
-  virtual const btTransform &getTrans() const { return body->getCenterOfMassTransform(); }
-  virtual void setTrans(const btTransform &tr) { body->setCenterOfMassTransform(tr); }
+  virtual const btTransform &getTrans() const { return body_->getCenterOfMassTransform(); }
+  virtual void setTrans(const btTransform &tr) { body_->setCenterOfMassTransform(tr); }
 
   /** @brief Asserv step
    *
@@ -46,21 +46,21 @@ public:
    */
   //@{
   const btVector2 get_xy() const { return this->getPos(); }
-  const btVector2 get_v()  const { return body->getLinearVelocity(); }
+  const btVector2 get_v()  const { return body_->getLinearVelocity(); }
   btScalar get_a() const
   {
     btScalar a, p, r;
     this->getRot().getEulerYPR(a,p,r);
     return a;
   }
-  btScalar get_av() const { return body->getAngularVelocity().getZ(); }
+  btScalar get_av() const { return body_->getAngularVelocity().getZ(); }
 
   void order_xy(btVector2 xy, bool rel=false);
   void order_a(btScalar a, bool rel=false);
   void order_xya(btVector2 xy, btScalar a, bool rel=false);
-  void order_stop() { stopped = false; }
+  void order_stop() { stopped_ = false; }
 
-  bool is_waiting() { return in_position; }
+  bool is_waiting() { return in_position_; }
 
   btScalar test_sensor(unsigned int i);
   //@}
@@ -68,10 +68,10 @@ public:
   /** @name Asserv configuration.
    */
   //@{
-  void set_speed_xy(btScalar v, btScalar a) { ramp_xy.var_v = v; ramp_xy.var_a = a; }
-  void set_speed_a (btScalar v, btScalar a) { ramp_a .var_v = v; ramp_a .var_a = a; }
-  void set_threshold_xy(btScalar t) { threshold_xy = t; }
-  void set_threshold_a (btScalar t) { threshold_a  = t; }
+  void set_speed_xy(btScalar v, btScalar a) { ramp_xy_.var_v = v; ramp_xy_.var_a = a; }
+  void set_speed_a (btScalar v, btScalar a) { ramp_a_ .var_v = v; ramp_a_ .var_a = a; }
+  void set_threshold_xy(btScalar t) { threshold_xy_ = t; }
+  void set_threshold_a (btScalar t) { threshold_a_  = t; }
   //@}
 
   /** @brief Implementation of the aversive quadramp filter.
@@ -90,9 +90,9 @@ public:
   class Quadramp
   {
   public:
-    Quadramp(): var_v(0), var_a(0), cur_v(0) {}
+    Quadramp(): var_v(0), var_a(0), cur_v_(0) {}
     /// Reset current values.
-    void reset(btScalar v=0) { cur_v = v; }
+    void reset(btScalar v=0) { cur_v_ = v; }
     /** @brief Feed the filter and return the new velocity.
      *
      * @param d   actual distance to target
@@ -103,7 +103,7 @@ public:
   public:
     btScalar var_v, var_a;
   private:
-    btScalar cur_v;
+    btScalar cur_v_;
   };
 
   /** @name Shape constants
@@ -126,40 +126,40 @@ public:
   //@}
 
 protected:
-  btRigidBody *body;
+  btRigidBody *body_;
 
-  Color4 color;
+  Color4 color_;
 
   /// Sharp positions
-  std::vector<btTransform> sharps_trans;
+  std::vector<btTransform> sharps_trans_;
 
   /** @name Orders.
    */
   //@{
 
-  bool in_position; ///< \e true if target has been reached
-  bool stopped;     ///< \e true if asserv is not running
+  bool in_position_; ///< \e true if target has been reached
+  bool stopped_;     ///< \e true if asserv is not running
 
-  btVector2 target_xy;
-  btScalar  target_a;
+  btVector2 target_xy_;
+  btScalar  target_a_;
 
   //@}
 
-  Quadramp ramp_xy, ramp_a;
-  btScalar ramp_last_t; ///< Last update time of ramps.
-  btScalar threshold_xy, threshold_a;
+  Quadramp ramp_xy_, ramp_a_;
+  btScalar ramp_last_t_; ///< Last update time of ramps.
+  btScalar threshold_xy_, threshold_a_;
 
   void set_v(btVector2 vxy);
   void set_av(btScalar v);
 
 private:
-  static SmartPtr<btCompoundShape> shape;
-  static btConvexHullShape body_shape;
-  static btBoxShape wheel_shape;
+  static SmartPtr<btCompoundShape> shape_;
+  static btConvexHullShape body_shape_;
+  static btBoxShape wheel_shape_;
   /** @brief Display list shared by all instances
    * @todo Created display list is not deleted.
    */
-  static GLuint dl_id_static;
+  static GLuint dl_id_static_;
 };
 
 

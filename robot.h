@@ -64,7 +64,7 @@ public:
    * Color is used in default drawing function and may ignored by subclass
    * implementations.
    */
-  void setColor(const Color4 &color) { this->color = color; }
+  void setColor(const Color4 &color) { color_ = color; }
 
   virtual void draw();
 
@@ -74,8 +74,8 @@ public:
    */
   void drawDirection();
 
-  virtual const btTransform &getTrans() const { return body->getCenterOfMassTransform(); }
-  virtual void setTrans(const btTransform &tr) { body->setCenterOfMassTransform(tr); }
+  virtual const btTransform &getTrans() const { return body_->getCenterOfMassTransform(); }
+  virtual void setTrans(const btTransform &tr) { body_->setCenterOfMassTransform(tr); }
 
   /** @brief Update position and velocity values
    *
@@ -95,52 +95,52 @@ public:
   /** @name Basic methods used in strategy
    */
   //@{
-  const btVector2 &get_xy()  const { return this->xy; }
-  btScalar get_a()  const { return this->a; }
-  btScalar get_v()  const { return this->v;  }
-  btScalar get_av() const { return this->av; }
+  const btVector2 &get_xy()  const { return xy_; }
+  btScalar get_a()  const { return a_; }
+  btScalar get_v()  const { return v_;  }
+  btScalar get_av() const { return av_; }
 
   void order_xy(btVector2 xy, bool rel=false);
   void order_a(btScalar a, bool rel=false);
   void order_xya(btVector2 xy, btScalar a, bool rel=false) { order_xy(xy,rel); order_a(a,rel); }
   void order_back(btScalar d);
-  void order_stop() { order = ORDER_NONE; }
+  void order_stop() { order_ = ORDER_NONE; }
 
-  bool is_waiting() { return order == ORDER_NONE; }
+  bool is_waiting() { return order_ == ORDER_NONE; }
   //@}
 
-  void set_v_max(btScalar v)  { this->v_max  = v; }
-  void set_av_max(btScalar v) { this->av_max = v; }
+  void set_v_max(btScalar v)  { v_max_  = v; }
+  void set_av_max(btScalar v) { av_max_ = v; }
 
-  void set_threshold_xy(btScalar t) { this->threshold_xy = t; }
-  void set_threshold_a(btScalar t)  { this->threshold_a  = t; }
+  void set_threshold_xy(btScalar t) { threshold_xy_ = t; }
+  void set_threshold_a(btScalar t)  { threshold_a_  = t; }
 
 protected:
-  btRigidBody *body;
+  btRigidBody *body_;
 
   /// Robot main color
-  Color4 color;
+  Color4 color_;
 
   /** @name Position and velocity values
    *
    * These values are updated after calling \e update().
    */
   //@{
-  btVector2 xy; ///< Position
-  btScalar  a;  ///< Angular position
-  btScalar  v;  ///< Velocity
-  btScalar  av; ///< Angular velocity (radians)
+  btVector2 xy_; ///< Position
+  btScalar  a_;  ///< Angular position
+  btScalar  v_;  ///< Velocity
+  btScalar  av_; ///< Angular velocity (radians)
   //@}
 
-  btScalar v_max;
-  btScalar av_max;
+  btScalar v_max_;
+  btScalar av_max_;
 
   /** @name Order targets
    */
   //@{
-  btVector2 target_xy;
-  btScalar  target_a;
-  btVector2 target_back_xy;
+  btVector2 target_xy_;
+  btScalar  target_a_;
+  btVector2 target_back_xy_;
   //@}
 
   /** @brief Order types
@@ -158,15 +158,15 @@ protected:
   };
 
 
-  unsigned int order;
+  unsigned int order_;
 
   void set_v(btScalar v);
   void set_av(btScalar v);
 
   /// Asserv position threshold
-  btScalar threshold_xy;
+  btScalar threshold_xy_;
   /// Asserv angle threshold
-  btScalar threshold_a;
+  btScalar threshold_a_;
 };
 
 #endif

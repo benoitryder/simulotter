@@ -33,9 +33,9 @@ namespace eurobot2010
   protected:
     void draw_wall();
   private:
-    static SmartPtr<btCompoundShape> shape;
-    static btConvexHullShape body_shape;
-    static btConvexHullShape wall_shape;
+    static SmartPtr<btCompoundShape> shape_;
+    static btConvexHullShape body_shape_;
+    static btConvexHullShape wall_shape_;
   };
 
   /** @brief Ear of corn
@@ -63,16 +63,16 @@ namespace eurobot2010
     virtual void tickCallback();
 
   private:
-    static SmartPtr<btCylinderShapeZ> shape;
+    static SmartPtr<btCylinderShapeZ> shape_;
 
-    static const btScalar pivot_radius;
-    static const btScalar pivot_mass;
-    static SmartPtr<btCollisionShape> pivot_shape;
+    static const btScalar pivot_radius_;
+    static const btScalar pivot_mass_;
+    static SmartPtr<btCollisionShape> pivot_shape_;
 
     /// Pivot rigid body.
-    btRigidBody *opivot;
+    btRigidBody *opivot_;
     /// Attach point with the pivot rigid body.
-    btPoint2PointConstraint *pivot_attach;
+    btPoint2PointConstraint *pivot_attach_;
   };
 
   /// Fake ear of corn
@@ -81,7 +81,7 @@ namespace eurobot2010
   public:
     OCornFake();
   private:
-    static SmartPtr<btCylinderShapeZ> shape;
+    static SmartPtr<btCylinderShapeZ> shape_;
   };
 
   /// Tomato
@@ -90,7 +90,7 @@ namespace eurobot2010
   public:
     OTomato();
   private:
-    static SmartPtr<btSphereShape> shape;
+    static SmartPtr<btSphereShape> shape_;
   };
 
   /// Orange
@@ -99,7 +99,7 @@ namespace eurobot2010
   public:
     OOrange();
   private:
-    static SmartPtr<btSphereShape> shape;
+    static SmartPtr<btSphereShape> shape_;
   };
 
 

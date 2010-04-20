@@ -7,14 +7,14 @@
 #include "log.h"
 
 
-const btScalar Galipeur::z_mass = scale(0.08);
-const btScalar Galipeur::ground_clearance = scale(0.009);
+const btScalar Galipeur::z_mass = btScale(0.08);
+const btScalar Galipeur::ground_clearance = btScale(0.009);
 
-const btScalar Galipeur::height  = scale(0.200);
-const btScalar Galipeur::side    = scale(0.110);
-const btScalar Galipeur::w_block = scale(0.030);
-const btScalar Galipeur::r_wheel = scale(0.0246);
-const btScalar Galipeur::h_wheel = scale(0.0127);
+const btScalar Galipeur::height  = btScale(0.200);
+const btScalar Galipeur::side    = btScale(0.110);
+const btScalar Galipeur::w_block = btScale(0.030);
+const btScalar Galipeur::r_wheel = btScale(0.0246);
+const btScalar Galipeur::h_wheel = btScale(0.0127);
 
 const btScalar Galipeur::d_side  = ( side + 2*w_block ) / btSqrt(3);
 const btScalar Galipeur::d_wheel = ( w_block + 2*side ) / btSqrt(3);
@@ -22,65 +22,65 @@ const btScalar Galipeur::a_side  = 2*btAtan2( side,    d_side  );
 const btScalar Galipeur::a_wheel = 2*btAtan2( w_block, d_wheel );
 const btScalar Galipeur::radius  = btSqrt(side*side+d_side*d_side);
 
-SmartPtr<btCompoundShape> Galipeur::shape;
-btConvexHullShape Galipeur::body_shape;
-btBoxShape Galipeur::wheel_shape( btVector3(h_wheel/2,r_wheel,r_wheel) );
-GLuint Galipeur::dl_id_static = 0;
+SmartPtr<btCompoundShape> Galipeur::shape_;
+btConvexHullShape Galipeur::body_shape_;
+btBoxShape Galipeur::wheel_shape_( btVector3(h_wheel/2,r_wheel,r_wheel) );
+GLuint Galipeur::dl_id_static_ = 0;
 
 
 Galipeur::Galipeur(btScalar m)
 {
   // First instance: initialize shape
-  if( shape == NULL )
+  if( shape_ == NULL )
   {
-    shape = new btCompoundShape();
+    shape_ = new btCompoundShape();
     // Triangular body
-    if( body_shape.getNumPoints() == 0 )
+    if( body_shape_.getNumPoints() == 0 )
     {
       btVector2 p = btVector2(radius,0).rotated(-a_wheel/2);
       for( int i=0; i<3; i++ )
       {
-        body_shape.addPoint( btVector3(p.x,p.y,+height/2) );
-        body_shape.addPoint( btVector3(p.x,p.y,-height/2) );
+        body_shape_.addPoint( btVector3(p.x,p.y,+height/2) );
+        body_shape_.addPoint( btVector3(p.x,p.y,-height/2) );
         p.rotate(a_wheel);
-        body_shape.addPoint( btVector3(p.x,p.y,+height/2) );
-        body_shape.addPoint( btVector3(p.x,p.y,-height/2) );
+        body_shape_.addPoint( btVector3(p.x,p.y,+height/2) );
+        body_shape_.addPoint( btVector3(p.x,p.y,-height/2) );
         p.rotate(a_side);
       }
     }
-    shape->addChildShape( btTransform(
+    shape_->addChildShape( btTransform(
           btMatrix3x3::getIdentity(), btVector3(0,0,ground_clearance-(z_mass-height/2))),
-        &body_shape);
+        &body_shape_);
 
     // Wheels (use boxes instead of cylinders)
     btTransform tr = btTransform::getIdentity();
     btVector2 vw( d_wheel+h_wheel/2, 0 );
     tr.setOrigin( btVector3(vw.x, vw.y, -(z_mass - r_wheel)) );
-    shape->addChildShape(tr, &wheel_shape);
+    shape_->addChildShape(tr, &wheel_shape_);
 
     vw.rotate(2*M_PI/3);
     tr.setOrigin( btVector3(vw.x, vw.y, -(z_mass - r_wheel)) );
     tr.setRotation( btQuaternion(btVector3(0,0,1), 2*M_PI/3) );
-    shape->addChildShape(tr, &wheel_shape);
+    shape_->addChildShape(tr, &wheel_shape_);
 
     vw.rotate(-4*M_PI/3);
     tr.setOrigin( btVector3(vw.x, vw.y, -(z_mass - r_wheel)) );
     tr.setRotation( btQuaternion(btVector3(0,0,1), -2*M_PI/3) );
-    shape->addChildShape(tr, &wheel_shape);
+    shape_->addChildShape(tr, &wheel_shape_);
   }
 
   btVector3 inertia;
-  shape->calculateLocalInertia(m, inertia);
-  this->body = new btRigidBody(
-      btRigidBody::btRigidBodyConstructionInfo(m,NULL,shape,inertia)
+  shape_->calculateLocalInertia(m, inertia);
+  body_ = new btRigidBody(
+      btRigidBody::btRigidBodyConstructionInfo(m,NULL,shape_,inertia)
       );
-  SmartPtr_add_ref(shape);
+  SmartPtr_add_ref(shape_);
 
   // Init order
-  stopped = true;
-  in_position = false;
+  stopped_ = true;
+  in_position_ = false;
 
-  color = Color4(0.3);
+  color_ = Color4(0.3);
 }
 
 Galipeur::~Galipeur()
@@ -89,31 +89,31 @@ Galipeur::~Galipeur()
 
 void Galipeur::addToWorld(Physics *physics)
 {
-  physics->getWorld()->addRigidBody(body);
+  physics->getWorld()->addRigidBody(body_);
   Robot::addToWorld(physics);
 }
 
 void Galipeur::removeFromWorld()
 {
-  Physics *ph_bak = this->physics;
+  Physics *ph_bak = physics_;
   Robot::removeFromWorld();
-  ph_bak->getWorld()->removeRigidBody(body);
+  ph_bak->getWorld()->removeRigidBody(body_);
 }
 
 void Galipeur::draw()
 {
-  glColor4fv(color);
+  glColor4fv(color_);
 
   glPushMatrix();
-  drawTransform(body->getCenterOfMassTransform());
+  drawTransform(body_->getCenterOfMassTransform());
 
-  if( dl_id_static != 0 )
-    glCallList(dl_id_static);
+  if( dl_id_static_ != 0 )
+    glCallList(dl_id_static_);
   else
   {
     // new display list
-    dl_id_static = glGenLists(1);
-    glNewList(dl_id_static, GL_COMPILE_AND_EXECUTE);
+    dl_id_static_ = glGenLists(1);
+    glNewList(dl_id_static_, GL_COMPILE_AND_EXECUTE);
 
     glPushMatrix();
 
@@ -217,7 +217,7 @@ void Galipeur::draw()
 
   // Sharps
   std::vector<btTransform>::iterator it;
-  for( it=sharps_trans.begin(); it!=sharps_trans.end(); ++it )
+  for( it=sharps_trans_.begin(); it!=sharps_trans_.end(); ++it )
   {
     glPushMatrix();
     drawTransform( *it );
@@ -231,43 +231,43 @@ void Galipeur::draw()
 
 void Galipeur::asserv()
 {
-  if( stopped )
+  if( stopped_ )
     return;
 
-  if( physics == NULL )
+  if( physics_ == NULL )
     throw(Error("Galipeur is not in a world"));
 
-  const btScalar dt = physics->getTime() - ramp_last_t;
+  const btScalar dt = physics_->getTime() - ramp_last_t_;
   if( dt == 0 )
     return; // ramp start, wait for the next step
 
-  const btVector2 dxy = target_xy - get_xy();
+  const btVector2 dxy = target_xy_ - get_xy();
   const btScalar dr = dxy.length();
-  const btScalar da = btNormalizeAngle( target_a-get_a() );
+  const btScalar da = btNormalizeAngle( target_a_-get_a() );
 
   // Update speeds
-  set_v( dxy.normalized() * ramp_xy.step(dt, dr) );
-  set_av( ramp_a.step(dt, da) );
+  set_v( dxy.normalized() * ramp_xy_.step(dt, dr) );
+  set_av( ramp_a_.step(dt, da) );
 
-  // Update in_position flag
-  if( ! in_position )
-    if( dr <= threshold_xy && btFabs(da) <= threshold_a )
-      in_position = true;
+  // Update in_position_ flag
+  if( ! in_position_ )
+    if( dr <= threshold_xy_ && btFabs(da) <= threshold_a_ )
+      in_position_ = true;
 }
 
 void Galipeur::set_v(btVector2 vxy)
 {
-  body->activate();
-  body->setLinearVelocity( btVector3(vxy.x, vxy.y,
-        body->getLinearVelocity().z()) );
+  body_->activate();
+  body_->setLinearVelocity( btVector3(vxy.x, vxy.y,
+        body_->getLinearVelocity().z()) );
 }
 
 inline void Galipeur::set_av(btScalar v)
 {
-  body->activate();
-  btVector3 v3 = body->getAngularVelocity();
+  body_->activate();
+  btVector3 v3 = body_->getAngularVelocity();
   v3.setZ(v);
-  body->setAngularVelocity(v3);
+  body_->setAngularVelocity(v3);
 }
 
 
@@ -283,53 +283,53 @@ void Galipeur::order_a(btScalar a, bool rel)
 
 void Galipeur::order_xya(btVector2 xy, btScalar a, bool rel)
 {
-  if( physics == NULL )
+  if( physics_ == NULL )
     throw(Error("Galipeur is not in a world"));
 
-  target_xy = xy;
-  target_a = a;
+  target_xy_ = xy;
+  target_a_ = a;
   if( rel )
   {
-    target_xy += this->get_xy();
-    target_a += this->get_a();
+    target_xy_ += this->get_xy();
+    target_a_ += this->get_a();
   }
-  target_a = btNormalizeAngle(target_a);
+  target_a_ = btNormalizeAngle(target_a_);
 
-  in_position = false;
-  stopped = false;
+  in_position_ = false;
+  stopped_ = false;
   // reset ramps
-  ramp_last_t = physics->getTime();
-  ramp_xy.reset(get_v().length());
-  ramp_a.reset(get_av());
+  ramp_last_t_ = physics_->getTime();
+  ramp_xy_.reset(get_v().length());
+  ramp_a_.reset(get_av());
 }
 
 btScalar Galipeur::test_sensor(unsigned int i)
 {
-  if( i >= sharps_trans.size() )
+  if( i >= sharps_trans_.size() )
     throw(Error("invalid sensor index: %u"));
-  return SRay::gp2d12.hitTest( getTrans() * sharps_trans[i] );
+  return SRay::gp2d12.hitTest( getTrans() * sharps_trans_[i] );
 }
 
 
 btScalar Galipeur::Quadramp::step(btScalar dt, btScalar d)
 {
-  const btScalar d_dec = 0.5 * cur_v*cur_v / var_a;
+  const btScalar d_dec = 0.5 * cur_v_*cur_v_ / var_a;
   if( d < 0 )
   {
     if( -d < d_dec )
-      cur_v = MIN(0, cur_v + dt*var_a );
-    else if( cur_v > -var_v )
-      cur_v = MAX( -var_v, cur_v - dt*var_a );
+      cur_v_ = MIN(0, cur_v_ + dt*var_a );
+    else if( cur_v_ > -var_v )
+      cur_v_ = MAX( -var_v, cur_v_ - dt*var_a );
   }
   else
   {
     if( d < d_dec )
-      cur_v = MAX(0, cur_v - dt*var_a );
-    else if( cur_v < var_v )
-      cur_v = MIN( var_v, cur_v + dt*var_a );
+      cur_v_ = MAX(0, cur_v_ - dt*var_a );
+    else if( cur_v_ < var_v )
+      cur_v_ = MIN( var_v, cur_v_ + dt*var_a );
   }
 
-  return cur_v;
+  return cur_v_;
 }
 
 
@@ -381,14 +381,14 @@ class LuaGalipeur: public LuaClass<Galipeur>
   {
     SmartPtr<Galipeur> galipeur = get_ptr(L,1);
     luaL_checktype(L, 2, LUA_TTABLE);
-    galipeur->sharps_trans.clear();
+    galipeur->sharps_trans_.clear();
 
     lua_pushnil(L);
     while( lua_next(L, 2) != 0 )
     {
       btTransform tr;
       LuaManager::checktransform(L, -1, tr);
-      galipeur->sharps_trans.push_back( tr );
+      galipeur->sharps_trans_.push_back( tr );
       lua_pop(L, 1);
     }
     return 0;
@@ -398,13 +398,13 @@ class LuaGalipeur: public LuaClass<Galipeur>
   {
     SmartPtr<Galipeur> galipeur = get_ptr(L,1);
     unsigned int i = luaL_checkinteger(L, 2) - 1; // LUA indexes start at 1
-    if( i < galipeur->sharps_trans.size() )
+    if( i < galipeur->sharps_trans_.size() )
     {
       btScalar x = galipeur->test_sensor(i);
       if( x < 0 )
         LuaManager::push(L, false);
       else
-        LuaManager::push(L, unscale(x));
+        LuaManager::push(L, btUnscale(x));
     }
     else
       lua_pushnil(L);
@@ -413,7 +413,7 @@ class LuaGalipeur: public LuaClass<Galipeur>
 
   static int get_sharp_count(lua_State *L)
   {
-    LuaManager::push(L, get_ptr(L, 1)->sharps_trans.size());
+    LuaManager::push(L, get_ptr(L, 1)->sharps_trans_.size());
     return 1;
   }
 

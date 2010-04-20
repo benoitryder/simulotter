@@ -14,10 +14,10 @@ template<class T>
 class SmartPtr
 {
 public:
-  SmartPtr(): px(0) {}
-  SmartPtr(T *p): px(p) { if(px!=0) SmartPtr_add_ref(px); }
-  SmartPtr(SmartPtr const &rhs): px(rhs.px) { if(px!=0) SmartPtr_add_ref(px); }
-  ~SmartPtr() { if(px!=0) SmartPtr_release(px); }
+  SmartPtr(): px_(0) {}
+  SmartPtr(T *p): px_(p) { if(px_!=0) SmartPtr_add_ref(px_); }
+  SmartPtr(SmartPtr const &rhs): px_(rhs.px_) { if(px_!=0) SmartPtr_add_ref(px_); }
+  ~SmartPtr() { if(px_!=0) SmartPtr_release(px_); }
 
   SmartPtr &operator=(SmartPtr const &rhs)
   {
@@ -30,20 +30,20 @@ public:
     return *this;
   }
 
-  T *get() const { return px; }
-  T &operator*() const { return *px; }
-  T *operator->() const { return px; }
-  operator T *() const { return px; }
+  T *get() const { return px_; }
+  T &operator*() const { return *px_; }
+  T *operator->() const { return px_; }
+  operator T *() const { return px_; }
 
   void swap(SmartPtr &rhs)
   {
-    T *tmp = px;
-    px = rhs.px;
-    rhs.px = tmp;
+    T *tmp = px_;
+    px_ = rhs.px_;
+    rhs.px_ = tmp;
   }
 
 private:
-  T *px;
+  T *px_;
 };
 
 template<class T, class U> inline bool operator==(SmartPtr<T> const &a, SmartPtr<U> const &b) { return a.get() == b.get(); }

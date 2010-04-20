@@ -16,7 +16,7 @@ class Physics;
 class Object: public SmartObject
 {
 protected:
-  Object(): physics(NULL) {}
+  Object(): physics_(NULL) {}
 public:
   virtual ~Object() {}
 
@@ -28,14 +28,14 @@ public:
    *
    * @note Overload functions should call this parent function.
    */
-  virtual void addToWorld(Physics *physics);
+  virtual void addToWorld(Physics *physics_);
 
   /** @brief Remove an object from its physical world.
    *
    * It is the opposite of addToWorld().
    * Object is removed from the physics object array, an exception is raised if
    * was not in a world array.
-   * The \e physics member is resetted to \e NULL.
+   * The \e physics_ member is resetted to \e NULL.
    *
    * @note Overload functions should call this parent function.
    */
@@ -86,7 +86,7 @@ protected:
    * before them. This means that a deleted object has been removed from its
    * world.
    */
-  Physics *physics;
+  Physics *physics_;
 
   /// Enable the tick callback.
   void enableTickCallback();
@@ -151,7 +151,7 @@ public:
    * Object color is used in default drawing function and may ignored by
    * subclass implementations.
    */
-  void setColor(const Color4 &color) { this->color = color; }
+  void setColor(const Color4 &color) { color_ = color; }
 
   /** @brief Draw the whole object
    *
@@ -174,17 +174,17 @@ public:
 
 protected:
   /// Object main color
-  Color4 color;
+  Color4 color_;
   /** @brief Display list to draw (0 if none)
    *
    * It is initialized in \e draw() method but can be reused by subclasses for
    * their own drawing method.
    */
-  GLuint dl_id;
+  GLuint dl_id_;
 
 private:
   /// Store display lists created in \e draw().
-  static std::map<const btCollisionShape *, GLuint> shape2dl;
+  static std::map<const btCollisionShape *, GLuint> shape2dl_;
 };
 
 
@@ -211,13 +211,13 @@ public:
 
 protected:
   /// Starting zone size (scaled)
-  static const btScalar size_start;
+  static const btScalar size_start_;
 
-  Color4 color_t1;
-  Color4 color_t2;
+  Color4 color_t1_;
+  Color4 color_t2_;
 
 private:
-  static SmartPtr<btBoxShape> shape;
+  static SmartPtr<btBoxShape> shape_;
 };
 
 

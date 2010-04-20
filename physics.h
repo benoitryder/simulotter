@@ -24,13 +24,13 @@ public:
 
   /// Init physics (using configuration values)
   void init();
-  bool isInitialized() const { return step_dt > 0; }
+  bool isInitialized() const { return step_dt_ > 0; }
 
   /// Advance simulation
   void step();
 
   /// Return current simulation time
-  btScalar getTime() const { return time; }
+  btScalar getTime() const { return time_; }
 
   /** @brief Schedule a task
    *
@@ -42,52 +42,52 @@ public:
    */
   void scheduleTask(TaskPhysics *task, btScalar time=-1);
 
-  void pause()   { this->pause_state = true;  }
-  void unpause() { this->pause_state = false; }
-  void togglePause() { this->pause_state = !this->pause_state; }
+  void pause()   { pause_state_ = true;  }
+  void unpause() { pause_state_ = false; }
+  void togglePause() { pause_state_ = !pause_state_; }
 
-  btDynamicsWorld *getWorld() { return this->world; }
+  btDynamicsWorld *getWorld() { return world_; }
 
-  std::set<SmartPtr<Object> > &getObjs() { return this->objs; }
-  std::set<SmartPtr<Object> > &getTickObjs() { return this->tick_objs; }
+  std::set<SmartPtr<Object> > &getObjs() { return objs_; }
+  std::set<SmartPtr<Object> > &getTickObjs() { return tick_objs_; }
 
   /// Common static rigid body for constraints
-  static btRigidBody static_body;
+  static const btRigidBody static_body;
 
 private:
   /** @brief Encapsulated world.
    *
    * The world user info is set to the physics instance pointer.
    */
-  btDynamicsWorld          *world;
-  btDispatcher             *dispatcher;
-  btConstraintSolver       *solver;
-  btBroadphaseInterface    *broadphase;
-  btCollisionConfiguration *col_config;
+  btDynamicsWorld          *world_;
+  btDispatcher             *dispatcher_;
+  btConstraintSolver       *solver_;
+  btBroadphaseInterface    *broadphase_;
+  btCollisionConfiguration *col_config_;
 
   /// All simulated objects
-  std::set<SmartPtr<Object> > objs;
+  std::set<SmartPtr<Object> > objs_;
 
   /** @brief Object whose tick callback must be called.
    * @sa Object::tickCallback()
    */
-  std::set<SmartPtr<Object> > tick_objs;
+  std::set<SmartPtr<Object> > tick_objs_;
 
   /// Tick callback called by Bullet.
   static void worldTickCallback(btDynamicsWorld *world, btScalar step);
 
   /// Simulation pause state
-  bool pause_state;
+  bool pause_state_;
 
   /// Simulation time step, must not be modified
-  btScalar step_dt;
+  btScalar step_dt_;
 
-  btScalar time;
+  btScalar time_;
 
   typedef std::pair< btScalar, SmartPtr<TaskPhysics> > TaskQueueValue;
   typedef std::priority_queue< TaskQueueValue, std::vector<TaskQueueValue>, std::greater<TaskQueueValue> > TaskQueue;
   /// Scheduled tasks
-  TaskQueue task_queue;
+  TaskQueue task_queue_;
 
 public:
   /// Physics singleton.
@@ -119,15 +119,15 @@ public:
   virtual void process(Physics *ph);
 
   /// Cancel the task
-  void cancel() { cancelled = true; }
+  void cancel() { cancelled_ = true; }
 
   typedef void (*Callback)(Physics *ph);
-  void setCallback(Callback cb) { callback = cb; }
+  void setCallback(Callback cb) { callback_ = cb; }
 
 protected:
-  btScalar period; /// Period for repeated tasks (or 0)
-  Callback callback;
-  bool cancelled;
+  btScalar period_; /// Period for repeated tasks (or 0)
+  Callback callback_;
+  bool cancelled_;
 };
 
 /** @brief Task used in Lua
@@ -145,15 +145,15 @@ public:
   virtual void process(Physics *ph);
 
   /// Cancel the task
-  void cancel() { cancelled = true; }
+  void cancel() { cancelled_ = true; }
 
 protected:
-  btScalar period;
-  bool cancelled;
+  btScalar period_;
+  bool cancelled_;
   /// Lua instance state
-  lua_State *L;
+  lua_State *L_;
   /// Lua instance reference
-  int ref_obj;
+  int ref_obj_;
 
 private:
   /// Process callback function call 
@@ -190,7 +190,7 @@ public:
 
 private:
   /// Store a copy of each referenced child
-  std::vector<btCollisionShape *> ref_children;
+  std::vector<btCollisionShape *> ref_children_;
 };
 
 

@@ -7,48 +7,48 @@
 #define LUA_REG_FIELD(name,f) (lua_pushcfunction(L,f),lua_setfield(L, -2, #name))
 
 
-LuaMainModule LuaManager::main_module;
+LuaMainModule LuaManager::main_module_;
 
 LuaManager::LuaManager()
 {
-  this->L = luaL_newstate();
-  if( this->L == NULL )
+  L_ = luaL_newstate();
+  if( L_ == NULL )
     throw(Error("state creation failed (memory allocation error)"));
 
   // Load some standard libraries
-	lua_pushcfunction(L, luaopen_base);   lua_call(L, 0, 0);
-	lua_pushcfunction(L, luaopen_math);   lua_call(L, 0, 0);
-	lua_pushcfunction(L, luaopen_string); lua_call(L, 0, 0);
-	lua_pushcfunction(L, luaopen_table);  lua_call(L, 0, 0);
-	lua_pushcfunction(L, luaopen_io);     lua_call(L, 0, 0);
-	lua_pushcfunction(L, luaopen_package);lua_call(L, 0, 0);
+	lua_pushcfunction(L_, luaopen_base);   lua_call(L_, 0, 0);
+	lua_pushcfunction(L_, luaopen_math);   lua_call(L_, 0, 0);
+	lua_pushcfunction(L_, luaopen_string); lua_call(L_, 0, 0);
+	lua_pushcfunction(L_, luaopen_table);  lua_call(L_, 0, 0);
+	lua_pushcfunction(L_, luaopen_io);     lua_call(L_, 0, 0);
+	lua_pushcfunction(L_, luaopen_package);lua_call(L_, 0, 0);
 
   // Initialize random seed
-  lua_getglobal(L, "math");
-  lua_getfield(L, -1, "randomseed");
-  lua_pushinteger(L, ::time(NULL));
-  lua_pcall(L, 1, 0, 0);
+  lua_getglobal(L_, "math");
+  lua_getfield(L_, -1, "randomseed");
+  lua_pushinteger(L_, ::time(NULL));
+  lua_pcall(L_, 1, 0, 0);
   // pop the first random integer which is "less random"
-  lua_getfield(L, -1, "random");
-  lua_pushinteger(L, 42);
-  lua_pcall(L, 1, 0, 0);
-  lua_pop(L, 1);
+  lua_getfield(L_, -1, "random");
+  lua_pushinteger(L_, 42);
+  lua_pcall(L_, 1, 0, 0);
+  lua_pop(L_, 1);
 
   // Register global functions
-  lua_register(L, "trace", lua_trace);
-  lua_register(L, "exit", lua_exit);
+  lua_register(L_, "trace", lua_trace);
+  lua_register(L_, "exit", lua_exit);
 
   // Init Lua stuff of other classes
-  cfg.lua_init(L);
-  LuaClassBase::init(L);
+  cfg.lua_init(L_);
+  LuaClassBase::init(L_);
 
   // Import main module
-  main_module.import(L, NULL);
+  main_module_.import(L_, NULL);
 }
 
 LuaManager::~LuaManager()
 {
-  lua_close(L);
+  lua_close(L_);
 }
 
 
@@ -56,10 +56,10 @@ void LuaManager::do_file(const char *filename)
 {
   int ret;
 
-  ret = luaL_loadfile(L, filename);
+  ret = luaL_loadfile(L_, filename);
   if( ret != 0 )
-    throw(LuaError(L));
-  pcall(L, 0, LUA_MULTRET);
+    throw(LuaError(L_));
+  pcall(L_, 0, LUA_MULTRET);
 }
 
 void LuaManager::pcall(lua_State *L, int nargs, int nresults)
@@ -198,7 +198,7 @@ int LuaManager::totransform(lua_State *L, int index, btTransform &tr)
   }
 
   tr.setIdentity();
-  tr.setOrigin( scale(btVector3(f[0],f[1],f[2])) );
+  tr.setOrigin( btScale(btVector3(f[0],f[1],f[2])) );
   if( n == 6 )
     tr.getBasis().setEulerZYX( f[3], f[4], f[5] );
 
@@ -227,22 +227,22 @@ int LuaManager::lua_exit(lua_State *L)
 }
 
 
-std::vector<LuaClassBase*> LuaClassBase::classes;
-const char *LuaClassBase::registry_class_mt_name = LUA_REGISTRY_PREFIX "class";
+std::vector<LuaClassBase*> LuaClassBase::classes_;
+const char *LuaClassBase::registry_class_mt_name_ = LUA_REGISTRY_PREFIX "class";
 
 LuaClassBase::LuaClassBase()
 {
   // register the class
-  classes.push_back(this);
+  classes_.push_back(this);
 }
 
 
 void LuaClassBase::create(lua_State *L)
 {
-  if( luaL_newmetatable(L, get_name()) == 0 )
-    throw(Error("class '%s' already created", get_name()));
+  if( luaL_newmetatable(L, this->name()) == 0 )
+    throw(Error("class '%s' already created", this->name()));
 
-  lua_getfield(L, LUA_REGISTRYINDEX, registry_class_mt_name);
+  lua_getfield(L, LUA_REGISTRYINDEX, registry_class_mt_name_);
   lua_setmetatable(L, -2);
 
   lua_pushvalue(L, -1);
@@ -253,7 +253,7 @@ void LuaClassBase::create(lua_State *L)
 
   // Create the class object
   this->push_class_ud(L);
-  lua_getfield(L, LUA_REGISTRYINDEX, registry_class_mt_name);
+  lua_getfield(L, LUA_REGISTRYINDEX, registry_class_mt_name_);
   lua_setmetatable(L, -2);
 
   // Set class object on the metable
@@ -264,19 +264,19 @@ void LuaClassBase::create(lua_State *L)
 
 void LuaClassBase::init_base_class(lua_State *L)
 {
-  if( get_base_name() == NULL )
+  if( this->base_name() == NULL )
     return;
 
   // get metatable
-  lua_getfield(L, LUA_REGISTRYINDEX, get_name());
+  lua_getfield(L, LUA_REGISTRYINDEX, this->name());
 
-  lua_getfield(L, LUA_REGISTRYINDEX, get_base_name());
+  lua_getfield(L, LUA_REGISTRYINDEX, this->base_name());
   if( lua_isnil(L, -1) )
-    throw(Error("undefined base class '%s'", get_base_name()));
+    throw(Error("undefined base class '%s'", this->base_name()));
   lua_pushstring(L, "_cls");
   lua_rawget(L, -2);
   if( lua_isnil(L, -1) )
-    throw(Error("class object not found for base class '%s'", get_base_name()));
+    throw(Error("class object not found for base class '%s'", this->base_name()));
   lua_setfield(L, -3, "_base");
 
   lua_pop(L, 2); // pop class and base class metatables
@@ -289,7 +289,7 @@ int LuaClassBase::new_class(lua_State *L)
 
   // Check base class
   if( lua_isuserdata(L, 1) )
-    luaL_checkudata(L, 1, registry_class_mt_name);
+    luaL_checkudata(L, 1, registry_class_mt_name_);
   else if( !lua_isnoneornil(L, 1) )
     luaL_checktype(L, 1, LUA_TTABLE);
 
@@ -314,7 +314,7 @@ int LuaClassBase::new_class(lua_State *L)
   lua_pushvalue(L, new_class);
   lua_setfield(L, new_class, "__index");
 
-  lua_getfield(L, LUA_REGISTRYINDEX, registry_class_mt_name);
+  lua_getfield(L, LUA_REGISTRYINDEX, registry_class_mt_name_);
   lua_setmetatable(L, -2);
 
   return 1;
@@ -331,8 +331,8 @@ int LuaClassBase::new_instance(lua_State *L)
   lua_pushvalue(L, 1);
   if( lua_isuserdata(L, 1) )
   {
-    LuaClassBase *ud = *(LuaClassBase **)luaL_checkudata(L, 1, registry_class_mt_name);
-    lua_getfield(L, LUA_REGISTRYINDEX, ud->get_name());
+    LuaClassBase *ud = *(LuaClassBase **)luaL_checkudata(L, 1, registry_class_mt_name_);
+    lua_getfield(L, LUA_REGISTRYINDEX, ud->name());
     lua_remove(L, -2);
   }
   lua_setmetatable(L, -2);
@@ -358,8 +358,8 @@ int LuaClassBase::index_class(lua_State *L)
   // Predefined class: get field from method table
   if( lua_isuserdata(L, 1) )
   {
-    LuaClassBase *ud = *(LuaClassBase **)luaL_checkudata(L, 1, registry_class_mt_name);
-    lua_getfield(L, LUA_REGISTRYINDEX, ud->get_name());
+    LuaClassBase *ud = *(LuaClassBase **)luaL_checkudata(L, 1, registry_class_mt_name_);
+    lua_getfield(L, LUA_REGISTRYINDEX, ud->name());
     lua_pushvalue(L, 2);
     lua_gettable(L, -2);
     lua_remove(L, -2);
@@ -384,7 +384,7 @@ int LuaClassBase::index_class(lua_State *L)
 void LuaClassBase::init(lua_State *L)
 {
   // Construct the class metatable
-  luaL_newmetatable(L, registry_class_mt_name);
+  luaL_newmetatable(L, registry_class_mt_name_);
   lua_pushcfunction(L, new_instance);
   lua_setfield(L, -2, "__call");
   lua_pushcfunction(L, index_class);
@@ -394,9 +394,9 @@ void LuaClassBase::init(lua_State *L)
   lua_register(L, "class", new_class);
 
   std::vector<LuaClassBase*>::iterator it;
-  for( it=classes.begin(); it!=classes.end(); ++it )
+  for( it=classes_.begin(); it!=classes_.end(); ++it )
     (*it)->create(L);
-  for( it=classes.begin(); it!=classes.end(); ++it )
+  for( it=classes_.begin(); it!=classes_.end(); ++it )
     (*it)->init_base_class(L);
 }
 

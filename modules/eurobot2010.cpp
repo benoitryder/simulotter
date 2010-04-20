@@ -5,67 +5,67 @@
 
 namespace eurobot2010
 {
-  const btScalar ORaisedZone::width = scale(0.500);
-  const btScalar ORaisedZone::height = scale(0.140);
-  const btScalar ORaisedZone::bottom_length = scale(2*0.480+0.500);
-  const btScalar ORaisedZone::top_length = scale(0.500);
-  const btScalar ORaisedZone::strip_length = scale(0.100);
-  const btScalar ORaisedZone::wall_width = scale(0.022);
-  const btScalar ORaisedZone::wall_height = scale(0.070);
-  const btScalar ORaisedZone::wall_bottom_length = scale(2*0.500+0.520);
-  const btScalar ORaisedZone::wall_top_length = scale(0.520);
-  SmartPtr<btCompoundShape> ORaisedZone::shape;
-  btConvexHullShape ORaisedZone::body_shape;
-  btConvexHullShape ORaisedZone::wall_shape;
+  const btScalar ORaisedZone::width = btScale(0.500);
+  const btScalar ORaisedZone::height = btScale(0.140);
+  const btScalar ORaisedZone::bottom_length = btScale(2*0.480+0.500);
+  const btScalar ORaisedZone::top_length = btScale(0.500);
+  const btScalar ORaisedZone::strip_length = btScale(0.100);
+  const btScalar ORaisedZone::wall_width = btScale(0.022);
+  const btScalar ORaisedZone::wall_height = btScale(0.070);
+  const btScalar ORaisedZone::wall_bottom_length = btScale(2*0.500+0.520);
+  const btScalar ORaisedZone::wall_top_length = btScale(0.520);
+  SmartPtr<btCompoundShape> ORaisedZone::shape_;
+  btConvexHullShape ORaisedZone::body_shape_;
+  btConvexHullShape ORaisedZone::wall_shape_;
 
   ORaisedZone::ORaisedZone()
   {
     // First instance: initialize shape
-    if( shape == NULL )
+    if( shape_ == NULL )
     {
-      shape = new btCompoundShape();
+      shape_ = new btCompoundShape();
 
-      if( body_shape.getNumPoints() == 0 )
+      if( body_shape_.getNumPoints() == 0 )
       {
         // bottom
-        body_shape.addPoint( btVector3(-bottom_length/2, -width/2, 0) );
-        body_shape.addPoint( btVector3(-bottom_length/2, +width/2, 0) );
-        body_shape.addPoint( btVector3(+bottom_length/2, +width/2, 0) );
-        body_shape.addPoint( btVector3(+bottom_length/2, -width/2, 0) );
+        body_shape_.addPoint( btVector3(-bottom_length/2, -width/2, 0) );
+        body_shape_.addPoint( btVector3(-bottom_length/2, +width/2, 0) );
+        body_shape_.addPoint( btVector3(+bottom_length/2, +width/2, 0) );
+        body_shape_.addPoint( btVector3(+bottom_length/2, -width/2, 0) );
         // top
-        body_shape.addPoint( btVector3(-top_length/2, -width/2, height) );
-        body_shape.addPoint( btVector3(-top_length/2, +width/2, height) );
-        body_shape.addPoint( btVector3(+top_length/2, +width/2, height) );
-        body_shape.addPoint( btVector3(+top_length/2, -width/2, height) );
+        body_shape_.addPoint( btVector3(-top_length/2, -width/2, height) );
+        body_shape_.addPoint( btVector3(-top_length/2, +width/2, height) );
+        body_shape_.addPoint( btVector3(+top_length/2, +width/2, height) );
+        body_shape_.addPoint( btVector3(+top_length/2, -width/2, height) );
       }
 
-      if( wall_shape.getNumPoints() == 0 )
+      if( wall_shape_.getNumPoints() == 0 )
       {
         // front
-        wall_shape.addPoint( btVector3(-wall_bottom_length/2, +wall_width/2, 0) );
-        wall_shape.addPoint( btVector3(+wall_bottom_length/2, +wall_width/2, 0) );
-        wall_shape.addPoint( btVector3(-wall_bottom_length/2, +wall_width/2, wall_height) );
-        wall_shape.addPoint( btVector3(+wall_bottom_length/2, +wall_width/2, wall_height) );
-        wall_shape.addPoint( btVector3(-wall_top_length/2, +wall_width/2, height+wall_height) );
-        wall_shape.addPoint( btVector3(+wall_top_length/2, +wall_width/2, height+wall_height) );
+        wall_shape_.addPoint( btVector3(-wall_bottom_length/2, +wall_width/2, 0) );
+        wall_shape_.addPoint( btVector3(+wall_bottom_length/2, +wall_width/2, 0) );
+        wall_shape_.addPoint( btVector3(-wall_bottom_length/2, +wall_width/2, wall_height) );
+        wall_shape_.addPoint( btVector3(+wall_bottom_length/2, +wall_width/2, wall_height) );
+        wall_shape_.addPoint( btVector3(-wall_top_length/2, +wall_width/2, height+wall_height) );
+        wall_shape_.addPoint( btVector3(+wall_top_length/2, +wall_width/2, height+wall_height) );
         // back
-        wall_shape.addPoint( btVector3(-wall_bottom_length/2, -wall_width/2, 0) );
-        wall_shape.addPoint( btVector3(+wall_bottom_length/2, -wall_width/2, 0) );
-        wall_shape.addPoint( btVector3(-wall_bottom_length/2, -wall_width/2, wall_height) );
-        wall_shape.addPoint( btVector3(+wall_bottom_length/2, -wall_width/2, wall_height) );
-        wall_shape.addPoint( btVector3(-wall_top_length/2, -wall_width/2, height+wall_height) );
-        wall_shape.addPoint( btVector3(+wall_top_length/2, -wall_width/2, height+wall_height) );
+        wall_shape_.addPoint( btVector3(-wall_bottom_length/2, -wall_width/2, 0) );
+        wall_shape_.addPoint( btVector3(+wall_bottom_length/2, -wall_width/2, 0) );
+        wall_shape_.addPoint( btVector3(-wall_bottom_length/2, -wall_width/2, wall_height) );
+        wall_shape_.addPoint( btVector3(+wall_bottom_length/2, -wall_width/2, wall_height) );
+        wall_shape_.addPoint( btVector3(-wall_top_length/2, -wall_width/2, height+wall_height) );
+        wall_shape_.addPoint( btVector3(+wall_top_length/2, -wall_width/2, height+wall_height) );
       }
 
-      shape->addChildShape(btTransform::getIdentity(), &body_shape);
+      shape_->addChildShape(btTransform::getIdentity(), &body_shape_);
 
       btTransform tr = btTransform::getIdentity();
       tr.setOrigin( btVector3(0, (width+wall_width)/2, 0) );
-      shape->addChildShape( tr, &wall_shape);
+      shape_->addChildShape( tr, &wall_shape_);
       tr.setOrigin( -tr.getOrigin() );
-      shape->addChildShape( tr, &wall_shape);
+      shape_->addChildShape( tr, &wall_shape_);
     }
-    setShape( shape );
+    setShape( shape_ );
   }
 
   void ORaisedZone::draw()
@@ -75,13 +75,13 @@ namespace eurobot2010
 
     // NOTE: there should not have several instances, thus we do not really
     // need a static display list id to share the display list.
-    if( dl_id != 0 )
-      glCallList(dl_id);
+    if( dl_id_ != 0 )
+      glCallList(dl_id_);
     else
     {
       // new display list
-      dl_id = glGenLists(1);
-      glNewList(dl_id, GL_COMPILE_AND_EXECUTE);
+      dl_id_ = glGenLists(1);
+      glNewList(dl_id_, GL_COMPILE_AND_EXECUTE);
 
       glColor4fv(Color4(1)); // RAL 9016
 
@@ -176,15 +176,15 @@ namespace eurobot2010
   }
 
 
-  SmartPtr<btCylinderShapeZ> OCorn::shape(new btCylinderShapeZ(scale(btVector3(0.025,0.025,0.075))));
-  const btScalar OCorn::pivot_radius = scale(0.005);
-  const btScalar OCorn::pivot_mass = 50;
-  SmartPtr<btCollisionShape> OCorn::pivot_shape(new btSphereShape(pivot_radius));
+  SmartPtr<btCylinderShapeZ> OCorn::shape_(new btCylinderShapeZ(btScale(btVector3(0.025,0.025,0.075))));
+  const btScalar OCorn::pivot_radius_ = btScale(0.005);
+  const btScalar OCorn::pivot_mass_ = 50;
+  SmartPtr<btCollisionShape> OCorn::pivot_shape_(new btSphereShape(pivot_radius_));
 
-  OCorn::OCorn(): opivot(NULL), pivot_attach(NULL)
+  OCorn::OCorn(): opivot_(NULL), pivot_attach_(NULL)
   {
-    setShape( shape );
-    /* actual weight and colors of official elements differs from rules
+    setShape( shape_ );
+    /* actual weight and color of official elements differs from rules
     setMass( 0.250 );
     setColor(Color4( 0xff, 0xf5, 0xe3 )); // RAL 1013
     */
@@ -194,30 +194,30 @@ namespace eurobot2010
 
   void OCorn::plant(btScalar x, btScalar y)
   {
-    if( physics == NULL )
+    if( physics_ == NULL )
       throw(Error("cannot plant a corn which is not in a world"));
 
     uproot();
 
-    btScalar h = shape->getHalfExtentsWithMargin().getZ();
+    btScalar h = shape_->getHalfExtentsWithMargin().getZ();
 
     // Create the pivot rigid body.
-    opivot = new btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL));
-    opivot->setCollisionShape(pivot_shape);
+    opivot_ = new btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL));
+    opivot_->setCollisionShape(pivot_shape_);
     btVector3 inertia;
-    pivot_shape->calculateLocalInertia(pivot_mass, inertia);
-    opivot->setMassProps(pivot_mass, inertia);
-    opivot->updateInertiaTensor();
-    opivot->setCenterOfMassTransform( btTransform(
-          btMatrix3x3::getIdentity(), btVector3(x, y, pivot_radius)
+    pivot_shape_->calculateLocalInertia(pivot_mass_, inertia);
+    opivot_->setMassProps(pivot_mass_, inertia);
+    opivot_->updateInertiaTensor();
+    opivot_->setCenterOfMassTransform( btTransform(
+          btMatrix3x3::getIdentity(), btVector3(x, y, pivot_radius_)
           ) );
-    physics->getWorld()->addRigidBody(opivot);
+    physics_->getWorld()->addRigidBody(opivot_);
 
     // Create the pivot constraint
-    pivot_attach = new btPoint2PointConstraint(*this, *opivot,
-        btVector3(0, 0, -h), btVector3(0, 0, -0.9*pivot_radius)
+    pivot_attach_ = new btPoint2PointConstraint(*this, *opivot_,
+        btVector3(0, 0, -h), btVector3(0, 0, -0.9*pivot_radius_)
         );
-    physics->getWorld()->addConstraint(pivot_attach, true);
+    physics_->getWorld()->addConstraint(pivot_attach_, true);
 
     enableTickCallback();
 
@@ -226,16 +226,16 @@ namespace eurobot2010
 
   void OCorn::uproot()
   {
-    if( ! physics || ! pivot_attach )
+    if( !physics_ || !pivot_attach_ )
       return;
 
-    physics->getWorld()->removeConstraint(pivot_attach);
-    delete pivot_attach;
+    physics_->getWorld()->removeConstraint(pivot_attach_);
+    delete pivot_attach_;
 
-    pivot_attach = NULL;
-    physics->getWorld()->removeRigidBody(opivot);
-    delete opivot;
-    opivot = NULL;
+    pivot_attach_ = NULL;
+    physics_->getWorld()->removeRigidBody(opivot_);
+    delete opivot_;
+    opivot_ = NULL;
 
     disableTickCallback();
   }
@@ -256,31 +256,31 @@ namespace eurobot2010
   }
 
 
-  SmartPtr<btCylinderShapeZ> OCornFake::shape(new btCylinderShapeZ(scale(btVector3(0.025,0.025,0.075))));
+  SmartPtr<btCylinderShapeZ> OCornFake::shape_(new btCylinderShapeZ(btScale(btVector3(0.025,0.025,0.075))));
 
   OCornFake::OCornFake()
   {
-    setShape( shape );
+    setShape( shape_ );
     setMass(0);
     setColor(Color4( 0x14, 0x17, 0x1c )); // RAL 9017
   }
 
 
-  SmartPtr<btSphereShape> OTomato::shape(new btSphereShape(scale(0.050)));
+  SmartPtr<btSphereShape> OTomato::shape_(new btSphereShape(btScale(0.050)));
 
   OTomato::OTomato()
   {
-    setShape( shape );
+    setShape( shape_ );
     setColor( Color4(0xff, 0,0) );
     setMass( 0.150 );
   }
 
 
-  SmartPtr<btSphereShape> OOrange::shape(new btSphereShape(scale(0.050)));
+  SmartPtr<btSphereShape> OOrange::shape_(new btSphereShape(btScale(0.050)));
 
   OOrange::OOrange()
   {
-    setShape( shape );
+    setShape( shape_ );
     setColor( Color4(0xff, 0x80,0) );
     setMass( 0.300 );
   }

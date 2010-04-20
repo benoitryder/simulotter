@@ -1,6 +1,6 @@
 CXX = g++
 
-CFLAGS = -g -Wall -I/usr/local/include/lua5.1 -I/usr/include/lua5.1 -I.
+CFLAGS = -g -Wall -Werror -I/usr/local/include/lua5.1 -I/usr/include/lua5.1 -I.
 
 # If Bullet has been built using autotools or Jam
 #BULLET_LIBS = -lbulletdynamics -lbulletcollision -lbulletmath
@@ -10,7 +10,7 @@ BULLET_LIBS = -lBulletDynamics -lBulletCollision -lLinearMath
 ifeq ($(OS),Windows_NT)
 LDFLAGS = -mconsole -lfreeglut -mwindows -lSDL -lm $(BULLET_LIBS) -lopengl32 -lglu32 -lwinmm -llua -lpng
 else
-LDFLAGS = -lm $(BULLET_LIBS) -lGL -llua5.1 -lglut -lSDL -lpng
+LDFLAGS = -lm $(BULLET_LIBS) -llua5.1 -lGL -lGLU -lglut -lSDL -lpng
 endif
 
 OBJS = main.o config.o physics.o display.o object.o sensors.o robot.o galipeur.o log.o

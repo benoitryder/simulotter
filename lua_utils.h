@@ -126,7 +126,7 @@ public:
   }
 
 
-  lua_State *get_L() { return this->L; }
+  lua_State *get_L() { return L_; }
 
   /** @name Push functions
    */
@@ -178,7 +178,7 @@ public:
     {
       lua_newtable(L);
       LuaClass<T>::store_ptr(L, t, lua_gettop(L));
-      lua_getfield(L, LUA_REGISTRYINDEX, LuaClass<T>::name);
+      lua_getfield(L, LUA_REGISTRYINDEX, LuaClass<T>::name_);
       lua_setmetatable(L, -2);
     }
   }
@@ -196,14 +196,14 @@ public:
 
 private:
 
-  lua_State *L;
+  lua_State *L_;
 
   /// Write a string line on stdout
   static int lua_trace(lua_State *L);
   /// Exit with a given status code.
   static int lua_exit(lua_State *L);
 
-  static LuaMainModule main_module;
+  static LuaMainModule main_module_;
 };
 
 
@@ -255,8 +255,8 @@ protected:
   /// Create and push the class userdata onto the stack.
   virtual void push_class_ud(lua_State *L) = 0;
 
-  virtual const char *get_name() = 0;
-  virtual const char *get_base_name() = 0;
+  virtual const char *name() = 0;
+  virtual const char *base_name() = 0;
 
 private:
 
@@ -281,10 +281,10 @@ private:
   static int index_class(lua_State *L);
 
   /// Class metatable key in registry
-  static const char *registry_class_mt_name;
+  static const char *registry_class_mt_name_;
 
   /// Array of registered class.
-  static std::vector<LuaClassBase*> classes;
+  static std::vector<LuaClassBase*> classes_;
 
 };
 
@@ -303,8 +303,8 @@ public:
   typedef T data_type;
   typedef T *data_ptr;
 
-  const char *get_name() { return this->name; }
-  const char *get_base_name() { return this->base_name; }
+  const char *name() { return name_; }
+  const char *base_name() { return base_name_; }
 
   /** @brief Retrieve userdata pointer
    *
@@ -357,7 +357,7 @@ protected:
   /// Garbage collector method
   static int _gc(lua_State *L)
   {
-    data_ptr *ud = (data_ptr *)luaL_checkudata(L, 1, name);
+    data_ptr *ud = (data_ptr *)luaL_checkudata(L, 1, name_);
     SmartPtr_release( *ud );
     return 0;
   }
@@ -372,7 +372,7 @@ protected:
     // Create userdata
     LuaManager::push(L, "_ud");
     data_ptr *ud = (data_ptr *)lua_newuserdata(L, sizeof(data_ptr));
-    lua_getfield(L, LUA_REGISTRYINDEX, name);
+    lua_getfield(L, LUA_REGISTRYINDEX, name_);
     lua_setmetatable(L, -2);
     lua_rawset(L, narg);
     return ud;
@@ -392,10 +392,10 @@ protected:
 
 
   /// Class name
-  static const char *name;
+  static const char *name_;
 
   /// Base class name
-  static const char *base_name;
+  static const char *base_name_;
 };
 
 
@@ -407,14 +407,14 @@ protected:
 
 #define LUA_REGISTER_BASE_CLASS_NAME(C,T,N) \
   LUA_REGISTER_CLASS_NAME(C,T,N) \
-  template<> const char *LuaClass<T>::base_name = NULL;\
+  template<> const char *LuaClass<T>::base_name_ = NULL;\
 
 #define LUA_REGISTER_SUB_CLASS_NAME(C,T,N,B) \
   LUA_REGISTER_CLASS_NAME(C,T,N) \
-  template<> const char *LuaClass<T>::base_name = LUA_REGISTRY_PREFIX B;\
+  template<> const char *LuaClass<T>::base_name_ = LUA_REGISTRY_PREFIX B;\
 
 #define LUA_REGISTER_CLASS_NAME(C,T,N) \
-  template<> const char *LuaClass<T>::name = LUA_REGISTRY_PREFIX N; \
+  template<> const char *LuaClass<T>::name_ = LUA_REGISTRY_PREFIX N; \
   static C C##_register;
 
 #define LUA_REGISTER_BASE_CLASS(T)   LUA_REGISTER_BASE_CLASS_NAME(Lua##T,T,#T)
@@ -442,7 +442,7 @@ protected:
 #define LARG_s(n)   (luaL_checkstring(L,(n)))
 #define LARG_bn(n)  (lua_toboolean(L,(n)))
 #define LARG_lud(n) (luaL_checktype(L,(n), LUA_TLIGHTUSERDATA),lua_touserdata(L,(n)))
-#define LARG_scaled(n) (scale(LARG_f(n)))
+#define LARG_scaled(n) (btScale(LARG_f(n)))
 
 //@}
 
@@ -453,7 +453,7 @@ protected:
 #define LUA_DEFINE_GETN(i,n,f) \
   static int n(lua_State *L) { LuaManager::push(L, get_ptr(L,1)->f()); return i; }
 #define LUA_DEFINE_GETN_SCALED(i,n,f) \
-  static int n(lua_State *L) { LuaManager::push(L, unscale(get_ptr(L,1)->f())); return i; }
+  static int n(lua_State *L) { LuaManager::push(L, btUnscale(get_ptr(L,1)->f())); return i; }
 #define LUA_DEFINE_GET(n,f)  LUA_DEFINE_GETN(1,n,f)
 #define LUA_DEFINE_GET_SCALED(n,f) LUA_DEFINE_GETN_SCALED(1,n,f)
 
