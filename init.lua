@@ -1,7 +1,6 @@
 
 -- Config
 
-config.gravity_z = -9.81
 config.step_dt = 0.003
 config.time_scale = 1
 config.drop_epsilon = 0.001

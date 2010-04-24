@@ -95,7 +95,7 @@ public:
   btScalar r, theta, phi;
 
 public:
-  inline btSpheric3() {}
+  inline btSpheric3(): r(0), theta(0), phi(0) {}
   inline btSpheric3(const btScalar &r, const btScalar &theta, const btScalar &phi):
     r(r), theta(theta), phi(phi)
   {

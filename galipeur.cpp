@@ -276,7 +276,7 @@ inline void Galipeur::set_av(btScalar v)
 
 void Galipeur::order_xy(btVector2 xy, bool rel)
 {
-  std::vector<btVector2> v(1);
+  CheckPoints v(1);
   if( rel )
     xy += this->get_xy();
   v[0] = xy;
