@@ -16,12 +16,12 @@ LuaManager::LuaManager()
     throw(Error("state creation failed (memory allocation error)"));
 
   // Load some standard libraries
-	lua_pushcfunction(L_, luaopen_base);   lua_call(L_, 0, 0);
-	lua_pushcfunction(L_, luaopen_math);   lua_call(L_, 0, 0);
-	lua_pushcfunction(L_, luaopen_string); lua_call(L_, 0, 0);
-	lua_pushcfunction(L_, luaopen_table);  lua_call(L_, 0, 0);
-	lua_pushcfunction(L_, luaopen_io);     lua_call(L_, 0, 0);
-	lua_pushcfunction(L_, luaopen_package);lua_call(L_, 0, 0);
+  lua_pushcfunction(L_, luaopen_base);   lua_call(L_, 0, 0);
+  lua_pushcfunction(L_, luaopen_math);   lua_call(L_, 0, 0);
+  lua_pushcfunction(L_, luaopen_string); lua_call(L_, 0, 0);
+  lua_pushcfunction(L_, luaopen_table);  lua_call(L_, 0, 0);
+  lua_pushcfunction(L_, luaopen_io);     lua_call(L_, 0, 0);
+  lua_pushcfunction(L_, luaopen_package);lua_call(L_, 0, 0);
 
   // Initialize random seed
   lua_getglobal(L_, "math");
@@ -155,6 +155,57 @@ void LuaManager::checkcolor(lua_State *L, int narg, Color4 &c)
   int ret = tocolor(L, narg, c);
   if( ret != 0 )
     throw(LuaError(L, "invalid color"));
+}
+
+int LuaManager::tovector(lua_State *L, int index, btVector3 &v)
+{
+  // If index is relative to the top, get the absolute position
+  if( index < 0 )
+    index = lua_gettop(L) + 1 + index;
+
+  if( !lua_istable(L, index) )
+  {
+    lua_pushstring(L, "table expected");
+    return 1;
+  }
+
+  int n = lua_objlen(L, index);
+  if( n != 2 && n != 3 ) // z is optional
+  {
+    lua_pushstring(L, "invalid element count, 2 or 3 expected");
+    return 1;
+  }
+
+  int i;
+  float f[3];
+  for( i=0; i<n; i++ )
+  {
+    lua_rawgeti(L, index, i+1);
+    if( lua_isnone(L, -1) )
+    {
+      lua_pop(L, 1);
+      lua_pushstring(L, "element is missing");
+      return 1;
+    }
+    if( !lua_isnumber(L, -1) )
+    {
+      lua_pop(L, 1);
+      lua_pushstring(L, "invalid element, number expected");
+      return 1;
+    }
+    f[i] = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+  }
+
+  v = btScale(btVector3(f[0],f[1],f[2]));
+  return 0;
+}
+
+void LuaManager::checkvector(lua_State *L, int narg, btVector3 &v)
+{
+  int ret = tovector(L, narg, v);
+  if( ret != 0 )
+    throw(LuaError(L, "invalid vector"));
 }
 
 int LuaManager::totransform(lua_State *L, int index, btTransform &tr)

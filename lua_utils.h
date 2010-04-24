@@ -60,6 +60,21 @@ public:
    */
   static void checkcolor(lua_State *L, int narg, Color4 &c);
 
+  /** @brief Convert a given value to a 3D vector
+   *
+   * Valid transforms are tables of 2 or 3 elements, indexed by integers.
+   * Z position is optional and defaults to 0.
+   *
+   * @retval  0  transform is valid
+   * @retval  1  invalid transform, error message has been pushed on the stack
+   */
+  static int tovector(lua_State *L, int index, btVector3 &v);
+
+  /** @brief Check whether a given argument is a 3D vector and get it
+   * @sa toposition
+   */
+  static void checkvector(lua_State *L, int narg, btVector3 &v);
+
   /** @brief Convert a given value to a transform
    *
    * Valid transforms are tables of 3 or 6 elements, indexed by integers.

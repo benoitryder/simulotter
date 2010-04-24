@@ -45,6 +45,8 @@ public:
   /** @name Strategy functions and orders
    */
   //@{
+  typedef std::vector<btVector2> CheckPoints;
+
   const btVector2 get_xy() const { return this->getPos(); }
   const btVector2 get_v()  const { return body_->getLinearVelocity(); }
   btScalar get_a() const
@@ -58,39 +60,51 @@ public:
   void order_xy(btVector2 xy, bool rel=false);
   void order_a(btScalar a, bool rel=false);
   void order_xya(btVector2 xy, btScalar a, bool rel=false);
-  void order_stop() { stopped_ = false; }
+  void order_stop();
 
-  bool is_waiting() { return in_position_; }
+  void order_trajectory(const CheckPoints &pts);
 
-  btScalar test_sensor(unsigned int i);
+  bool stopped() const { return checkpoints_.empty(); }
+  /// Return \e true if position target has been reached.
+  inline bool order_xy_done() const;
+  /// Return the current checkpoint zero-based index.
+  /// Return \e true if angle target has been reached.
+  inline bool order_a_done() const;
+  inline bool is_waiting() const { return order_xy_done() && order_a_done(); }
+  inline size_t current_checkpoint() const { return ckpt_ - checkpoints_.begin(); }
+
+  btScalar test_sensor(unsigned int i) const;
   //@}
 
   /** @name Asserv configuration.
    */
   //@{
-  void set_speed_xy(btScalar v, btScalar a) { ramp_xy_.var_v = v; ramp_xy_.var_a = a; }
-  void set_speed_a (btScalar v, btScalar a) { ramp_a_ .var_v = v; ramp_a_ .var_a = a; }
-  void set_threshold_xy(btScalar t) { threshold_xy_ = t; }
+  void set_speed_xy(btScalar v, btScalar a) { ramp_xy_.var_v = v; ramp_xy_.var_acc = a; }
+  void set_speed_a (btScalar v, btScalar a) { ramp_a_ .var_v = v; ramp_a_ .var_acc = ramp_a_ .var_dec = a; }
+  void set_speed_steering(btScalar v, btScalar a) { v_steering_ = v; va_steering_ = a; }
+  void set_speed_stop(btScalar v, btScalar a) { v_stop_ = v; va_stop_ = a; }
+  void set_threshold_xy(btScalar t) { threshold_stop_ = t; }
   void set_threshold_a (btScalar t) { threshold_a_  = t; }
+  void set_threshold_steering(btScalar t) { threshold_steering_ = t; }
   //@}
 
-  /** @brief Implementation of the aversive quadramp filter.
+  /** @brief Implementation of a quadramp filter.
    *
    * It is not an exact equivalent of the aversive module, it is only intended
-   * to have the same behavior.
+   * to have the same behavior. Actually it offers more possibilities.
    *
    * Deceleration distance can be computed as following:
    * \f{eqnarray*}{
-   *   v_{dec}(t) & = & v_0 - a t \\
-   *   x_{dec}(t) & = & v_0 t - \frac12 a t^2 \\
-   *   t_{dec}    & = & \frac{v_0}a \\
-   *   d_{dec}    & = & x_{dec}(t_{dec}) = \frac12 \frac{v_0^2}a
+   *   v_{dec}(t) & = & (v-v_0) - a_{dec} t \\
+   *   x_{dec}(t) & = & (v-v_0) t - \frac12 a_{dec} t^2 \\
+   *   t_{dec}    & = & \frac{v-v_0}{a_{dec}} \\
+   *   d_{dec}    & = & x_{dec}(t_{dec}) = \frac12 \frac{(v-v_0)^2}a_{dec}
    * \f}
    */
   class Quadramp
   {
   public:
-    Quadramp(): var_v(0), var_a(0), cur_v_(0) {}
+    Quadramp(): var_v(0), var_v0(0), var_acc(0), var_dec(0), cur_v_(0) {}
     /// Reset current values.
     void reset(btScalar v=0) { cur_v_ = v; }
     /** @brief Feed the filter and return the new velocity.
@@ -101,7 +115,10 @@ public:
     btScalar step(btScalar d, btScalar dt);
 
   public:
-    btScalar var_v, var_a;
+    btScalar var_v;    ///< maximum speed (cruise speed)
+    btScalar var_v0;   ///< maximum speed when reaching target
+    btScalar var_acc;  ///< maximum acceleration
+    btScalar var_dec;  ///< maximum deceleration
   private:
     btScalar cur_v_;
   };
@@ -133,24 +150,26 @@ protected:
   /// Sharp positions
   std::vector<btTransform> sharps_trans_;
 
-  /** @name Orders.
+  /** @name Orders and parameters.
    */
   //@{
 
-  bool in_position_; ///< \e true if target has been reached
-  bool stopped_;     ///< \e true if asserv is not running
+  CheckPoints checkpoints_; ///< checkpoint list, empty if asserv is not running
+  CheckPoints::iterator ckpt_; ///< current checkpoint, never at end
+  Quadramp ramp_xy_;
+  btScalar v_steering_, va_steering_, threshold_steering_;
+  btScalar v_stop_, va_stop_, threshold_stop_;
 
-  btVector2 target_xy_;
-  btScalar  target_a_;
+  btScalar target_a_;
+  Quadramp ramp_a_;
+  btScalar ramp_last_t_; ///< Last update time of ramps.
+  btScalar threshold_a_;
 
   //@}
 
-  Quadramp ramp_xy_, ramp_a_;
-  btScalar ramp_last_t_; ///< Last update time of ramps.
-  btScalar threshold_xy_, threshold_a_;
-
   void set_v(btVector2 vxy);
   void set_av(btScalar v);
+  bool lastCheckpoint() const { return ckpt_ >= checkpoints_.end()-1; }
 
 private:
   static SmartPtr<btCompoundShape> shape_;
@@ -161,6 +180,19 @@ private:
    */
   static GLuint dl_id_static_;
 };
+
+
+bool Galipeur::order_xy_done() const
+{
+  const btScalar threshold = this->lastCheckpoint()
+      ? threshold_stop_ : threshold_steering_;
+  return ((*ckpt_) - get_xy()).length() < threshold;
+}
+
+bool Galipeur::order_a_done() const
+{
+  return btFabs(btNormalizeAngle( target_a_-get_a() )) < threshold_a_;
+}
 
 
 #endif

@@ -549,9 +549,12 @@
       <function name="get_v"><return type="float"/><return type="float"/></function>
       <function name="get_a"><return type="float"/></function>
 
-      <function name="set_speed_xy"><arg type="float"/>Set parameters of quadramps X/Y.</function>
+      <function name="set_speed_xy"><arg type="float"/>Set XY cruise speed and acceleration.</function>
+      <function name="set_speed_steering"><arg type="float"/>Set XY steering speed and acceleration.</function>
+      <function name="set_speed_stop"><arg type="float"/>Set XY speed and accelaration for the last checkpoint.</function>
+      <function name="set_threshold_xy"><arg type="float"/>Set XY precision for the last checkpoint.</function>
+      <function name="set_threshold_steering"><arg type="float"/>Set XY precision for intermediate checkpoints.</function>
       <function name="set_speed_a"><arg type="float"/>Set parameters of angle quadramp.</function>
-      <function name="set_threshold_xy"><arg type="float"/>Set distance precision for XY orders.</function>
       <function name="set_threshold_a"><arg type="float"/>Set angle precision for angle orders.</function>
 
       <function name="order_xy">
@@ -569,6 +572,11 @@
         <arg name="a" type="float"/>
         <arg name="rel" type="bool" required="0"/>
       </function>
+      <function name="order_trajectory">
+        Set a new trajectory.<br/>
+        Each <tt>t</tt> element is a table of 2 elements (x,y).
+        <arg name="t" type="table"/>
+      </function>
       <function name="order_stop">
       </function>
 
@@ -576,9 +584,21 @@
         Asserv method.<br/>
         This method should be scheduled after each simulation step.
       </function>
+      <function name="order_xy_done">
+        Returns true if XY target has been reached.
+        <return type="bool"/>
+      </function>
+      <function name="order_a_done">
+        Returns true if angle target has been reached.
+        <return type="bool"/>
+      </function>
       <function name="is_waiting">
         Returns true if the robot is waiting orders.
         <return type="bool"/>
+      </function>
+      <function name="current_checkpoint">
+        Return the current checkpoint index, starting at 1.
+        <return type="int"/>
       </function>
 
       <function name="set_sharps">

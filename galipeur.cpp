@@ -28,7 +28,8 @@ btBoxShape Galipeur::wheel_shape_( btVector3(h_wheel/2,r_wheel,r_wheel) );
 GLuint Galipeur::dl_id_static_ = 0;
 
 
-Galipeur::Galipeur(btScalar m)
+Galipeur::Galipeur(btScalar m):
+    color_(Color4(0.3))
 {
   // First instance: initialize shape
   if( shape_ == NULL )
@@ -76,11 +77,7 @@ Galipeur::Galipeur(btScalar m)
       );
   SmartPtr_add_ref(shape_);
 
-  // Init order
-  stopped_ = true;
-  in_position_ = false;
-
-  color_ = Color4(0.3);
+  order_stop();
 }
 
 Galipeur::~Galipeur()
@@ -229,9 +226,10 @@ void Galipeur::draw()
   glPopMatrix();
 }
 
+
 void Galipeur::asserv()
 {
-  if( stopped_ )
+  if( this->stopped() )
     return;
 
   if( physics_ == NULL )
@@ -241,19 +239,24 @@ void Galipeur::asserv()
   if( dt == 0 )
     return; // ramp start, wait for the next step
 
-  const btVector2 dxy = target_xy_ - get_xy();
-  const btScalar dr = dxy.length();
+  // position
+  if( !this->lastCheckpoint() && this->order_xy_done() )
+    ckpt_++; // checkpoint change
+  const btVector2 dxy = (*ckpt_) - get_xy();
+  if( this->lastCheckpoint() ) {
+    ramp_xy_.var_dec = va_stop_;
+    ramp_xy_.var_v0 = v_stop_;
+  } else {
+    ramp_xy_.var_dec = va_steering_;
+    ramp_xy_.var_v0 = v_steering_;
+  }
+  set_v( dxy.normalized() * ramp_xy_.step(dt, dxy.length()) );
+
+  // angle
   const btScalar da = btNormalizeAngle( target_a_-get_a() );
-
-  // Update speeds
-  set_v( dxy.normalized() * ramp_xy_.step(dt, dr) );
   set_av( ramp_a_.step(dt, da) );
-
-  // Update in_position_ flag
-  if( ! in_position_ )
-    if( dr <= threshold_xy_ && btFabs(da) <= threshold_a_ )
-      in_position_ = true;
 }
+
 
 void Galipeur::set_v(btVector2 vxy)
 {
@@ -273,12 +276,24 @@ inline void Galipeur::set_av(btScalar v)
 
 void Galipeur::order_xy(btVector2 xy, bool rel)
 {
-  order_xya( xy, rel ? 0 : get_a(), rel );
+  std::vector<btVector2> v(1);
+  if( rel )
+    xy += this->get_xy();
+  v[0] = xy;
+  this->order_trajectory(v);
 }
 
 void Galipeur::order_a(btScalar a, bool rel)
 {
-  order_xya( rel ? btVector2(0,0) : get_xy(), a, rel );
+  if( physics_ == NULL )
+    throw(Error("Galipeur is not in a world"));
+
+  if( rel )
+    a += this->get_a();
+  target_a_ = btNormalizeAngle(a);
+
+  ramp_last_t_ = physics_->getTime();
+  ramp_a_.reset(get_av());
 }
 
 void Galipeur::order_xya(btVector2 xy, btScalar a, bool rel)
@@ -286,24 +301,32 @@ void Galipeur::order_xya(btVector2 xy, btScalar a, bool rel)
   if( physics_ == NULL )
     throw(Error("Galipeur is not in a world"));
 
-  target_xy_ = xy;
-  target_a_ = a;
-  if( rel )
-  {
-    target_xy_ += this->get_xy();
-    target_a_ += this->get_a();
-  }
-  target_a_ = btNormalizeAngle(target_a_);
-
-  in_position_ = false;
-  stopped_ = false;
-  // reset ramps
-  ramp_last_t_ = physics_->getTime();
-  ramp_xy_.reset(get_v().length());
-  ramp_a_.reset(get_av());
+  this->order_xy(xy, rel);
+  this->order_a(a, rel);
 }
 
-btScalar Galipeur::test_sensor(unsigned int i)
+void Galipeur::order_stop()
+{
+  checkpoints_.clear();
+  ckpt_ = checkpoints_.end();
+}
+
+
+void Galipeur::order_trajectory(const std::vector<btVector2> &pts)
+{
+  if( physics_ == NULL )
+    throw(Error("Galipeur is not in a world"));
+  if( pts.empty() )
+    throw(Error("empty checkpoint list"));
+  checkpoints_ = pts;
+  ckpt_ = checkpoints_.begin();
+
+  ramp_last_t_ = physics_->getTime();
+  ramp_xy_.reset(get_v().length());
+}
+
+
+btScalar Galipeur::test_sensor(unsigned int i) const
 {
   if( i >= sharps_trans_.size() )
     throw(Error("invalid sensor index: %u"));
@@ -313,22 +336,19 @@ btScalar Galipeur::test_sensor(unsigned int i)
 
 btScalar Galipeur::Quadramp::step(btScalar dt, btScalar d)
 {
-  const btScalar d_dec = 0.5 * cur_v_*cur_v_ / var_a;
-  if( d < 0 )
-  {
-    if( -d < d_dec )
-      cur_v_ = MIN(0, cur_v_ + dt*var_a );
-    else if( cur_v_ > -var_v )
-      cur_v_ = MAX( -var_v, cur_v_ - dt*var_a );
+  const btScalar d_dec = 0.5 * (cur_v_-var_v0)*(cur_v_-var_v0) / var_dec;
+  btScalar target_v, a;
+  if( btFabs(d) < d_dec ) {
+    target_v = var_v0;
+    a = var_dec;
+  } else {
+    target_v = var_v;
+    a = var_acc;
   }
-  else
-  {
-    if( d < d_dec )
-      cur_v_ = MAX(0, cur_v_ - dt*var_a );
-    else if( cur_v_ < var_v )
-      cur_v_ = MIN( var_v, cur_v_ + dt*var_a );
+  if( d < 0 ) {
+    target_v *= -1;
   }
-
+  cur_v_ = cur_v_ + CLAMP(target_v-cur_v_, -a*dt, a*dt);
   return cur_v_;
 }
 
@@ -356,10 +376,13 @@ class LuaGalipeur: public LuaClass<Galipeur>
   LUA_DEFINE_GET(get_a , get_a)
   LUA_DEFINE_GET(get_av, get_av)
 
-  LUA_DEFINE_SET2(set_speed_xy,      set_speed_xy,      LARG_scaled, LARG_scaled)
-  LUA_DEFINE_SET2(set_speed_a,       set_speed_a,       LARG_f, LARG_f)
-  LUA_DEFINE_SET1(set_threshold_xy, set_threshold_xy, LARG_scaled)
-  LUA_DEFINE_SET1(set_threshold_a,  set_threshold_a,  LARG_f)
+  LUA_DEFINE_SET2(set_speed_xy,       set_speed_xy,       LARG_scaled, LARG_scaled)
+  LUA_DEFINE_SET2(set_speed_steering, set_speed_steering, LARG_scaled, LARG_scaled)
+  LUA_DEFINE_SET2(set_speed_stop,     set_speed_stop,     LARG_scaled, LARG_scaled)
+  LUA_DEFINE_SET1(set_threshold_xy,   set_threshold_xy,   LARG_scaled)
+  LUA_DEFINE_SET1(set_threshold_steering, set_threshold_steering, LARG_scaled)
+  LUA_DEFINE_SET2(set_speed_a,        set_speed_a,        LARG_f, LARG_f)
+  LUA_DEFINE_SET1(set_threshold_a,    set_threshold_a,    LARG_f)
 
   static int order_xy(lua_State *L)
   {
@@ -373,9 +396,33 @@ class LuaGalipeur: public LuaClass<Galipeur>
   }
   LUA_DEFINE_SET2(order_a, order_a, LARG_f, LARG_bn)
   LUA_DEFINE_SET0(order_stop, order_stop)
+  static int order_trajectory(lua_State *L)
+  {
+    SmartPtr<Galipeur> galipeur = get_ptr(L,1);
+    luaL_checktype(L, 2, LUA_TTABLE);
+    Galipeur::CheckPoints pts;
+
+    lua_pushnil(L);
+    while( lua_next(L, 2) != 0 )
+    {
+      btVector3 v;
+      LuaManager::checkvector(L, -1, v);
+      pts.push_back( v );
+      lua_pop(L, 1);
+    }
+    galipeur->order_trajectory(pts);
+    return 0;
+  }
 
   LUA_DEFINE_SET0(asserv, asserv)
+  LUA_DEFINE_GET(order_xy_done, order_xy_done)
+  LUA_DEFINE_GET(order_a_done, order_a_done)
   LUA_DEFINE_GET(is_waiting, is_waiting)
+  static int current_checkpoint(lua_State *L)
+  {
+    LuaManager::push(L, get_ptr(L,1)->current_checkpoint()+1);
+    return 1;
+  }
 
   static int set_sharps(lua_State *L)
   {
@@ -429,17 +476,24 @@ class LuaGalipeur: public LuaClass<Galipeur>
     LUA_CLASS_MEMBER(get_av);
 
     LUA_CLASS_MEMBER(set_speed_xy);
-    LUA_CLASS_MEMBER(set_speed_a);
+    LUA_CLASS_MEMBER(set_speed_steering);
+    LUA_CLASS_MEMBER(set_speed_stop);
     LUA_CLASS_MEMBER(set_threshold_xy);
+    LUA_CLASS_MEMBER(set_threshold_steering);
+    LUA_CLASS_MEMBER(set_speed_a);
     LUA_CLASS_MEMBER(set_threshold_a);
 
     LUA_CLASS_MEMBER(order_xy);
     LUA_CLASS_MEMBER(order_xya);
     LUA_CLASS_MEMBER(order_a);
+    LUA_CLASS_MEMBER(order_trajectory);
     LUA_CLASS_MEMBER(order_stop);
 
     LUA_CLASS_MEMBER(asserv);
+    LUA_CLASS_MEMBER(order_xy_done);
+    LUA_CLASS_MEMBER(order_a_done);
     LUA_CLASS_MEMBER(is_waiting);
+    LUA_CLASS_MEMBER(current_checkpoint);
 
     LUA_CLASS_MEMBER(set_sharps);
     LUA_CLASS_MEMBER(test_sharp);

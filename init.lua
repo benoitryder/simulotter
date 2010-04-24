@@ -37,18 +37,22 @@ r1:add_to_world()
 r1:set_pos(-(3.0-.5)/2, (2.1-.5)/2, 0.1001)
 r1:set_rot( -math.pi/2, 0, 0 )
 
-r1:set_speed_xy(0.4, 1.33);
-r1:set_speed_a(2.46, 12.3)
+r1:set_speed_xy(0.4, 1.33)
+r1:set_speed_steering(0.3, 1.33)
+r1:set_speed_stop(0.0, 1.33)
 r1:set_threshold_xy(0.003)
+r1:set_threshold_steering(0.01)
+r1:set_speed_a(2.46, 12.3)
 r1:set_threshold_a(0.01*math.pi)
 
 osd = OSD()
 osd.x, osd.y = 10, 20
 osd.color = {0, 0, 0}
 function osd.text()
-  x,y,z = r1:get_pos()
-  a,_,_ = r1:get_rot()
-  return string.format("%3.3fs | R1: %+1.3f , %+1.3f  %+1.3f", physics:get_time(), x,y,a)
+  local x,y,z = r1:get_pos()
+  local a,_,_ = r1:get_rot()
+  local vx,vy = r1:get_v()
+  return string.format("%3.3fs | R1: %+1.3f , %+1.3f  %+1.3f / %+1.3f", physics:get_time(), x,y,a, math.sqrt(vx*vx+vy*vy))
 end
 osd:show()
 
@@ -56,7 +60,7 @@ osd:show()
 do 
   local scores = { 0, 0 }
   local osd = OSD()
-  osd.x, osd.y = 400,20
+  osd.x, osd.y = 500,20
   osd.color = {0, 0, 0}
   function osd.text()
     return string.format("scores: %4d - %4d", scores[1], scores[2])
@@ -106,12 +110,21 @@ end
 
 function r1:strategy()
 
-  self:order_xy( eurobot2010.field_pos(-2,5) )
-  repeat coroutine.yield() until self:is_waiting()
-  local posx, posy = eurobot2010.field_pos(-1,4)
-  self:order_xya( posx, posy, math.atan(eurobot2010.FIELD.dy/eurobot2010.FIELD.dx) )
-  repeat coroutine.yield() until self:is_waiting()
-  self:order_xy( eurobot2010.field_pos(2,1) )
+  local pts = {
+    { eurobot2010.field_pos(-2,5) },
+    { eurobot2010.field_pos(-1,4) },
+  }
+  self:order_a( math.atan(eurobot2010.FIELD.dy/eurobot2010.FIELD.dx) )
+  self:order_trajectory( pts )
+  repeat coroutine.yield() until self:order_a_done()
+
+  -- add last point when angle has been reached
+  local pts2 = {}
+  for i=self:current_checkpoint(),#pts do
+    pts2[#pts2+1] = pts[i]
+  end
+  pts2[#pts2+1] = { eurobot2010.field_pos(2,1) }
+  self:order_trajectory( pts2 )
   repeat coroutine.yield() until self:is_waiting()
 
   trace("END: stop robot")
