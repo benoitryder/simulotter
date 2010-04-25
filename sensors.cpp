@@ -18,10 +18,12 @@ SRay::~SRay()
 
 void SRay::draw() const
 {
+  glDisable(GL_LIGHTING);
   glBegin(GL_LINES);
   btglVertex3(range_min_,0,0);
   btglVertex3(range_max_,0,0);
   glEnd();
+  glEnable(GL_LIGHTING);
 }
 
 
