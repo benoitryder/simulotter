@@ -10,7 +10,7 @@
 const btScalar Galipeur::z_mass = btScale(0.08);
 const btScalar Galipeur::ground_clearance = btScale(0.009);
 
-const btScalar Galipeur::height  = btScale(0.200);
+const btScalar Galipeur::height  = btScale(0.300);
 const btScalar Galipeur::side    = btScale(0.110);
 const btScalar Galipeur::w_block = btScale(0.030);
 const btScalar Galipeur::r_wheel = btScale(0.0246);
@@ -218,6 +218,7 @@ void Galipeur::draw()
   {
     glPushMatrix();
     drawTransform( *it );
+    glColor4fv(Color4::white()); //XXX
     glutSolidCube(0.1); //XXX
     SRay::gp2d12.draw();
     glPopMatrix();
@@ -240,9 +241,11 @@ void Galipeur::asserv()
     return; // ramp start, wait for the next step
 
   // position
-  if( !this->lastCheckpoint() && this->order_xy_done() )
-    ckpt_++; // checkpoint change
-  const btVector2 dxy = (*ckpt_) - get_xy();
+  btVector2 dxy = (*ckpt_) - get_xy();
+  if( !this->lastCheckpoint() && dxy.length() < threshold_steering_ ) {
+    ++ckpt_; // checkpoint change
+    dxy = (*ckpt_) - get_xy();
+  }
   if( this->lastCheckpoint() ) {
     ramp_xy_.var_dec = va_stop_;
     ramp_xy_.var_v0 = v_stop_;

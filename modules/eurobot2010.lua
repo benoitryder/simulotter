@@ -25,11 +25,65 @@ tomatoes = {}
 corns = {}
 oranges = {}
 
-
 -- Compute field element position, (0,0) is middle bottom
 function field_pos(x,y)
   return x*FIELD.dx, -TABLE.sy/2+FIELD.oy+y*FIELD.dy
 end
+
+-- Return nearest field position of given point.
+function nearest_field_pos(x,y)
+  return math.floor(x/FIELD.dx+0.5), math.floor((y+TABLE.sy/2-FIELD.oy)/FIELD.dy+0.5)
+end
+
+-- Field positions of tomatoes
+TOMATOES_POS = {
+  {0,1}, {0,3}
+}
+for i=1,3 do
+  TOMATOES_POS[#TOMATOES_POS+1] = { i,i-1}
+  TOMATOES_POS[#TOMATOES_POS+1] = { i,i+1}
+  TOMATOES_POS[#TOMATOES_POS+1] = {-i,i-1}
+  TOMATOES_POS[#TOMATOES_POS+1] = {-i,i+1}
+end
+
+-- Field positions of corns (fake or not)
+CORNS_POS = {
+  {0,0}, {0,2},
+}
+for i=1,3 do
+  for j=i+2,0,-2 do
+    CORNS_POS[#CORNS_POS+1] = { i,j}
+    CORNS_POS[#CORNS_POS+1] = {-i,j}
+  end
+end
+
+
+-- Field positions of fake corns, index by conf center/side part
+FAKES_POS_SIDE = {
+  -- {x1,y1} , {x2,y2}
+  { {2,2},{3,3} },
+  { {2,2},{3,5} },
+  { {2,2},{3,1} },
+  { {2,4},{3,1} },
+  { {2,4},{3,5} },
+  { {2,4},{3,3} },
+  { {1,3},{3,3} },
+  { {1,3},{3,5} },
+  { {1,3},{3,1} },
+}
+FAKES_POS_CENTER = {
+  -- y1 , {x2,y2}  (x1 = 0)
+  { 2,{2,0} },
+  { 2,{1,1} },
+  { 0,{2,0} },
+  { 0,{1,1} },
+}
+
+-- Get lateral/central random index from field configuration.
+function extract_conf(fconf)
+  return fconf % 16, math.floor(fconf/16)
+end
+
 
 -- Return team number if an object is in a bac, false otherwise
 -- Test is based on object's center position.
@@ -153,8 +207,7 @@ function init(fconf)
     conf_side   = math.random(9)
     conf_center = math.random(4)
   else
-    conf_side   = fconf % 16
-    conf_center = math.floor(fconf/16)
+    conf_side, conf_center = extract_conf(fconf)
   end
   if conf_side < 1 or conf_side > 9 or conf_center < 1 or conf_center > 4 then
     error("invalid field configuration")
@@ -252,59 +305,33 @@ function init(fconf)
   -- Corns
   trace("  corns")
   do
-    local fake_pos_side = {
-      -- {x1,y1} , {x2,y2}
-      { {2,2},{3,3} },
-      { {2,2},{3,5} },
-      { {2,2},{3,1} },
-      { {2,4},{3,1} },
-      { {2,4},{3,5} },
-      { {2,4},{3,3} },
-      { {1,3},{3,3} },
-      { {1,3},{3,5} },
-      { {1,3},{3,1} },
-    }
-    local fake_pos_center = {
-      -- y1 , {x2,y2}  (x1 = 0)
-      { 2,{2,0} },
-      { 2,{1,1} },
-      { 0,{2,0} },
-      { 0,{1,1} },
-    }
-
     -- fakes
-    local t1 = fake_pos_center[conf_center]
-    local t2 = fake_pos_side[conf_side]
-    local fakes = { [0]= t1[1], [1]= t1[2], [2]= t2[1], [3]= t2[2] }
+    local t1 = FAKES_POS_CENTER[conf_center]
+    local t2 = FAKES_POS_SIDE[conf_side]
+    local fakes = {
+      {0,t1[1]}, {t1[2][1],t1[2][2]}, {-t1[2][1],t1[2][2]},
+    }
+    for k,v in ipairs(FAKES_POS_SIDE[conf_side]) do
+      fakes[#fakes+1] = { v[1],v[2]}
+      fakes[#fakes+1] = {-v[1],v[2]}
+    end
 
-    add_corn(0, 0, fakes[0]==0)
-    add_corn(0, 2, fakes[0]==2)
-    for i=1,3 do
-      for j=i+2,0,-2 do
-        local f = false
-        for k,v in ipairs(fakes) do
-          if v[1]==i and v[2]==j then
-            f = true
-            break
-          end
+    for k,v in ipairs(CORNS_POS) do
+      local f = false
+      for kf,vf in ipairs(fakes) do
+        if vf[1]==v[1] and vf[2]==v[2] then
+          f = true
+          break
         end
-        add_corn( i,j,f)
-        add_corn(-i,j,f)
       end
+      add_corn(v[1],v[2],f)
     end
   end
 
   -- Tomatoes
   trace("  tomatoes")
-  do
-    add_tomato(0,1)
-    add_tomato(0,3)
-    for i=1,3 do
-      add_tomato( i,i-1)
-      add_tomato( i,i+1)
-      add_tomato(-i,i-1)
-      add_tomato(-i,i+1)
-    end
+  for k,v in ipairs(TOMATOES_POS) do
+    add_tomato(unpack(v))
   end
 
   -- Oranges and trees

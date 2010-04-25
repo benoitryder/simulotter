@@ -73,15 +73,11 @@ do
 end
 
 -- sharps
+function r1:set_sharp_angle(a)
+  r1:set_sharps({ { -0.1,0,0.2-0.08, 0,math.pi/6,a+math.pi } })
+end
 do
-  local x, y, r
-  x = math.cos(math.pi/3)
-  y = math.sin(math.pi/3)
-  r = 0.1
-  r1:set_sharps({
-    { r*x, r*y,0.10, 0,0.25, math.pi/3 },
-    { r*x,-r*y,0.10, 0,0.25,-math.pi/3 }
-  })
+  r1:set_sharp_angle(0)
 
   osd_sharps = OSD()
   osd_sharps.x, osd_sharps.y = 10, 40

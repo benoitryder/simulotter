@@ -184,13 +184,17 @@ private:
 
 bool Galipeur::order_xy_done() const
 {
-  const btScalar threshold = this->lastCheckpoint()
-      ? threshold_stop_ : threshold_steering_;
-  return ((*ckpt_) - get_xy()).length() < threshold;
+  if( this->stopped() )
+    return true;
+  if( !this->lastCheckpoint() )
+    return false;
+  return ((*ckpt_) - get_xy()).length() < threshold_stop_;
 }
 
 bool Galipeur::order_a_done() const
 {
+  if( this->stopped() )
+    return true;
   return btFabs(btNormalizeAngle( target_a_-get_a() )) < threshold_a_;
 }
 
