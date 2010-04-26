@@ -21,6 +21,7 @@ LuaManager::LuaManager()
   lua_pushcfunction(L_, luaopen_string); lua_call(L_, 0, 0);
   lua_pushcfunction(L_, luaopen_table);  lua_call(L_, 0, 0);
   lua_pushcfunction(L_, luaopen_io);     lua_call(L_, 0, 0);
+  lua_pushcfunction(L_, luaopen_os);     lua_call(L_, 0, 0);
   lua_pushcfunction(L_, luaopen_package);lua_call(L_, 0, 0);
 
   // Initialize random seed

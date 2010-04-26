@@ -433,6 +433,11 @@
         <return type="bool"/>
       </function>
 
+      <function name="is_in_world">
+        Returns whether the object has been added to a physical world.
+        <return type="bool"/>
+      </function>
+
       <function name="set_color">
         <arg type="Color"/>
       </function>

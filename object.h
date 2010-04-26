@@ -28,7 +28,7 @@ public:
    *
    * @note Overload functions should call this parent function.
    */
-  virtual void addToWorld(Physics *physics_);
+  virtual void addToWorld(Physics *physics);
 
   /** @brief Remove an object from its physical world.
    *

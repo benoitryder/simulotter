@@ -380,6 +380,7 @@ class LuaOSimple: public LuaClass<OSimple>
     return 0;
   }
 
+  LUA_DEFINE_GET(is_in_world, isInWorld); // isInWorld defined in bullet
 
   virtual void init_members(lua_State *L)
   {
@@ -389,6 +390,7 @@ class LuaOSimple: public LuaClass<OSimple>
     LUA_CLASS_MEMBER(is_initialized);
     LUA_CLASS_MEMBER(set_pos);
     LUA_CLASS_MEMBER(set_color);
+    LUA_CLASS_MEMBER(is_in_world);
   }
 };
 

@@ -18,7 +18,7 @@ Physics::Physics(): pause_state_(false), step_dt_(0), time_(0)
   broadphase_ = new btAxisSweep3(
       btScale(btVector3(-10,-5,-2)),
       btScale(btVector3(10,5,2)),
-      200
+      300
       );
 
   solver_ = new btSequentialImpulseConstraintSolver();

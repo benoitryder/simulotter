@@ -173,10 +173,8 @@ do
 end
 
 -- Screenshots with 'o'
-local screen_n = 0
-display:set_handler({ t=display.EVENT.KEYUP, key='o'} , function(ev)
-  display:save_screenshot(string.format('screenshot%03d.png', screen_n))
-  screen_n = screen_n + 1
+display:set_handler({t=display.EVENT.KEYUP, key='o'}, function(ev)
+  display:save_screenshot( os.date("%Y%m%d-%H%M%S.png") )
 end)
 
 
