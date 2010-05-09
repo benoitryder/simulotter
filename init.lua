@@ -39,10 +39,9 @@ r1:set_rot( -math.pi/2, 0, 0 )
 r1:set_speed_xy(0.4, 1.33)
 r1:set_speed_steering(0.3, 1.33)
 r1:set_speed_stop(0.0, 1.33)
-r1:set_threshold_xy(0.003)
+r1:set_threshold_stop(0.003, 0.01*math.pi)
 r1:set_threshold_steering(0.01)
 r1:set_speed_a(2.46, 12.3)
-r1:set_threshold_a(0.01*math.pi)
 
 osd = OSD()
 osd.x, osd.y = 10, 20

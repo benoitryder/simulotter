@@ -382,10 +382,9 @@ class LuaGalipeur: public LuaClass<Galipeur>
   LUA_DEFINE_SET2(set_speed_xy,       set_speed_xy,       LARG_scaled, LARG_scaled)
   LUA_DEFINE_SET2(set_speed_steering, set_speed_steering, LARG_scaled, LARG_scaled)
   LUA_DEFINE_SET2(set_speed_stop,     set_speed_stop,     LARG_scaled, LARG_scaled)
-  LUA_DEFINE_SET1(set_threshold_xy,   set_threshold_xy,   LARG_scaled)
+  LUA_DEFINE_SET2(set_threshold_stop, set_threshold_stop, LARG_scaled, LARG_f)
   LUA_DEFINE_SET1(set_threshold_steering, set_threshold_steering, LARG_scaled)
   LUA_DEFINE_SET2(set_speed_a,        set_speed_a,        LARG_f, LARG_f)
-  LUA_DEFINE_SET1(set_threshold_a,    set_threshold_a,    LARG_f)
 
   static int order_xy(lua_State *L)
   {
@@ -481,10 +480,9 @@ class LuaGalipeur: public LuaClass<Galipeur>
     LUA_CLASS_MEMBER(set_speed_xy);
     LUA_CLASS_MEMBER(set_speed_steering);
     LUA_CLASS_MEMBER(set_speed_stop);
-    LUA_CLASS_MEMBER(set_threshold_xy);
+    LUA_CLASS_MEMBER(set_threshold_stop);
     LUA_CLASS_MEMBER(set_threshold_steering);
     LUA_CLASS_MEMBER(set_speed_a);
-    LUA_CLASS_MEMBER(set_threshold_a);
 
     LUA_CLASS_MEMBER(order_xy);
     LUA_CLASS_MEMBER(order_xya);

@@ -8,15 +8,19 @@ Node = class(nil, function(self, map, x, y)
   self.map = map
   self.x = x
   self.y = y
-  self.o = OSimple()
-  self.o:set_shape(map.node_shape)
   local ax, ay = map:node2xy(x,y)
-  self.o:set_pos(ax, ay, map.node_z)
+  if __SIMULOTTER__ then
+    self.o = OSimple()
+    self.o:set_shape(map.node_shape)
+    self.o:set_pos(ax, ay, map.node_z)
+  end
   self:set(1)
 end)
 function Node.set(self, v)
   self.v = v
-  self.o:set_color(colors.gray(1-v/100))
+  if __SIMULOTTER__ then
+    self.o:set_color(colors.gray(1-v/100))
+  end
 end
 function Node.show(self)
   if not self.o:is_in_world() then
@@ -44,8 +48,10 @@ end)
 -- Configuration attributes (can be overriden on map instance)
 --   shape: shape used for node objects
 --   z pos: z-position of node objects
-Map.node_shape = Shape:sphere(0.02)
-Map.node_z = 1
+if __SIMULOTTER__ then
+  Map.node_shape = Shape:sphere(0.02)
+  Map.node_z = 1
+end
 
 
 -- Create nodes.

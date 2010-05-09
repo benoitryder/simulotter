@@ -443,6 +443,9 @@ void LuaClassBase::init(lua_State *L)
   lua_setfield(L, -2, "__index");
   lua_pop(L, 1);
 
+  lua_pushboolean(L, 1);
+  lua_setglobal(L, "__SIMULOTTER__");
+
   lua_register(L, "class", new_class);
 
   std::vector<LuaClassBase*>::iterator it;

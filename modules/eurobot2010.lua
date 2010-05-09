@@ -144,7 +144,7 @@ end
 
 
 -- Branches and trees classes
-do
+if __SIMULOTTER__ then
 
   -- Branch class
   OBranch = class(OSimple, function(self,h)

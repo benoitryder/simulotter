@@ -83,8 +83,7 @@ public:
   void set_speed_a (btScalar v, btScalar a) { ramp_a_ .var_v = v; ramp_a_ .var_acc = ramp_a_ .var_dec = a; }
   void set_speed_steering(btScalar v, btScalar a) { v_steering_ = v; va_steering_ = a; }
   void set_speed_stop(btScalar v, btScalar a) { v_stop_ = v; va_stop_ = a; }
-  void set_threshold_xy(btScalar t) { threshold_stop_ = t; }
-  void set_threshold_a (btScalar t) { threshold_a_  = t; }
+  void set_threshold_stop(btScalar r, btScalar l) { threshold_stop_ = r; threshold_a_ = l; }
   void set_threshold_steering(btScalar t) { threshold_steering_ = t; }
   //@}
 

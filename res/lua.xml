@@ -6,6 +6,11 @@
   <module name="main">
     Main module, exported to the global environment.
 
+    <object name="__SIMULOTTER__">
+      Set to <tt>true</tt>, used by modules to know if Simulotter's components
+      can be used.
+    </object>
+
     <object name="config">
       Configuration values.
 
@@ -554,13 +559,35 @@
       <function name="get_v"><return type="float"/><return type="float"/></function>
       <function name="get_a"><return type="float"/></function>
 
-      <function name="set_speed_xy"><arg type="float"/>Set XY cruise speed and acceleration.</function>
-      <function name="set_speed_steering"><arg type="float"/>Set XY steering speed and acceleration.</function>
-      <function name="set_speed_stop"><arg type="float"/>Set XY speed and accelaration for the last checkpoint.</function>
-      <function name="set_threshold_xy"><arg type="float"/>Set XY precision for the last checkpoint.</function>
-      <function name="set_threshold_steering"><arg type="float"/>Set XY precision for intermediate checkpoints.</function>
-      <function name="set_speed_a"><arg type="float"/>Set parameters of angle quadramp.</function>
-      <function name="set_threshold_a"><arg type="float"/>Set angle precision for angle orders.</function>
+      <function name="set_speed_xy">
+        Set XY cruise speed and acceleration.
+        <arg name="v" type="float"/>
+        <arg name="a" type="float"/>
+      </function>
+      <function name="set_speed_steering">
+        Set XY steering speed and acceleration.
+        <arg name="v" type="float"/>
+        <arg name="a" type="float"/>
+      </function>
+      <function name="set_speed_stop">
+        Set XY speed and acceleration for the last checkpoint.
+        <arg name="v" type="float"/>
+        <arg name="a" type="float"/>
+      </function>
+      <function name="set_threshold_steering">
+        Set distance precision for intermediate checkpoints.
+        <arg name="r" type="float"/>
+      </function>
+      <function name="set_threshold_stop">
+        Set distance and angle precision for the last checkpoint.
+        <arg name="r" type="float"/>
+        <arg name="a" type="float"/>
+      </function>
+      <function name="set_speed_a">
+        Set parameters of angle quadramp.
+        <arg name="v" type="float"/>
+        <arg name="a" type="float"/>
+      </function>
 
       <function name="order_xy">
         <arg name="x" type="float"/>
