@@ -9,6 +9,7 @@
 
 const btScalar Galipeur::z_mass = btScale(0.08);
 const btScalar Galipeur::ground_clearance = btScale(0.009);
+const btScalar Galipeur::angle_offset = -M_PI/2;
 
 const btScalar Galipeur::height  = btScale(0.300);
 const btScalar Galipeur::side    = btScale(0.110);
@@ -49,12 +50,13 @@ Galipeur::Galipeur(btScalar m):
         p.rotate(a_side);
       }
     }
-    shape_->addChildShape( btTransform(
-          btMatrix3x3::getIdentity(), btVector3(0,0,ground_clearance-(z_mass-height/2))),
-        &body_shape_);
+    shape_->addChildShape( btTransform( btQuaternion(0, 0, 1, angle_offset),
+                           btVector3(0,0,ground_clearance-(z_mass-height/2))),
+                          &body_shape_);
 
     // Wheels (use boxes instead of cylinders)
     btTransform tr = btTransform::getIdentity();
+    tr.setRotation( btQuaternion(0, 0, 1, angle_offset) );
     btVector2 vw( d_wheel+h_wheel/2, 0 );
     tr.setOrigin( btVector3(vw.x, vw.y, -(z_mass - r_wheel)) );
     shape_->addChildShape(tr, &wheel_shape_);
@@ -103,6 +105,7 @@ void Galipeur::draw()
 
   glPushMatrix();
   drawTransform(body_->getCenterOfMassTransform());
+  btglRotate(-angle_offset*180.0f/M_PI, 0.0f, 0.0f, 1.0f);
 
   if( dl_id_static_ != 0 )
     glCallList(dl_id_static_);

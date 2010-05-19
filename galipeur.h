@@ -127,6 +127,7 @@ public:
   //@{
   static const btScalar z_mass;   ///< Z position of the center of mass
   static const btScalar ground_clearance;
+  static const btScalar angle_offset; ///< angle of the first wheel
 
   static const btScalar height;   ///< body height
   static const btScalar side;     ///< triangle side half size
