@@ -12,8 +12,46 @@
 #include "lua_utils.h"
 
 class Object;
-class EventHandler;
+class Display;
 class OSDMessage;
+
+
+/** @brief Event handler interface.
+ *
+ * Handlers are associated to SDL events. Each input event is checked given
+ * handlers.
+ *
+ * Event type are compared using type and type specific fields (e.g. \e
+ * keysym for keyboard events), some fields are not compared (e.g. mouse
+ * coordinates for motion events).
+ *
+ * Their could not have several active handlers matching a same event.
+ *
+ * @note Key repeat is enabled.
+ */
+class DisplayEventHandler: public SmartObject
+{
+public:
+  /** @brief Event comparison function class
+   *
+   * Events are first ordered by type, then by specific fields:
+   *  - keydown/up: <tt>keysym.sym</tt>
+   *  - mouse motion: <tt>state</tt>
+   *  - mouse button: <tt>button</tt>
+   *  - user: <tt>code</tt>
+   *  - others: none
+   */
+  class Cmp
+  {
+  public:
+    bool operator()(const SDL_Event &a, const SDL_Event &b);
+  };
+
+  virtual ~DisplayEventHandler() {}
+
+  typedef void (*Callback)(Display *, const SDL_Event *);
+  virtual void process(Display *d, const SDL_Event *ev) const = 0;
+};
 
 
 /** @brief Display and interface events
@@ -141,72 +179,17 @@ private:
   //@}
 
 
-  /** @name Events
-   *
-   * Handlers are associated to SDL events. Each input event is checked given
-   * handlers.
-   *
-   * Event type are compared using type and type specific fields (e.g. \e
-   * keysym for keyboard events), some fields are not compared (e.g. mouse
-   * coordinates for motion events).
-   *
-   * Their could not have several active handlers matching a same event.
-   *
-   * @note Key repeat is enabled.
-   */
-  //@{
 public:
 
   /// Process SDL events
   void processEvents();
 
-  /** @brief Event comparison function class
-   *
-   * Events are first ordered by type, then by specific fields:
-   *  - keydown/up: <tt>keysym.sym</tt>
-   *  - mouse motion: <tt>state</tt>
-   *  - mouse button: <tt>button</tt>
-   *  - user: <tt>code</tt>
-   *  - others: none
-   */
-  class EventCmp
-  {
-  public:
-    bool operator()(const SDL_Event &a, const SDL_Event &b);
-  };
-
-  /** @brief Event handler
-   */
-  class EventHandler
-  {
-  public:
-    typedef void (*Callback)(Display *, const SDL_Event *);
-
-    /// C++ constructor
-    EventHandler(Callback cb): ptr_cb_(cb), L_(NULL), ref_cb_(LUA_NOREF) {}
-    /// Lua constructor
-    EventHandler(lua_State *L, int ref);
-    /// Copy constructor, to copy the Lua reference
-    EventHandler(const EventHandler &h);
-
-    virtual ~EventHandler();
-
-    void operator()(Display *d, const SDL_Event *ev) const;
-
-  private:
-    /// C++ callback
-    Callback ptr_cb_;
-    /// Lua callback state
-    lua_State *L_;
-    /// Lua callback reference
-    int ref_cb_;
-  };
-
   /// Add, replace or remove an event handler
-  void setHandler(const SDL_Event &ev, const EventHandler &h);
+  void setHandler(const SDL_Event &ev, DisplayEventHandler *h);
 
 private:
-  typedef std::map<SDL_Event, EventHandler, EventCmp> EventHandlerContainer;
+  typedef std::map<SDL_Event, SmartPtr<DisplayEventHandler>,
+          DisplayEventHandler::Cmp> EventHandlerContainer;
   /// Event handlers
   EventHandlerContainer handlers_;
 
@@ -223,8 +206,6 @@ private:
   static void handlerCamRight(Display *d, const SDL_Event *event);
   static void handlerCamUp   (Display *d, const SDL_Event *event);
   static void handlerCamDown (Display *d, const SDL_Event *event);
-  //@}
-
   //@}
 
 
@@ -249,6 +230,31 @@ private:
 public:
   /// Display singleton.
   static SmartPtr<Display> display;
+};
+
+
+/** @brief Basic event handler.
+ */
+class BasicEventHandler: public DisplayEventHandler
+{
+ public:
+  BasicEventHandler(Callback cb): cb_(cb) {}
+  virtual void process(Display *d, const SDL_Event *ev) const { cb_(d,ev); }
+ private:
+  Callback cb_;  /// C++ callback
+};
+
+/** @brief Event handler used in LUA.
+ */
+class EventHandlerLua: public DisplayEventHandler
+{
+ public:
+  EventHandlerLua(lua_State *L, int ref);
+  virtual ~EventHandlerLua();
+  virtual void process(Display *d, const SDL_Event *ev) const;
+ private:
+  lua_State *L_;  /// Lua callback state
+  int ref_cb_;    /// Lua callback reference
 };
 
 

@@ -36,24 +36,24 @@ Display::Display()
   
   // Window events
   event.type = SDL_QUIT;
-  setHandler(event, handlerQuit);
+  setHandler(event, new BasicEventHandler(handlerQuit));
   event.type = SDL_VIDEORESIZE;
-  setHandler(event, handlerResize);
+  setHandler(event, new BasicEventHandler(handlerResize));
 
   // Mouse motion
   event.type = SDL_MOUSEMOTION;
   event.motion.state = SDL_BUTTON(1);
-  setHandler(event, handlerCamMouse);
+  setHandler(event, new BasicEventHandler(handlerCamMouse));
 
   // Keyboard
 
   event.key.keysym.sym = SDLK_ESCAPE;
   event.type = SDL_KEYDOWN;
-  setHandler(event, handlerQuit);
+  setHandler(event, new BasicEventHandler(handlerQuit));
 
   event.key.keysym.sym = SDLK_SPACE;
   event.type = SDL_KEYUP;
-  setHandler(event, handlerPause);
+  setHandler(event, new BasicEventHandler(handlerPause));
 
   // Camera moves
   // TODO correct AZERTY/QWERTY handling
@@ -63,25 +63,25 @@ Display::Display()
 #else
   event.key.keysym.sym = SDLK_z;
 #endif
-  setHandler(event, handlerCamAhead);
+  setHandler(event, new BasicEventHandler(handlerCamAhead));
   event.key.keysym.sym = SDLK_s;
-  setHandler(event, handlerCamBack);
+  setHandler(event, new BasicEventHandler(handlerCamBack));
 #ifdef WIN32
   event.key.keysym.sym = SDLK_a;
 #else
   event.key.keysym.sym = SDLK_q;
 #endif
-  setHandler(event, handlerCamLeft);
+  setHandler(event, new BasicEventHandler(handlerCamLeft));
   event.key.keysym.sym = SDLK_d;
-  setHandler(event, handlerCamRight);
+  setHandler(event, new BasicEventHandler(handlerCamRight));
 #ifdef WIN32
   event.key.keysym.sym = SDLK_q;
 #else
   event.key.keysym.sym = SDLK_a;
 #endif
-  setHandler(event, handlerCamUp);
+  setHandler(event, new BasicEventHandler(handlerCamUp));
   event.key.keysym.sym = SDLK_e;
-  setHandler(event, handlerCamDown);
+  setHandler(event, new BasicEventHandler(handlerCamDown));
 }
 
 Display::~Display()
@@ -394,143 +394,17 @@ void Display::processEvents()
   {
     it_h = handlers_.find(event);
     if( it_h != handlers_.end() )
-      (*it_h).second(this, &event);
+      (*it_h).second->process(this, &event);
   }
 }
 
-bool Display::EventCmp::operator()(const SDL_Event &a, const SDL_Event &b)
+void Display::setHandler(const SDL_Event &ev, DisplayEventHandler *h)
 {
-  if( a.type == b.type )
-  {
-    switch( a.type )
-    {
-      case SDL_KEYDOWN:
-      case SDL_KEYUP:
-        return a.key.keysym.sym < b.key.keysym.sym;
-      case SDL_MOUSEMOTION:
-        return a.motion.state < b.motion.state;
-      case SDL_MOUSEBUTTONDOWN:
-      case SDL_MOUSEBUTTONUP:
-        return a.button.button < b.button.button;
-      case SDL_USEREVENT:
-        return a.user.code < b.user.code;
-      default: // events are equal
-        return false;
-    }
+  if( h == NULL ) {
+    handlers_.erase(ev);
+  } else {
+    handlers_.insert( EventHandlerContainer::value_type(ev, h) );
   }
-
-  return a.type < b.type;
-}
-
-void Display::setHandler(const SDL_Event &ev, const EventHandler &h)
-{
-  handlers_.insert( EventHandlerContainer::value_type(ev, h) );
-}
-
-Display::EventHandler::EventHandler(lua_State *L, int ref): ptr_cb_(NULL), L_(L), ref_cb_(ref)
-{
-  if( ref_cb_ == LUA_NOREF || ref_cb_ == LUA_REFNIL )
-    throw(LuaError(L_, "invalid object reference for EventHandler"));
-  lua_rawgeti(L_, LUA_REGISTRYINDEX, ref_cb_);
-  if( !lua_isfunction(L_, -1) )
-    throw(LuaError(L_, "EventHandler: invalid callback type"));
-  lua_pop(L_,1);
-}
-
-Display::EventHandler::EventHandler(const EventHandler &h): ptr_cb_(h.ptr_cb_)
-{
-  if( h.ref_cb_ != LUA_NOREF )
-  {
-    // Copy the reference and the state
-    L_ = h.L_;
-    lua_rawgeti(L_, LUA_REGISTRYINDEX, h.ref_cb_);
-    ref_cb_ = luaL_ref(L_, LUA_REGISTRYINDEX);
-  }
-  else
-  {
-    L_ = NULL;
-    ref_cb_ = LUA_NOREF;
-  }
-}
-
-Display::EventHandler::~EventHandler()
-{
-  if( L_ != NULL )
-    luaL_unref(L_, LUA_REGISTRYINDEX, ref_cb_);
-}
-
-void Display::EventHandler::operator()(Display *d, const SDL_Event *ev) const
-{
-  if( ptr_cb_ )
-    ptr_cb_(d, ev);
-  else if( L_ != NULL && ref_cb_ != LUA_NOREF )
-  {
-    lua_rawgeti(L_, LUA_REGISTRYINDEX, ref_cb_);
-    // callback type has already been checked in constructor
-    // push the event
-    lua_newtable(L_);
-    LuaManager::setfield(L_, -1, "t", ev->type);
-    switch( ev->type )
-    {
-      case SDL_KEYDOWN:
-      case SDL_KEYUP:
-        LuaManager::setfield(L_, -1, "state", ev->key.state == SDL_PRESSED);
-        LuaManager::setfield(L_, -1, "key", ev->key.keysym.sym);
-        lua_newtable(L_);
-        if( ev->key.keysym.mod != KMOD_NONE )
-        {
-          SDLMod mod = ev->key.keysym.mod;
-          if( mod & KMOD_LSHIFT ) LuaManager::setfield(L_, -1, "LSHIFT", true);
-          if( mod & KMOD_RSHIFT ) LuaManager::setfield(L_, -1, "RSHIFT", true);
-          if( mod & KMOD_LCTRL  ) LuaManager::setfield(L_, -1, "LCTRL" , true);
-          if( mod & KMOD_RCTRL  ) LuaManager::setfield(L_, -1, "RCTRL" , true);
-          if( mod & KMOD_LALT   ) LuaManager::setfield(L_, -1, "LALT"  , true);
-          if( mod & KMOD_RALT   ) LuaManager::setfield(L_, -1, "RALT"  , true);
-          if( mod & KMOD_LMETA  ) LuaManager::setfield(L_, -1, "LMETA" , true);
-          if( mod & KMOD_RMETA  ) LuaManager::setfield(L_, -1, "RMETA" , true);
-          if( mod & KMOD_NUM    ) LuaManager::setfield(L_, -1, "NUM"   , true);
-          if( mod & KMOD_CAPS   ) LuaManager::setfield(L_, -1, "CAPS"  , true);
-          if( mod & KMOD_MODE   ) LuaManager::setfield(L_, -1, "MODE"  , true);
-          if( mod & KMOD_SHIFT  ) LuaManager::setfield(L_, -1, "SHIFT" , true);
-          if( mod & KMOD_CTRL   ) LuaManager::setfield(L_, -1, "CTRL"  , true);
-          if( mod & KMOD_ALT    ) LuaManager::setfield(L_, -1, "ALT"   , true);
-          if( mod & KMOD_META   ) LuaManager::setfield(L_, -1, "META"  , true);
-        }
-        lua_setfield(L_, -2, "mod");
-        break;
-
-      case SDL_MOUSEMOTION:
-        lua_newtable(L_);
-        if( ev->motion.state )
-        {
-          Uint8 state = ev->motion.state;
-          if( state & SDL_BUTTON_LMASK ) LuaManager::setfield(L_, -1, "LEFT",   true);
-          if( state & SDL_BUTTON_MMASK ) LuaManager::setfield(L_, -1, "MIDDLE", true);
-          if( state & SDL_BUTTON_RMASK ) LuaManager::setfield(L_, -1, "RIGHT",  true);
-        }
-        lua_setfield(L_, -2, "state");
-        LuaManager::setfield(L_, -1, "x", ev->motion.x);
-        LuaManager::setfield(L_, -1, "y", ev->motion.y);
-        LuaManager::setfield(L_, -1, "xrel", ev->motion.xrel);
-        LuaManager::setfield(L_, -1, "yrel", ev->motion.yrel);
-        break;
-
-      case SDL_MOUSEBUTTONDOWN:
-      case SDL_MOUSEBUTTONUP:
-        LuaManager::setfield(L_, -1, "button", ev->button.button);
-        LuaManager::setfield(L_, -1, "state", ev->button.state == SDL_PRESSED);
-        LuaManager::setfield(L_, -1, "x", ev->motion.x);
-        LuaManager::setfield(L_, -1, "y", ev->motion.y);
-        break;
-
-      default:
-        throw(Error("EventHandler: event type not supported: %d", ev->type));
-    }
-
-    LuaManager::pcall(L_, 1, 0);
-  }
-  else
-    throw(Error("EventHandler: attempt to process an handler without callback"));
 }
 
 
@@ -778,6 +652,112 @@ void Display::handlerCamDown(Display *d, const SDL_Event *event)
 }
 
 
+bool DisplayEventHandler::Cmp::operator()(const SDL_Event &a, const SDL_Event &b)
+{
+  if( a.type == b.type )
+  {
+    switch( a.type )
+    {
+      case SDL_KEYDOWN:
+      case SDL_KEYUP:
+        return a.key.keysym.sym < b.key.keysym.sym;
+      case SDL_MOUSEMOTION:
+        return a.motion.state < b.motion.state;
+      case SDL_MOUSEBUTTONDOWN:
+      case SDL_MOUSEBUTTONUP:
+        return a.button.button < b.button.button;
+      case SDL_USEREVENT:
+        return a.user.code < b.user.code;
+      default: // events are equal
+        return false;
+    }
+  }
+
+  return a.type < b.type;
+}
+
+
+EventHandlerLua::EventHandlerLua(lua_State *L, int ref): L_(L), ref_cb_(ref)
+{
+  if( ref_cb_ == LUA_NOREF || ref_cb_ == LUA_REFNIL )
+    throw(LuaError(L_, "invalid object reference for EventHandler"));
+  lua_rawgeti(L_, LUA_REGISTRYINDEX, ref_cb_);
+  if( !lua_isfunction(L_, -1) )
+    throw(LuaError(L_, "EventHandler: invalid callback type"));
+  lua_pop(L_,1);
+}
+
+EventHandlerLua::~EventHandlerLua()
+{
+  luaL_unref(L_, LUA_REGISTRYINDEX, ref_cb_);
+}
+
+void EventHandlerLua::process(Display *d, const SDL_Event *ev) const
+{
+  lua_rawgeti(L_, LUA_REGISTRYINDEX, ref_cb_);
+  // callback type has already been checked in constructor
+  // push the event
+  lua_newtable(L_);
+  LuaManager::setfield(L_, -1, "t", ev->type);
+  switch( ev->type ) {
+    case SDL_KEYDOWN:
+    case SDL_KEYUP:
+      LuaManager::setfield(L_, -1, "state", ev->key.state == SDL_PRESSED);
+      LuaManager::setfield(L_, -1, "key", ev->key.keysym.sym);
+      lua_newtable(L_);
+      if( ev->key.keysym.mod != KMOD_NONE ) {
+        SDLMod mod = ev->key.keysym.mod;
+        if( mod & KMOD_LSHIFT ) LuaManager::setfield(L_, -1, "LSHIFT", true);
+        if( mod & KMOD_RSHIFT ) LuaManager::setfield(L_, -1, "RSHIFT", true);
+        if( mod & KMOD_LCTRL  ) LuaManager::setfield(L_, -1, "LCTRL" , true);
+        if( mod & KMOD_RCTRL  ) LuaManager::setfield(L_, -1, "RCTRL" , true);
+        if( mod & KMOD_LALT   ) LuaManager::setfield(L_, -1, "LALT"  , true);
+        if( mod & KMOD_RALT   ) LuaManager::setfield(L_, -1, "RALT"  , true);
+        if( mod & KMOD_LMETA  ) LuaManager::setfield(L_, -1, "LMETA" , true);
+        if( mod & KMOD_RMETA  ) LuaManager::setfield(L_, -1, "RMETA" , true);
+        if( mod & KMOD_NUM    ) LuaManager::setfield(L_, -1, "NUM"   , true);
+        if( mod & KMOD_CAPS   ) LuaManager::setfield(L_, -1, "CAPS"  , true);
+        if( mod & KMOD_MODE   ) LuaManager::setfield(L_, -1, "MODE"  , true);
+        if( mod & KMOD_SHIFT  ) LuaManager::setfield(L_, -1, "SHIFT" , true);
+        if( mod & KMOD_CTRL   ) LuaManager::setfield(L_, -1, "CTRL"  , true);
+        if( mod & KMOD_ALT    ) LuaManager::setfield(L_, -1, "ALT"   , true);
+        if( mod & KMOD_META   ) LuaManager::setfield(L_, -1, "META"  , true);
+      }
+      lua_setfield(L_, -2, "mod");
+      break;
+
+    case SDL_MOUSEMOTION:
+      lua_newtable(L_);
+      if( ev->motion.state ) {
+        Uint8 state = ev->motion.state;
+        if( state & SDL_BUTTON_LMASK ) LuaManager::setfield(L_, -1, "LEFT",   true);
+        if( state & SDL_BUTTON_MMASK ) LuaManager::setfield(L_, -1, "MIDDLE", true);
+        if( state & SDL_BUTTON_RMASK ) LuaManager::setfield(L_, -1, "RIGHT",  true);
+      }
+      lua_setfield(L_, -2, "state");
+      LuaManager::setfield(L_, -1, "x", ev->motion.x);
+      LuaManager::setfield(L_, -1, "y", ev->motion.y);
+      LuaManager::setfield(L_, -1, "xrel", ev->motion.xrel);
+      LuaManager::setfield(L_, -1, "yrel", ev->motion.yrel);
+      break;
+
+    case SDL_MOUSEBUTTONDOWN:
+    case SDL_MOUSEBUTTONUP:
+      LuaManager::setfield(L_, -1, "button", ev->button.button);
+      LuaManager::setfield(L_, -1, "state", ev->button.state == SDL_PRESSED);
+      LuaManager::setfield(L_, -1, "x", ev->motion.x);
+      LuaManager::setfield(L_, -1, "y", ev->motion.y);
+      break;
+
+    default:
+      throw(Error("EventHandler: event type not supported: %d", ev->type));
+  }
+
+  LuaManager::pcall(L_, 1, 0);
+}
+
+
+
 OSDLua::OSDLua(lua_State *L, int ref_obj): L_(L), ref_obj_(ref_obj), ref_text_(LUA_NOREF)
 {
   if( ref_obj_ == LUA_NOREF || ref_obj_ == LUA_REFNIL )
@@ -911,13 +891,13 @@ class LuaDisplay: public LuaClass<Display>
     toEvent(L, 2, &ev);
 
     if( lua_isnoneornil(L, 3) )
-      d->setHandler(ev, Display::EventHandler(NULL));
+      d->setHandler(ev, NULL);
     else
     {
       luaL_checktype(L, 3, LUA_TFUNCTION);
       lua_pushvalue(L, 3);
       int ref_cb = luaL_ref(L, LUA_REGISTRYINDEX);
-      d->setHandler(ev, Display::EventHandler(L, ref_cb));
+      d->setHandler(ev, new EventHandlerLua(L, ref_cb));
     }
     return 0;
   }
