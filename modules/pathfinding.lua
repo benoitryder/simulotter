@@ -1,106 +1,51 @@
 
 -- Pathfinding tools
 
-module('pathfinding', package.seeall)
+-- Map used for A* algorithm.
+-- Methods below must be defined in a subclass.
+-- Note: nodes are compared using ==, thus one may define a __eq metamethod to
+-- avoid having to return references to the same node objects.
+local Map = class(nil)
+-- Return neighbors of node n.
+function Map.neighbors(self, n) error("not implemented") end
+-- Return estimate of distance between two nodes.
+function Map.distance_estimate(self, n1, n2) error("not implemented") end
+-- Return actual distance from n1 to n2.
+function Map.distance(self, n1, n2) error("not implemented") end
 
 
-Node = class(nil, function(self, map, x, y)
-  self.map = map
-  self.x = x
-  self.y = y
-  local ax, ay = map:node2xy(x,y)
-  if __SIMULOTTER__ then
-    self.o = OSimple()
-    self.o:set_shape(map.node_shape)
-    self.o:set_pos(ax, ay, map.node_z)
-  end
-  self:set(1)
-end)
-function Node.set(self, v)
-  self.v = v
-  if __SIMULOTTER__ then
-    self.o:set_color(colors.gray(1-v/100))
-  end
-end
-function Node.show(self)
-  if not self.o:is_in_world() then
-    self.o:add_to_world()
-  end
-end
-function Node.hide(self)
-  if self.o:is_in_world() then
-    self.o:remove_from_world()
-  end
-end
-
-
--- Pathfinding map.
--- The following additional methods must be defined:
---   node2xy: convert node position to absolute coordinates
---   xy2node: convert absolute coordinates to node position
--- Note: node positions may not be actual node positions.
-Map = class(nil, function(self, p0, p1, step)
-  self.nodes = {}
-  self.p0 = p0
-  self.p1 = p1
-  self.step = step
-end)
--- Configuration attributes (can be overriden on map instance)
---   shape: shape used for node objects
---   z pos: z-position of node objects
-if __SIMULOTTER__ then
-  Map.node_shape = Shape:sphere(0.02)
-  Map.node_z = 1
-end
-
-
--- Create nodes.
-function Map.init(self)
-  for x=self.p0[1],self.p1[1],self.step[1] do
-    local tx = {}
-    self.nodes[x] = tx
-    for y=self.p0[2],self.p1[2],self.step[2] do tx[y] = Node(self,x,y) end
-  end
-end
-
-function Map.show(self)
-  for k,tx in pairs(self.nodes) do
-    for kk,n in pairs(tx) do n:show() end
-  end
-end
-function Map.hide(self)
-  for k,tx in pairs(self.nodes) do
-    for kk,n in pairs(tx) do n:hide() end
-  end
-end
-function Map.node(self, x, y)
-  local t = self.nodes[x]
-  if not t then return nil end
-  return t[y]
-end
-
-function Map.nearest_node(self, x, y)
-  local nx, ny = self:xy2node(x,y)
-  local stx, sty = unpack(self.step)
-  return self:node( math.floor(nx/stx+stx/2)*stx, math.floor(ny/sty+sty/2)*sty )
-end
-function Map.node_distance(self, n0, n1)
-  local x0, y0 = self:node2xy(n0.x,n0.y)
-  local x1, y1 = self:node2xy(n1.x,n1.y)
-  return (x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)
+-- Metatable for tables with key comparaison using ==.
+local eqcmp_table_mt = {
+  __index = function(t,index)
+    for k,v in pairs(t) do
+      if k == index then return v end
+    end
+    return nil
+  end,
+  __newindex = function(t,index,val)
+    for k,v in pairs(t) do
+      if k == index then
+        rawset(t,k,val)
+      end
+    end
+    rawset(t,index,val)
+  end,
+}
+local function eqcmp_table()
+  return setmetatable({}, eqcmp_table_mt)
 end
 
 -- Pathfinding method (A* algorithm).
--- Neighbors are the 8 adjacent nodes (diagonals are included).
 function Map.find_path(self, nfrom, ngoal)
-  local nedge = {}
-  local tclosed = {}
-  local topen = { [nfrom]={0, self:node_distance(nfrom, ngoal), nil} }
+  -- { dist. from start, estimate dist. to goal, previous node }
+  local tclosed = eqcmp_table()
+  local topen = eqcmp_table()
+  topen[nfrom] = {0, self:distance_estimate(nfrom, ngoal), nil}
   while true do
     local n = nil
     local v = nil
     for nn,vv in pairs(topen) do
-      if v == nil or vv[1] < v[1] then
+      if v == nil or vv[2] < v[2] then
         n = nn
         v = vv
       end
@@ -109,6 +54,7 @@ function Map.find_path(self, nfrom, ngoal)
     topen[n] = nil
     tclosed[n] = v
     if n == ngoal then
+      -- goal reached, build path and return it
       local t = {}
       while n ~= nfrom do
         table.insert(t,1,n)
@@ -116,15 +62,10 @@ function Map.find_path(self, nfrom, ngoal)
       end
       return t
     end
-    local neighbors = {
-      {n.x-0.5,n.y-1}, {n.x,n.y-1}, {n.x+0.5,n.y-1},
-      {n.x-0.5,n.y  },              {n.x+0.5,n.y  },
-      {n.x+0.5,n.y+1}, {n.x,n.y+1}, {n.x+0.5,n.y+1},
-    }
-    for k,xy in pairs(neighbors) do
-      local nn = self:node(unpack(xy))
+    local neighbors = self:neighbors(n)
+    for k,nn in pairs(neighbors) do
       if nn~=nil and tclosed[nn]==nil then
-        local vv = {v[1]+(nn.v+n.v)*self:node_distance(n,nn), self:node_distance(nn, ngoal), n}
+        local vv = {v[1]+self:distance(n,nn), self:distance_estimate(nn, ngoal), n}
         if topen[nn] == nil or vv[1] < topen[nn][1] then
           topen[nn] = vv
         end
@@ -133,4 +74,78 @@ function Map.find_path(self, nfrom, ngoal)
   end
 end
 
+
+-- Map implementation using 2D vectors as nodes.
+-- Graph is given as a list of edges (pairs of nodes).
+-- Distances are (squared) euclidian distances (no weight applied).
+
+require('modules/vector')
+local vec2 = vector.vec2
+
+local VectorMap = class(Map, function(self, edges)
+  -- associate nodes to their neighbors
+  self.nodes = eqcmp_table()
+  for k,v in ipairs(edges) do
+    local n1 = vec2(unpack(v[1]))
+    local n2 = vec2(unpack(v[2]))
+    local t
+
+    t = self.nodes[n1]
+    if t == nil then
+      t = {}
+      self.nodes[n1] = t
+    else
+      n1 = self:at(n1.x,n1.y)
+    end
+    t[#t+1] = n2
+
+    t = self.nodes[n2]
+    if t == nil then
+      t = {}
+      self.nodes[n2] = t
+    else
+      n2 = self:at(n2.x,n2.y)
+    end
+    t[#t+1] = n1
+  end
+end)
+function VectorMap.neighbors(self, n)
+  return self.nodes[n]
+end
+function VectorMap.distance(self, n1, n2)
+  return (n2-n1):length2()
+end
+VectorMap.distance_estimate = VectorMap.distance
+
+-- Return the node at a given point, if any
+function VectorMap.at(self, x, y)
+  local v = vec2(x,y)
+  for n,_ in pairs(self.nodes) do
+    if n == v then return n end
+  end
+  return nil
+end
+
+-- Return the nearest node from a point
+function VectorMap.nearest(self, x, y)
+  local d2_min = nil
+  local ret = nil
+  local v = vec2(x,y)
+  for n,_ in pairs(self.nodes) do
+    local d2 = (n-v):length2()
+    if not d2_min or d2 < d2_min then
+      d2_min = d2
+      ret = n
+    end
+  end
+  return ret
+end
+
+
+-- Modularize
+
+pathfinding = {}
+pathfinding.Map = Map
+pathfinding.VectorMap = VectorMap
+module('pathfinding')
 

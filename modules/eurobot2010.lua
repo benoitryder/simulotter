@@ -212,7 +212,7 @@ function init(fconf)
   if conf_side < 1 or conf_side > 9 or conf_center < 1 or conf_center > 4 then
     error("invalid field configuration")
   end
-  trace("Feed the World rules, fake corns: lateral: "..tostring(conf_side)..", central:"..tostring(conf_center))
+  trace("Feed the World rules, fake corns: lateral: "..tostring(conf_side)..", central: "..tostring(conf_center))
 
 
   -- Add a collect bac, side is -1 (x<0) or 1 (x>0)

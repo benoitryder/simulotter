@@ -116,7 +116,7 @@ namespace eurobot2009
      * Assumes that the robot is not rotated (robot's Z axis aligned with
      * world's Z axis).
      */
-    void draw();
+    virtual void draw();
 
     virtual void setTrans(const btTransform &tr);
 
@@ -165,7 +165,7 @@ namespace eurobot2009
        *  - grab: inside objects are constrained;
        *  - eject: special constraint.
        *
-       * Checks assume that the dispenser is not rotated (pàchev axis aligned
+       * Checks assume that objects are not rotated (pàchev axis aligned
        * with Z axis).
        */
       virtual bool checkCollideWithOverride(btCollisionObject *co);

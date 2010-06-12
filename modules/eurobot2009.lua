@@ -38,7 +38,7 @@ function init(fconf)
   local col_offset_x = 0.400
   local col_offset_y = 0.125
 
-  local disp_offset {
+  local disp_offset = {
     x = 0.289,
     y = 0.250,
     z = 0.045,
