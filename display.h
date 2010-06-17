@@ -79,6 +79,14 @@ public:
   /// Update display
   void update();
 
+  /** @brief Run simulation display, with speed control.
+   *
+   * The display is initialized if needed.
+   *
+   * This method never returns.
+   */
+  void run();
+
   /** @name Screenshots
    *
    * Screenshots are scheduled to be taken after next drawn frame.

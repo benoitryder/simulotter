@@ -193,6 +193,38 @@ void Display::update()
 }
 
 
+void Display::run()
+{
+  if( ! isInitialized() )
+    init();
+
+  unsigned int disp_dt = (unsigned int)(1000.0/cfg.fps);
+  unsigned int step_dt = (unsigned int)(1000.0*cfg.step_dt);
+  unsigned long time;
+  unsigned long time_disp, time_step;
+  signed long time_wait;
+
+  time_disp = time_step = SDL_GetTicks();
+  for(;;) {
+    time = SDL_GetTicks();
+    if( time >= time_step ) {
+      Physics::physics->step();
+      time_step += (unsigned long)(step_dt * cfg.time_scale);
+    }
+    if( time >= time_disp ) {
+      Display::display->processEvents();
+      Display::display->update();
+      time_disp = time + disp_dt;
+    }
+
+    time_wait = MIN(time_step,time_disp);
+    time_wait -= time;
+    if( time_wait > 0 )
+      SDL_Delay(time_wait);
+  }
+}
+
+
 /** @name PNG related declarations.
  */
 //@{
