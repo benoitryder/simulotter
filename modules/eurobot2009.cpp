@@ -131,7 +131,7 @@ namespace eurobot2009
   void OLintelStorage::fill(OLintel *o)
   {
     btVector3 pos = getPos();
-    pos[2] += btScale(0.015)+WALL_HALF_WIDTH+cfg.drop_epsilon;
+    pos[2] += btScale(0.015)+WALL_HALF_WIDTH+Physics::MARGIN_EPSILON;
     o->setPos(pos);
   }
 

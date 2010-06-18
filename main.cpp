@@ -47,12 +47,6 @@ int main(int argc, char **argv)
     if( !Physics::physics )
       throw(Error("physics not created"));
 
-    if( !Physics::physics->isInitialized() )
-    {
-      LOG("physics not initialized: init it");
-      Physics::physics->init();
-    }
-
     // Simulation displayed: control speed
     if( Display::display != NULL && Display::display->isInitialized() ) {
       LOG("**** simulation starts");

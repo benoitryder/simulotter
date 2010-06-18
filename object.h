@@ -163,7 +163,6 @@ public:
   virtual void setTrans(const btTransform &tr) { setCenterOfMassTransform(tr); }
 
   /** @brief Place above (not on or in) the ground
-   * @sa Config::drop_epsilon
    *
    * @note The setPos() name has not been reused because it would make the
    * compiler use the btVector2 version by default, even when passing a

@@ -8,9 +8,16 @@
 
 SmartPtr<Physics> Physics::physics;
 
+const btScalar Physics::EARTH_GRAVITY = btScale(9.80665);
+const btScalar Physics::MARGIN_EPSILON = btScale(0.001);
 
-Physics::Physics(): pause_state_(false), step_dt_(0), time_(0)
+
+Physics::Physics(btScalar step_dt): pause_state_(false), step_dt_(0), time_(0)
 {
+  if( step_dt <= 0 )
+    throw(Error("invalid step_dt value"));
+  step_dt_ = step_dt;
+
   col_config_ = new btDefaultCollisionConfiguration();
   dispatcher_ = new btCollisionDispatcher(col_config_);
 
@@ -26,6 +33,7 @@ Physics::Physics(): pause_state_(false), step_dt_(0), time_(0)
   world_ = new btDiscreteDynamicsWorld(
       dispatcher_, broadphase_, solver_, col_config_
       );
+  world_->setGravity(btVector3(0,0,-EARTH_GRAVITY));
   world_->setInternalTickCallback(worldTickCallback, this);
 }
 
@@ -45,19 +53,6 @@ Physics::~Physics()
   delete dispatcher_;
   delete col_config_;
   delete broadphase_;
-}
-
-void Physics::init()
-{
-  if( isInitialized() )
-  {
-    LOG("physics already initialized, init() call skipped");
-    return;
-  }
-  if( cfg.step_dt <= 0 )
-    throw(Error("invalid step_dt value for Physics initialization"));
-  step_dt_ = cfg.step_dt;
-  world_->setGravity(btVector3(0,0,cfg.gravity_z));
 }
 
 
@@ -174,14 +169,18 @@ class LuaPhysics: public LuaClass<Physics>
 {
   static int _ctor(lua_State *L)
   {
-    if( Physics::physics == NULL )
-      Physics::physics = new Physics();
+    if( Physics::physics == NULL ) {
+      if( lua_isnoneornil(L, 2) ) {
+        Physics::physics = new Physics();
+      } else {
+        Physics::physics = new Physics(LARG_f(2));
+      }
+    }
     store_ptr(L, Physics::physics);
     return 0;
   }
 
-  LUA_DEFINE_SET0(init, init);
-  LUA_DEFINE_GET(is_initialized, isInitialized);
+  LUA_DEFINE_GET(get_step_dt, getStepDt);
   LUA_DEFINE_GET(get_time, getTime);
   LUA_DEFINE_SET0(pause, pause);
   LUA_DEFINE_SET0(unpause, unpause);
@@ -191,8 +190,7 @@ class LuaPhysics: public LuaClass<Physics>
   virtual void init_members(lua_State *L)
   {
     LUA_CLASS_MEMBER(_ctor);
-    LUA_CLASS_MEMBER(init);
-    LUA_CLASS_MEMBER(is_initialized);
+    LUA_CLASS_MEMBER(get_step_dt);
     LUA_CLASS_MEMBER(get_time);
     LUA_CLASS_MEMBER(pause);
     LUA_CLASS_MEMBER(unpause);

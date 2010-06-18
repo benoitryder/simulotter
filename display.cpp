@@ -199,7 +199,7 @@ void Display::run()
     init();
 
   unsigned int disp_dt = (unsigned int)(1000.0/cfg.fps);
-  unsigned int step_dt = (unsigned int)(1000.0*cfg.step_dt);
+  unsigned int step_dt = (unsigned int)(1000.0*Physics::physics->getStepDt());
   unsigned long time;
   unsigned long time_disp, time_step;
   signed long time_wait;

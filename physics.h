@@ -19,15 +19,22 @@ class TaskPhysics;
 class Physics: public SmartObject
 {
 public:
-  Physics();
-  virtual ~Physics();
+  /// Gravity at the Earth's surface.
+  static const btScalar EARTH_GRAVITY;
+  /** @brief Minimal margin distance.
+   *
+   * Used as gap distance between objects to ensure they do not overlap (e.g.
+   * for object dropping height).
+   */
+  static const btScalar MARGIN_EPSILON;
 
-  /// Init physics (using configuration values)
-  void init();
-  bool isInitialized() const { return step_dt_ > 0; }
+  Physics(btScalar step_dt=0.002);
+  virtual ~Physics();
 
   /// Advance simulation
   void step();
+
+  btScalar getStepDt() const { return step_dt_; }
 
   /// Return current simulation time
   btScalar getTime() const { return time_; }

@@ -14,14 +14,9 @@
     <object name="config">
       Configuration values.
 
-      <value name="gravity_z" type="float">Z gravity</value>
-      <value name="step_dt" type="float">Time interval between each simulation step</value>
       <value name="time_scale" type="float">Time scale coefficient (&gt;1 to slow down, &lt;1 to speed up)</value>
-      <value name="drop_epsilon" type="float">Default droping height gap for dynamic objects</value>
       <value name="draw_epsilon" type="float">Gap size between to contiguous surfaces</value>
       <value name="draw_div" type="int">Slices and stacks for GLUT geometry objects</value>
-      <value name="draw_direction_r" type="float">Robot direction cone radius</value>
-      <value name="draw_direction_h" type="float">Robot direction cone height</value>
       <value name="perspective_fov" type="float">Perspective field of view (in degrees)</value>
       <value name="perspective_near" type="float">Near clipping plance distance</value>
       <value name="perspective_far" type="float">Far clipping plance distance</value>
@@ -43,20 +38,18 @@
 
       <constructor>
         Create or get physics singleton.
+        <arg name="step_dt" type="float" required="0">
+          Time interval between each simulation step.<br/>
+          Used at singleton creation, ignored otherwise.
+        </arg>
       </constructor>
-
-      <function name="init">
-        Init physics (using configuration values).<br/>
-        If not called explicitely, it is called before the simulation starts.
-      </function>
-
-      <function name="is_initialized">
-        Returns whether physics is initialized.
-        <return type="bool"/>
-      </function>
 
       <function name="get_time">
         Return current simulation time.
+        <return type="float"/>
+      </function>
+      <function name="get_step_dt">
+        Return the simulation step interval.
         <return type="float"/>
       </function>
 

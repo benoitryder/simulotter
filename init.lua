@@ -1,14 +1,10 @@
 
 -- Config
 
-config.step_dt = 0.003
 config.time_scale = 1
-config.drop_epsilon = 0.001
 
 config.draw_epsilon = 0.0005
 config.draw_div = 20
-config.draw_direction_r = 0.05
-config.draw_direction_h = 0.10
 
 config.perspective_fov = 45.0
 config.perspective_near = 0.1
@@ -129,10 +125,10 @@ end
 
 -- Schedule r1 tasks: asserv then strategy
 local task
-task = Task(config.step_dt)
+task = Task(physics:get_step_dt())
 task.callback = function() r1:asserv() end
 task:schedule()
-task = Task(config.step_dt)
+task = Task(physics:get_step_dt())
 task.callback = coroutine.create(function() r1:strategy() end)
 task:schedule()
 

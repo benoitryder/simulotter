@@ -193,7 +193,7 @@ void OSimple::setPosAbove(const btVector2 &pos)
 {
   btVector3 aabbMin, aabbMax;
   this->getAabb(aabbMin, aabbMax);
-  setPos( btVector3(pos.x, pos.y, (aabbMax.z()-aabbMin.z())/2 + cfg.drop_epsilon) );
+  setPos( btVector3(pos.x, pos.y, (aabbMax.z()-aabbMin.z())/2 + Physics::MARGIN_EPSILON) );
 }
 
 

@@ -8,10 +8,6 @@
 struct lua_State;
 
 
-/// Gravity at the Earth's surface
-#define CONST_EARTH_GRAVITY   9.80665f
-
-
 /** @brief Configuration class
  *
  * Configurations values are initialized in the constructor but can be changed
@@ -26,18 +22,6 @@ class Config
 {
 public:
 
-  /** @name Simulation parameters
-   */
-  //@{
-
-  float gravity_z;
-
-  /** @brief Time interval between each simulation step
-   *
-   * @warning Value must not be changed after the simulation starts.
-   */
-  float step_dt;
-
   /** @brief Time scale coefficient.
    *
    * If greater than 1, slow down the simulation.
@@ -46,11 +30,6 @@ public:
    * @note Value can be changed while the simulation is running.
    */
   float time_scale;
-
-  /// Default dropping height gap for dynamic objects
-  float drop_epsilon;
-
-  //@}
 
 
   /** @name SDL drawing
@@ -61,10 +40,6 @@ public:
   float draw_epsilon;
   /// Slices and stacks for GLUT geometry objects
   unsigned int draw_div;
-  /// Robot direction cone radius
-  float draw_direction_r;
-  /// Robot direction cone height
-  float draw_direction_h;
   /// Perspective field of view (in degrees)
   float perspective_fov;
   /// Near clipping plance distance
@@ -104,9 +79,6 @@ public:
   float camera_mouse_coef;
 
   //@}
-
-  /// Flush logs after each write
-  bool log_flush;
 
 public:
   Config();

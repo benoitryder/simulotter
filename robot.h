@@ -70,9 +70,13 @@ public:
 
   /** Draw a small direction cone above the robot
    *
-   * Current OpenGL matrix si supposed to be on robot center.
+   * Current OpenGL matrix is supposed to be on robot center.
    */
   void drawDirection();
+
+  static const float DIRECTION_CONE_R; ///< Direction cone radius
+  static const float DIRECTION_CONE_H; ///< Direction cone height
+
 
   virtual const btTransform &getTrans() const { return body_->getCenterOfMassTransform(); }
   virtual void setTrans(const btTransform &tr) { body_->setCenterOfMassTransform(tr); }

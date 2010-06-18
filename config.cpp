@@ -5,12 +5,8 @@
 
 
 Config::Config():
-    gravity_z(btScale(-CONST_EARTH_GRAVITY)),
-    step_dt(0.001), time_scale(1.0),
-    drop_epsilon(btScale(0.001)),
+    time_scale(1.0),
     draw_epsilon(btScale(0.0005)), draw_div(20),
-    draw_direction_r(btScale(0.05)),
-    draw_direction_h(btScale(0.10)),
     perspective_fov(45.0),
     perspective_near(btScale(0.1)),
     perspective_far(btScale(300.0)),
@@ -56,14 +52,9 @@ int Config::lua_index(lua_State *L)
 #define CONFIG_INDEX_VAL_SCALED(n) \
   if( strcmp(name, #n) == 0 ) {LuaManager::push(L, btUnscale(config->n)); return 1;}
 
-  CONFIG_INDEX_VAL_SCALED(gravity_z);
-  CONFIG_INDEX_VAL(step_dt);
   CONFIG_INDEX_VAL(time_scale);
-  CONFIG_INDEX_VAL_SCALED(drop_epsilon);
   CONFIG_INDEX_VAL_SCALED(draw_epsilon);
   CONFIG_INDEX_VAL(draw_div);
-  CONFIG_INDEX_VAL_SCALED(draw_direction_r);
-  CONFIG_INDEX_VAL_SCALED(draw_direction_h);
   CONFIG_INDEX_VAL(perspective_fov);
   CONFIG_INDEX_VAL_SCALED(perspective_near);
   CONFIG_INDEX_VAL_SCALED(perspective_far);
@@ -93,14 +84,9 @@ int Config::lua_newindex(lua_State *L)
 #define CONFIG_NEWINDEX_VAL(n,m) \
   if( strcmp(name, #n) == 0 ) {config->n = m(3); return 0;}
 
-  CONFIG_NEWINDEX_VAL(gravity_z,        LARG_scaled);
-  CONFIG_NEWINDEX_VAL(step_dt,          LARG_f);
   CONFIG_NEWINDEX_VAL(time_scale,       LARG_f);
-  CONFIG_NEWINDEX_VAL(drop_epsilon,     LARG_scaled);
   CONFIG_NEWINDEX_VAL(draw_epsilon,     LARG_scaled);
   CONFIG_NEWINDEX_VAL(draw_div,         LARG_i);
-  CONFIG_NEWINDEX_VAL(draw_direction_r, LARG_scaled);
-  CONFIG_NEWINDEX_VAL(draw_direction_h, LARG_scaled);
   CONFIG_NEWINDEX_VAL(perspective_fov,  LARG_f);
   CONFIG_NEWINDEX_VAL(perspective_near, LARG_scaled);
   CONFIG_NEWINDEX_VAL(perspective_far,  LARG_scaled);

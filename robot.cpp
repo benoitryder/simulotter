@@ -74,10 +74,13 @@ void RBasic::drawDirection()
   btVector3 aabb_min, aabb_max;
   body_->getAabb(aabb_min, aabb_max);
 
-  btglTranslate(0, 0, aabb_max.getZ()-getPos().getZ()+cfg.draw_direction_r+cfg.draw_epsilon);
+  btglTranslate(0, 0, aabb_max.getZ()-getPos().getZ()+DIRECTION_CONE_R+cfg.draw_epsilon);
   btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
-  glutSolidCone(cfg.draw_direction_r, cfg.draw_direction_h, cfg.draw_div, cfg.draw_div);
+  glutSolidCone(DIRECTION_CONE_R, DIRECTION_CONE_H, cfg.draw_div, cfg.draw_div);
 }
+
+const float RBasic::DIRECTION_CONE_R = btScale(0.05);
+const float RBasic::DIRECTION_CONE_H = btScale(0.10);
 
 
 void RBasic::asserv()
