@@ -1,8 +1,7 @@
 #include <cmath>
-#include <GL/freeglut.h>
 #include "robot.h"
+#include "display.h"
 #include "physics.h"
-#include "config.h"
 #include "lua_utils.h"
 #include "log.h"
 
@@ -74,9 +73,9 @@ void RBasic::drawDirection()
   btVector3 aabb_min, aabb_max;
   body_->getAabb(aabb_min, aabb_max);
 
-  btglTranslate(0, 0, aabb_max.getZ()-getPos().getZ()+DIRECTION_CONE_R+cfg.draw_epsilon);
+  btglTranslate(0, 0, aabb_max.getZ()-getPos().getZ()+DIRECTION_CONE_R+Display::DRAW_EPSILON);
   btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
-  glutSolidCone(DIRECTION_CONE_R, DIRECTION_CONE_H, cfg.draw_div, cfg.draw_div);
+  glutSolidCone(DIRECTION_CONE_R, DIRECTION_CONE_H, Display::DRAW_DIV, Display::DRAW_DIV);
 }
 
 const float RBasic::DIRECTION_CONE_R = btScale(0.05);

@@ -1,4 +1,4 @@
-#include <GL/freeglut.h>
+#include "display.h"
 #include "sensors.h"
 #include "physics.h"
 #include "log.h"

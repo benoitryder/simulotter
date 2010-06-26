@@ -2,7 +2,6 @@
 #include <cstring>
 #include <cstdarg>
 #include <cstdlib>
-#include "config.h"
 #include "log.h"
 
 

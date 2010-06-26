@@ -1,5 +1,4 @@
 #include <ctime>
-#include "config.h"
 #include "lua_utils.h"
 
 
@@ -40,7 +39,6 @@ LuaManager::LuaManager()
   lua_register(L_, "exit", lua_exit);
 
   // Init Lua stuff of other classes
-  cfg.lua_init(L_);
   LuaClassBase::init(L_);
 
   // Import main module

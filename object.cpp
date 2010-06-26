@@ -1,8 +1,6 @@
-#include <SDL/SDL.h>
-#include <GL/freeglut.h>
+#include "display.h"
 #include "physics.h"
 #include "object.h"
-#include "config.h"
 #include "lua_utils.h"
 #include "log.h"
 
@@ -33,7 +31,7 @@ void Object::drawShape(const btCollisionShape *shape)
     case SPHERE_SHAPE_PROXYTYPE:
       {
         const btSphereShape *sphere_shape = static_cast<const btSphereShape*>(shape);
-        glutSolidSphere(sphere_shape->getRadius(), cfg.draw_div, cfg.draw_div);
+        glutSolidSphere(sphere_shape->getRadius(), Display::DRAW_DIV, Display::DRAW_DIV);
         break;
       }
     case BOX_SHAPE_PROXYTYPE:
@@ -58,10 +56,10 @@ void Object::drawShape(const btCollisionShape *shape)
         const btScalar r = capsule_shape->getRadius();
         const btScalar len = capsule_shape->getHalfHeight();
         btglTranslate(0, 0, -len);
-        glutSolidCylinder(r, 2*len, cfg.draw_div, cfg.draw_div);
-        glutSolidSphere(r, cfg.draw_div, cfg.draw_div);
+        glutSolidCylinder(r, 2*len, Display::DRAW_DIV, Display::DRAW_DIV);
+        glutSolidSphere(r, Display::DRAW_DIV, Display::DRAW_DIV);
         btglTranslate(0, 0, 2*len);
-        glutSolidSphere(r, cfg.draw_div, cfg.draw_div);
+        glutSolidSphere(r, Display::DRAW_DIV, Display::DRAW_DIV);
         break;
       }
     case CYLINDER_SHAPE_PROXYTYPE:
@@ -81,7 +79,7 @@ void Object::drawShape(const btCollisionShape *shape)
             throw(Error("invalid capsule up axis"));
         }
         btglTranslate(0, 0, -len);
-        glutSolidCylinder(r, 2*len, cfg.draw_div, cfg.draw_div);
+        glutSolidCylinder(r, 2*len, Display::DRAW_DIV, Display::DRAW_DIV);
         break;
       }
     default:
@@ -275,7 +273,7 @@ void OGround::draw()
 
     glColor4fv(color_t1_);
     btglTranslate(-size[0]+size_start_/2, size[1]-size_start_/2, size[2]);
-    btglScale(size_start_, size_start_, 2*cfg.draw_epsilon);
+    btglScale(size_start_, size_start_, 2*Display::DRAW_EPSILON);
     glutSolidCube(1.0f);
 
     glPopMatrix();
@@ -284,7 +282,7 @@ void OGround::draw()
 
     glColor4fv(color_t2_);
     btglTranslate(size[0]-size_start_/2, size[1]-size_start_/2, size[2]);
-    btglScale(size_start_, size_start_, 2*cfg.draw_epsilon);
+    btglScale(size_start_, size_start_, 2*Display::DRAW_EPSILON);
     glutSolidCube(1.0f);
 
     glPopMatrix();

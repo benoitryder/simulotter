@@ -1,14 +1,11 @@
 #include <cmath>
 #include <cstring>
 #include <cstdio>
-#include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
-#include <GL/freeglut.h>
 #include <png.h>
 #include "display.h"
 #include "physics.h"
 #include "object.h"
-#include "config.h"
 #include "icon.h"
 
 
@@ -16,7 +13,21 @@
 SmartPtr<Display> Display::display;
 
 
-Display::Display()
+const btScalar Display::DRAW_EPSILON = btScale(0.0005);
+const unsigned int Display::DRAW_DIV = 20;
+
+
+Display::Display():
+    time_scale(1.0), fps(60.0),
+    bg_color(Color4(0.8)),
+    camera_step_angle(0.1),
+    camera_step_linear(btScale(0.1)),
+    camera_mouse_coef(0.1),
+    perspective_fov(45.0),
+    perspective_near(btScale(0.1)),
+    perspective_far(btScale(300.0)),
+    screen_x_(800), screen_y_(600),
+    fullscreen_(false), antialias_(0)
 {
   int argc = 1;
   glutInit(&argc, NULL);
@@ -137,8 +148,8 @@ void Display::update()
 
   glMatrixMode(GL_PROJECTION); 
   glLoadIdentity();
-  gluPerspective(cfg.perspective_fov, ((float)screen_x_)/screen_y_,
-      cfg.perspective_near, cfg.perspective_far);
+  gluPerspective(this->perspective_fov, ((float)screen_x_)/screen_y_,
+      this->perspective_near, this->perspective_far);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -198,7 +209,6 @@ void Display::run()
   if( ! isInitialized() )
     init();
 
-  unsigned int disp_dt = (unsigned int)(1000.0/cfg.fps);
   unsigned int step_dt = (unsigned int)(1000.0*Physics::physics->getStepDt());
   unsigned long time;
   unsigned long time_disp, time_step;
@@ -209,12 +219,12 @@ void Display::run()
     time = SDL_GetTicks();
     if( time >= time_step ) {
       Physics::physics->step();
-      time_step += (unsigned long)(step_dt * cfg.time_scale);
+      time_step += (unsigned long)(step_dt * this->time_scale);
     }
     if( time >= time_disp ) {
       Display::display->processEvents();
       Display::display->update();
-      time_disp = time + disp_dt;
+      time_disp = time + (1000.0/this->fps);
     }
 
     time_wait = MIN(time_step,time_disp);
@@ -371,15 +381,14 @@ void Display::windowInit()
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-  if( cfg.antialias > 0 )
-  {
+  if( antialias_ > 0 ) {
     if( SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) < 0 )
       throw(Error("SDL: cannot enable multisample buffers"));
-    if( SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, cfg.antialias) < 0 )
-      throw(Error("SDL: cannot set multisample sample count to %d", cfg.antialias));
+    if( SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, antialias_) < 0 )
+      throw(Error("SDL: cannot set multisample sample count to %d", antialias_));
   }
 
-  resize(cfg.screen_x, cfg.screen_y, cfg.fullscreen);
+  resize(screen_x_, screen_y_, fullscreen_);
 }
 
 void Display::windowDestroy()
@@ -391,8 +400,8 @@ void Display::windowDestroy()
 void Display::sceneInit()
 {
   // Clear the background color
-  glClearColor(cfg.bg_color[0], cfg.bg_color[1],
-      cfg.bg_color[2], cfg.bg_color[3]);
+  glClearColor(this->bg_color[0], this->bg_color[1],
+      this->bg_color[2], this->bg_color[3]);
 
   glShadeModel(GL_SMOOTH);
   glEnable(GL_LIGHTING);
@@ -556,12 +565,15 @@ void Display::handlerPause(Display *d, const SDL_Event *event)
 
 void Display::handlerCamMouse(Display *d, const SDL_Event *event)
 {
-  float dx = event->motion.xrel * cfg.camera_mouse_coef;
-  float dy = event->motion.yrel * cfg.camera_mouse_coef;
-  if( d->camera_mode_ & CAM_EYE_REL )
-    d->camera_eye_.spheric.rotate( dy*cfg.camera_step_angle, -dx*cfg.camera_step_angle );
-  else if( d->camera_mode_ & CAM_TARGET_REL )
-    d->camera_target_.spheric.rotate( dy*cfg.camera_step_angle, -dx*cfg.camera_step_angle );
+  float dx = event->motion.xrel * d->camera_mouse_coef;
+  float dy = event->motion.yrel * d->camera_mouse_coef;
+  if( d->camera_mode_ & CAM_EYE_REL ) {
+    d->camera_eye_.spheric.rotate( dy*d->camera_step_angle,
+                                  -dx*d->camera_step_angle );
+  } else if( d->camera_mode_ & CAM_TARGET_REL ) {
+    d->camera_target_.spheric.rotate( dy*d->camera_step_angle,
+                                     -dx*d->camera_step_angle );
+  }
 }
 
 
@@ -569,7 +581,7 @@ void Display::handlerCamAhead(Display *d, const SDL_Event *event)
 {
   if( d->camera_mode_ & CAM_EYE_REL )
   {
-    d->camera_eye_.spheric.r -= cfg.camera_step_linear;
+    d->camera_eye_.spheric.r -= d->camera_step_linear;
     if( d->camera_eye_.spheric.r < 0 )
       d->camera_eye_.spheric.r = 0;
   }
@@ -582,7 +594,7 @@ void Display::handlerCamAhead(Display *d, const SDL_Event *event)
       dir = d->camera_target_.spheric;
     else if( d->camera_mode_ & CAM_TARGET_OBJECT )
       dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
-    dir.r = cfg.camera_step_linear;
+    dir.r = d->camera_step_linear;
     d->camera_eye_.cart += dir;
   }
 }
@@ -590,7 +602,7 @@ void Display::handlerCamAhead(Display *d, const SDL_Event *event)
 void Display::handlerCamBack(Display *d, const SDL_Event *event)
 {
   if( d->camera_mode_ & CAM_EYE_REL )
-    d->camera_eye_.spheric.r += cfg.camera_step_linear;
+    d->camera_eye_.spheric.r += d->camera_step_linear;
   else
   {
     btSpheric3 dir;
@@ -600,7 +612,7 @@ void Display::handlerCamBack(Display *d, const SDL_Event *event)
       dir = d->camera_target_.spheric;
     else if( d->camera_mode_ & CAM_TARGET_OBJECT )
       dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
-    dir.r = -cfg.camera_step_linear;
+    dir.r = -d->camera_step_linear;
     d->camera_eye_.cart += dir;
   }
 }
@@ -608,7 +620,7 @@ void Display::handlerCamBack(Display *d, const SDL_Event *event)
 void Display::handlerCamLeft(Display *d, const SDL_Event *event)
 {
   if( d->camera_mode_ & CAM_EYE_REL )
-    d->camera_eye_.spheric.phi -= cfg.camera_step_angle;
+    d->camera_eye_.spheric.phi -= d->camera_step_angle;
   else
   {
     btSpheric3 dir;
@@ -618,7 +630,7 @@ void Display::handlerCamLeft(Display *d, const SDL_Event *event)
       dir = d->camera_target_.spheric;
     else if( d->camera_mode_ & CAM_TARGET_OBJECT )
       dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
-    dir.r = cfg.camera_step_linear;
+    dir.r = d->camera_step_linear;
     dir.theta = M_PI_2;
     dir.phi += M_PI_2;
     d->camera_eye_.cart += dir;
@@ -628,7 +640,7 @@ void Display::handlerCamLeft(Display *d, const SDL_Event *event)
 void Display::handlerCamRight(Display *d, const SDL_Event *event)
 {
   if( d->camera_mode_ & CAM_EYE_REL )
-    d->camera_eye_.spheric.phi += cfg.camera_step_angle;
+    d->camera_eye_.spheric.phi += d->camera_step_angle;
   else
   {
     btSpheric3 dir;
@@ -638,7 +650,7 @@ void Display::handlerCamRight(Display *d, const SDL_Event *event)
       dir = d->camera_target_.spheric;
     else if( d->camera_mode_ & CAM_TARGET_OBJECT )
       dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
-    dir.r = -cfg.camera_step_linear;
+    dir.r = -d->camera_step_linear;
     dir.theta = M_PI_2;
     dir.phi += M_PI_2;
     d->camera_eye_.cart += dir;
@@ -648,7 +660,7 @@ void Display::handlerCamRight(Display *d, const SDL_Event *event)
 void Display::handlerCamUp(Display *d, const SDL_Event *event)
 {
   if( d->camera_mode_ & CAM_EYE_REL )
-    d->camera_eye_.spheric.theta -= cfg.camera_step_angle;
+    d->camera_eye_.spheric.theta -= d->camera_step_angle;
   else
   {
     btSpheric3 dir;
@@ -658,7 +670,7 @@ void Display::handlerCamUp(Display *d, const SDL_Event *event)
       dir = d->camera_target_.spheric;
     else if( d->camera_mode_ & CAM_TARGET_OBJECT )
       dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
-    dir.r = -cfg.camera_step_linear;
+    dir.r = -d->camera_step_linear;
     dir.theta -= M_PI_2;
     d->camera_eye_.cart += dir;
   }
@@ -667,7 +679,7 @@ void Display::handlerCamUp(Display *d, const SDL_Event *event)
 void Display::handlerCamDown(Display *d, const SDL_Event *event)
 {
   if( d->camera_mode_ & CAM_EYE_REL )
-    d->camera_eye_.spheric.theta += cfg.camera_step_angle;
+    d->camera_eye_.spheric.theta += d->camera_step_angle;
   else
   {
     btSpheric3 dir;
@@ -677,7 +689,7 @@ void Display::handlerCamDown(Display *d, const SDL_Event *event)
       dir = d->camera_target_.spheric;
     else if( d->camera_mode_ & CAM_TARGET_OBJECT )
       dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
-    dir.r = cfg.camera_step_linear;
+    dir.r = d->camera_step_linear;
     dir.theta -= M_PI_2;
     d->camera_eye_.cart += dir;
   }
@@ -879,6 +891,83 @@ class LuaDisplay: public LuaClass<Display>
     return 0;
   }
 
+  static int set_conf(lua_State *L)
+  {
+    Display *d = get_ptr(L,1);
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+#define SET_CONF_VAL_NUM_TR(f,tr) \
+    lua_getfield(L, 1, #f); \
+    if( !lua_isnil(L, -1) ) { \
+      if( !lua_isnumber(L,-1) ) \
+        throw(LuaError(L, "invalid " #f " value")); \
+      d->f = tr(lua_tonumber(L,-1)); \
+    } \
+    lua_pop(L,1);
+#define SET_CONF_VAL_NUM(f)  SET_CONF_VAL_NUM_TR(f,)
+#define SET_CONF_VAL_NUM_SCALED(f)  SET_CONF_VAL_NUM_TR(f,btScale)
+
+    SET_CONF_VAL_NUM(time_scale);
+    SET_CONF_VAL_NUM(fps);
+    SET_CONF_VAL_NUM(camera_step_angle);
+    SET_CONF_VAL_NUM(camera_mouse_coef);
+    SET_CONF_VAL_NUM_SCALED(camera_step_linear);
+    SET_CONF_VAL_NUM(perspective_fov);
+    SET_CONF_VAL_NUM_SCALED(perspective_near);
+    SET_CONF_VAL_NUM_SCALED(perspective_far);
+
+    lua_getfield(L, 2, "bg_color");
+    if( !lua_isnil(L, -1) ) {
+      Color4 c;
+      if( LuaManager::tocolor(L, -1, c) != 0 )
+        throw(LuaError(L, "invalid bg_color value"));
+      d->bg_color = c;
+    }
+    lua_pop(L,1);
+
+#undef SET_CONF_VAL_NUM
+#undef SET_CONF_VAL_NUM_SCALED
+#undef SET_CONF_VAL_NUM_TR
+
+    // values not settable while running
+    if( !d->isInitialized() ) {
+
+      lua_getfield(L, 2, "screen_x");
+      if( !lua_isnil(L, -1) ) {
+        int v = lua_tointeger(L,-1);
+        if( v <= 0 ) throw(LuaError(L, "invalid screen_x value"));
+        d->screen_x_ = v;
+      }
+      lua_pop(L,1);
+
+      lua_getfield(L, 2, "screen_y");
+      if( !lua_isnil(L, -1) ) {
+        int v = lua_tointeger(L,-1);
+        if( v <= 0 ) throw(LuaError(L, "invalid screen_y value"));
+        d->screen_y_ = v;
+      }
+      lua_pop(L,1);
+
+      lua_getfield(L, 2, "fullscreen");
+      if( !lua_isnil(L, -1) ) {
+        d->fullscreen_ = lua_toboolean(L,-1);
+      }
+      lua_pop(L,1);
+
+      lua_getfield(L, 2, "antialias");
+      if( !lua_isnil(L, -1) ) {
+        if( !lua_isnumber(L,-1) )
+          throw(LuaError(L, "invalid antialias value"));
+        d->antialias_ = lua_tointeger(L,-1);
+      }
+      lua_pop(L,1);
+
+    }
+
+    return 0;
+  }
+
+
   LUA_DEFINE_SET0(init, init);
   LUA_DEFINE_GET(is_initialized, isInitialized);
   LUA_DEFINE_SET1(save_screenshot, savePNGScreenshot, LARG_s);
@@ -1066,6 +1155,7 @@ protected:
   virtual void init_members(lua_State *L)
   {
     LUA_CLASS_MEMBER(_ctor);
+    LUA_CLASS_MEMBER(set_conf);
     LUA_CLASS_MEMBER(init);
     LUA_CLASS_MEMBER(is_initialized);
     LUA_CLASS_MEMBER(save_screenshot);

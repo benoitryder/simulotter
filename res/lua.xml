@@ -11,22 +11,6 @@
       can be used.
     </object>
 
-    <object name="config">
-      Configuration values.
-
-      <value name="time_scale" type="float">Time scale coefficient (&gt;1 to slow down, &lt;1 to speed up)</value>
-      <value name="draw_epsilon" type="float">Gap size between to contiguous surfaces</value>
-      <value name="draw_div" type="int">Slices and stacks for GLUT geometry objects</value>
-      <value name="perspective_fov" type="float">Perspective field of view (in degrees)</value>
-      <value name="perspective_near" type="float">Near clipping plance distance</value>
-      <value name="perspective_far" type="float">Far clipping plance distance</value>
-      <value name="screen_x" type="int">Starting screen width</value>
-      <value name="screen_y" type="int">Starting screen height</value>
-      <value name="fullscreen" type="bool">Start fullscreen</value>
-      <value name="fps" type="float">Refresh rate (frames per second) and SDL event handling rate</value>
-      <value name="bg_color" type="Color">Background color</value>
-    </object>
-
     <function name="trace">Send a single string to logs.</function>
     <function name="exit">Exit with the given status code (default: <tt>0</tt>).
       <arg name="code" required="0"/>
@@ -66,6 +50,31 @@
       <constructor>
         Create or get physics singleton.
       </constructor>
+
+      <function name="set_conf">
+        Set display configuration values. See <tt>Conf</tt> for field description.<br/>
+        <b>Note:</b> invalid fields are silently ignored.
+
+        <arg name="conf" type="table"/>
+      </function>
+
+      <field name="Conf">
+        This is not an actual available field but a description of table fields
+        supported by the <tt>set_conf</tt> method.<br/>
+        Fields starting from <tt>screen_x</tt> can only be set before display initialization.
+
+        <value name="time_scale" type="float">Time scale coefficient (&gt;1 to slow down, &lt;1 to speed up)</value>
+        <value name="fps" type="float">Display rate; also defines event handling rate</value>
+        <value name="bg_color" type="Color">Background color</value>
+        <value name="perspective_fov" type="float">Perspective field of view (in degrees)</value>
+        <value name="perspective_near" type="float">Near clipping plance distance</value>
+        <value name="perspective_far" type="float">Far clipping plance distance</value>
+        <value name="screen_x" type="int">Starting screen width</value>
+        <value name="screen_y" type="int">Starting screen height</value>
+        <value name="fullscreen" type="bool">Start fullscreen</value>
+        <value name="antialias" type="bool">Multisampling count, 0 to disable</value>
+        <value name="draw_div" type="int">Slices and stacks for GLUT geometry objects</value>
+      </field>
 
       <function name="init">
         Init display (using configuration values).<br/>

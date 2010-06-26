@@ -1,7 +1,6 @@
-#include <GL/freeglut.h>
 #include "modules/eurobot2009.h"
 #include "physics.h"
-#include "config.h"
+#include "display.h"
 
 
 namespace eurobot2009
@@ -66,7 +65,7 @@ namespace eurobot2009
     glPushMatrix();
     drawTransform(m_worldTransform);
     glTranslatef(0, 0, -height/2);
-    glutWireCylinder(radius, height, cfg.draw_div, 10);
+    glutWireCylinder(radius, height, Display::DRAW_DIV, 10);
     glPopMatrix();
   }
 

@@ -2,7 +2,6 @@
 #include "physics.h"
 #include "object.h"
 #include "lua_utils.h"
-#include "config.h"
 #include "log.h"
 
 

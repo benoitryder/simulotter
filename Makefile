@@ -13,7 +13,7 @@ else
 LDFLAGS = -lm $(BULLET_LIBS) -llua5.1 -lGL -lGLU -lglut -lSDL -lpng
 endif
 
-OBJS = main.o config.o physics.o display.o object.o sensors.o robot.o galipeur.o log.o
+OBJS = main.o physics.o display.o object.o sensors.o robot.o galipeur.o log.o
 OBJS += modules/eurobot2009.o modules/eurobot2010.o
 # lua_utils must be the last one to register all Lua classes
 OBJS += lua_utils.o

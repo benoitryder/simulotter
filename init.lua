@@ -1,25 +1,13 @@
 
--- Config
-
-config.time_scale = 1
-
-config.draw_epsilon = 0.0005
-config.draw_div = 20
-
-config.perspective_fov = 45.0
-config.perspective_near = 0.1
-config.perspective_far = 300.0
-
-config.screen_x = 800
-config.screen_y = 600
-config.fullscreen = false
-config.fps = 60
-config.antialias = 0
-
-config.bg_color = { 0.8, 0.8, 0.8 }
-
 physics = Physics()
 display = Display()
+display:set_conf{
+  time_scale = 1,
+  screen_x = 800,
+  screen_y = 600,
+  fullscreen = false,
+  antialias = 0,
+}
 display:init()
 
 

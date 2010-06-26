@@ -4,6 +4,7 @@
 ///@file
 
 #include <SDL/SDL.h>
+#include <GL/freeglut.h>
 #include <map>
 #include <set>
 #include "smart.h"
@@ -62,12 +63,56 @@ class Display: public SmartObject
 {
   friend class LuaDisplay;
 public:
+  /// Gap between contiguous surfaces.
+  static const btScalar DRAW_EPSILON;
+  /// Slices and stacks for GLUT geometry objects.
+  static const unsigned int DRAW_DIV;
+
+
   Display();
   virtual ~Display();
 
   /// Init video display (using configuration values)
   void init();
   bool isInitialized() { return SDL_WasInit(SDL_INIT_VIDEO) != 0; }
+
+  /** @name Dynamic configuration values.
+   *
+   * These values can be modified while the simulation is running.
+   *
+   * @todo Checks should be added for some values.
+   */
+  //@{
+
+  /** @brief Time scale coefficient.
+   *
+   * If greater than 1, slow down the simulation.
+   * If less than 1, speed up the simulation.
+   */
+  float time_scale;
+  /** @brief Display rate.
+   * @note It also defines the event handling rate.
+   */
+  float fps;
+
+  Color4 bg_color;
+
+  /// Step for camera angle moves
+  float camera_step_angle;
+  /// Step for camera linear moves
+  float camera_step_linear;
+  /// Coefficient for mouse camera moves
+  float camera_mouse_coef;
+
+  /// Perspective field of view (in degrees)
+  float perspective_fov;
+  /// Near clipping plance distance
+  float perspective_near;
+  /// Far clipping plance distance
+  float perspective_far;
+
+  //@}
+
 
   /** @brief Resize the screen and/or toggle fullscreen
    * @param width   window width
@@ -79,11 +124,12 @@ public:
   /// Update display
   void update();
 
-  /** @brief Run simulation display, with speed control.
+  /** @brief Run simulation display.
    *
-   * The display is initialized if needed.
+   * Initialize the display (if needed) and display simulation.
+   * Timings are given by fps and time_scale fields.
    *
-   * This method never returns.
+   * @note This method never returns.
    */
   void run();
 
@@ -113,6 +159,8 @@ private:
   int screen_x_; ///< Screen width
   int screen_y_; ///< Screen height
   bool fullscreen_;
+  unsigned int antialias_; ///< Multisampling count (0 to disable)
+
 
   void windowInit();
   void windowDestroy();
