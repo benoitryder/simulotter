@@ -53,6 +53,7 @@ public:
   void togglePause() { pause_state_ = !pause_state_; }
 
   btDynamicsWorld *getWorld() { return world_; }
+  const btDynamicsWorld *getWorld() const { return world_; }
 
   std::set<SmartPtr<Object> > &getObjs() { return objs_; }
   std::set<SmartPtr<Object> > &getTickObjs() { return tick_objs_; }
@@ -94,10 +95,6 @@ private:
   typedef std::priority_queue< TaskQueueValue, std::vector<TaskQueueValue>, std::greater<TaskQueueValue> > TaskQueue;
   /// Scheduled tasks
   TaskQueue task_queue_;
-
-public:
-  /// Physics singleton.
-  static SmartPtr<Physics> physics;
 };
 
 

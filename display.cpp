@@ -11,9 +11,6 @@
 
 
 
-SmartPtr<Display> Display::display;
-
-
 const btScalar Display::DRAW_EPSILON = btScale(0.0005);
 const unsigned int Display::DRAW_DIV = 20;
 
@@ -30,10 +27,6 @@ Display::Display():
     screen_x_(800), screen_y_(600),
     fullscreen_(false), antialias_(0)
 {
-  //TODO:temp
-  if( Display::display == NULL )
-    Display::display = this;
-
   int argc = 1;
   glutInit(&argc, NULL);
 
@@ -149,6 +142,9 @@ void Display::resize(int width, int height, int mode)
 
 void Display::update()
 {
+  if( ! physics_ )
+    throw(Error("no physics attached to display"));
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glMatrixMode(GL_PROJECTION); 
@@ -175,7 +171,7 @@ void Display::update()
       0.0, 0.0, up);
 
   // Draw objects
-  const std::set< SmartPtr<Object> > &objs = Physics::physics->getObjs();
+  const std::set< SmartPtr<Object> > &objs = physics_->getObjs();
   std::set< SmartPtr<Object> >::const_iterator it_obj;
   for( it_obj = objs.begin(); it_obj != objs.end(); ++it_obj )
     (*it_obj)->draw();
@@ -211,12 +207,12 @@ void Display::update()
 
 void Display::run()
 {
+  if( ! physics_ )
+    throw(Error("no physics attached to display"));
   if( ! isInitialized() )
     init();
-  if( Physics::physics == NULL )
-    throw(Error("physics not created"));
 
-  unsigned int step_dt = (unsigned int)(1000.0*Physics::physics->getStepDt());
+  unsigned int step_dt = (unsigned int)(1000.0*physics_->getStepDt());
   unsigned long time;
   unsigned long time_disp, time_step;
   signed long time_wait;
@@ -225,12 +221,12 @@ void Display::run()
   for(;;) {
     time = SDL_GetTicks();
     if( time >= time_step ) {
-      Physics::physics->step();
+      physics_->step();
       time_step += (unsigned long)(step_dt * this->time_scale);
     }
     if( time >= time_disp ) {
-      Display::display->processEvents();
-      Display::display->update();
+      this->processEvents();
+      this->update();
       time_disp = time + (1000.0/this->fps);
     }
 
@@ -567,7 +563,10 @@ void Display::handlerResize(Display *d, const SDL_Event *event)
 
 void Display::handlerPause(Display *d, const SDL_Event *event)
 {
-  Physics::physics->togglePause();
+  Physics *ph = d->getPhysics();
+  if( ! ph )
+    throw(Error("no physics attached to display"));
+  ph->togglePause();
 }
 
 void Display::handlerCamMouse(Display *d, const SDL_Event *event)

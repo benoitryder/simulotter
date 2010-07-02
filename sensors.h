@@ -26,8 +26,9 @@ public:
   /** @brief Get hit distance
    *
    * @retval a positive value in sensor range on success, -1.0 otherwise
+   * @todo Store Physics object on the sensor?
    */
-  btScalar hitTest(const btTransform &origin) const;
+  btScalar hitTest(const Physics *ph, const btTransform &origin) const;
 
 protected:
   /// Hit range

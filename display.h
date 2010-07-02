@@ -11,6 +11,7 @@
 #include "maths.h"
 #include "colors.h"
 
+class Physics;
 class Object;
 class Display;
 class OSDMessage;
@@ -73,6 +74,10 @@ public:
   /// Init video display (using configuration values)
   void init();
   bool isInitialized() { return SDL_WasInit(SDL_INIT_VIDEO) != 0; }
+
+  SmartPtr<Physics> physics_; ///< Currently drawn Physics
+  Physics *getPhysics() { return physics_; }
+  void setPhysics(Physics *ph) { physics_ = ph; }
 
   /** @name Dynamic configuration values.
    *
@@ -280,10 +285,6 @@ private:
   std::set< SmartPtr<OSDMessage> > osds_;
 
   //@}
-
-public:
-  /// Display singleton.
-  static SmartPtr<Display> display;
 };
 
 

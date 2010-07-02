@@ -4,18 +4,12 @@
 #include "log.h"
 
 
-SmartPtr<Physics> Physics::physics;
-
 const btScalar Physics::EARTH_GRAVITY = btScale(9.80665);
 const btScalar Physics::MARGIN_EPSILON = btScale(0.001);
 
 
 Physics::Physics(btScalar step_dt): pause_state_(false), step_dt_(0), time_(0)
 {
-  //TODO:temp
-  if( Physics::physics == NULL )
-    Physics::physics = this;
-
   if( step_dt <= 0 )
     throw(Error("invalid step_dt value"));
   step_dt_ = step_dt;

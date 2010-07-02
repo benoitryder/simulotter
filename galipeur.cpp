@@ -334,7 +334,7 @@ btScalar Galipeur::test_sensor(unsigned int i) const
 {
   if( i >= sharps_trans_.size() )
     throw(Error("invalid sensor index: %u"));
-  return SRay::gp2d12.hitTest( getTrans() * sharps_trans_[i] );
+  return SRay::gp2d12.hitTest( physics_, getTrans() * sharps_trans_[i] );
 }
 
 
