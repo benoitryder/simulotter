@@ -6,7 +6,6 @@
  */
 
 #include "galipeur.h"
-#include "lua_utils.h"
 
 
 namespace eurobot2009
@@ -103,7 +102,6 @@ namespace eurobot2009
    */
   class Galipeur2009: public Galipeur
   {
-    friend class LuaGalipeur2009;
   public:
     Galipeur2009(btScalar m);
     virtual ~Galipeur2009();
@@ -207,12 +205,6 @@ namespace eurobot2009
     btScalar threshold_pachev_;
   };
 
-
-  class LuaEurobotModule: public LuaModule
-  {
-  public:
-    virtual void do_import(lua_State *L);
-  };
 }
 
 

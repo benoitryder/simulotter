@@ -6,7 +6,6 @@
  */
 
 #include "galipeur.h"
-#include "lua_utils.h"
 
 
 namespace eurobot2010
@@ -102,12 +101,6 @@ namespace eurobot2010
     static SmartPtr<btSphereShape> shape_;
   };
 
-
-  class LuaEurobotModule: public LuaModule
-  {
-  public:
-    virtual void do_import(lua_State *L);
-  };
 }
 
 

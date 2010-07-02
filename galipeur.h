@@ -16,7 +16,6 @@
  */
 class Galipeur: public Robot
 {
-  friend class LuaGalipeur;
 public:
   Galipeur(btScalar m);
   virtual ~Galipeur();

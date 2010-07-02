@@ -8,7 +8,6 @@
 #include <vector>
 #include "smart.h"
 
-struct lua_State;
 class Object;
 class TaskPhysics;
 
@@ -137,43 +136,11 @@ protected:
   bool cancelled_;
 };
 
-/** @brief Task used in Lua
- *
- * Behavior is similar to \e TaskBasic's.
- *
- * Callback is stored on the instance \e callback field.
- */
-class TaskLua: public TaskPhysics
-{
-public:
-  TaskLua(lua_State *L, int ref, btScalar period=0.0);
-  virtual ~TaskLua();
-
-  virtual void process(Physics *ph);
-
-  /// Cancel the task
-  void cancel() { cancelled_ = true; }
-
-protected:
-  btScalar period_;
-  bool cancelled_;
-  /// Lua instance state
-  lua_State *L_;
-  /// Lua instance reference
-  int ref_obj_;
-
-private:
-  /// Process callback function call 
-  void do_process_function(lua_State *L);
-  /// Process callback coroutine call 
-  void do_process_thread(lua_State *L);
-};
-
 
 /** @brief Compound shape which hold reference on children.
  *
  * The default btCompoundShape does not allow to keep references on children.
- * This class fulfil this need, especially for the LUA bindings.
+ * This class fulfil this need, especially for bindings.
  *
  * The \e updateChildReferences must be called after changes on children.
  *

@@ -10,7 +10,6 @@
 #include "smart.h"
 #include "maths.h"
 #include "colors.h"
-#include "lua_utils.h"
 
 class Object;
 class Display;
@@ -61,7 +60,6 @@ public:
  */
 class Display: public SmartObject
 {
-  friend class LuaDisplay;
 public:
   /// Gap between contiguous surfaces.
   static const btScalar DRAW_EPSILON;
@@ -300,20 +298,6 @@ class BasicEventHandler: public DisplayEventHandler
   Callback cb_;  /// C++ callback
 };
 
-/** @brief Event handler used in LUA.
- */
-class EventHandlerLua: public DisplayEventHandler
-{
- public:
-  EventHandlerLua(lua_State *L, int ref);
-  virtual ~EventHandlerLua();
-  virtual void process(Display *d, const SDL_Event *ev) const;
- private:
-  lua_State *L_;  /// Lua callback state
-  int ref_cb_;    /// Lua callback reference
-};
-
-
 
 /** @brief OSD messages interface
  *
@@ -338,7 +322,6 @@ public:
 /** @brief Simple OSD
  *
  * Simple OSD implementation with public access to OSD properties.
- * This is the base OSD class used in Lua bindings.
  */
 class OSDSimple: public OSDMessage
 {
@@ -355,34 +338,6 @@ private:
   const char *text_;
   int x_, y_;
   Color4 color_;
-};
-
-/** @brief OSD for Lua bindings
- *
- * Attributes associated to OSD properties may be static values or functions.
- */
-class OSDLua: public OSDMessage
-{
-public:
-  OSDLua(lua_State *L, int ref_obj);
-  virtual ~OSDLua();
-
-  /** @name Common accessors
-   */
-  //@{
-  virtual const char *getText();
-  virtual int getX();
-  virtual int getY();
-  virtual Color4 getColor();
-  //@}
-
-protected:
-  /// Lua instance state
-  lua_State *L_;
-  /// Lua instance reference
-  int ref_obj_;
-  /// Lua text reference
-  int ref_text_;
 };
 
 

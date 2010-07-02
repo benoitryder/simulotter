@@ -13,9 +13,7 @@
  */
 class Robot: public Object
 {
-  friend class LuaRobot;
 public:
-
   Robot();
 };
 
@@ -33,7 +31,6 @@ public:
  */
 class RBasic: public Robot
 {
-  friend class LuaRBasic;
 protected:
   /** @brief Empty constructor, for derivative classes only
    *
@@ -83,7 +80,7 @@ public:
 
   /** @brief Update position and velocity values
    *
-   * Update internal values which will be returned by lua calls.
+   * Update internal values which will be returned by binding calls.
    * This method should be called after each simulation step and before asserv
    * step.
    */

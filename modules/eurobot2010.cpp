@@ -1,6 +1,7 @@
 #include "modules/eurobot2010.h"
 #include "physics.h"
 #include "display.h"
+#include "log.h"
 
 
 namespace eurobot2010
@@ -284,109 +285,6 @@ namespace eurobot2010
     setColor( Color4(0xff, 0x80,0) );
     setMass( 0.300 );
   }
-
-
-  class LuaORaisedZone: public LuaClass<ORaisedZone>
-  {
-    static int _ctor(lua_State *L)
-    {
-      store_ptr(L, new ORaisedZone());
-      return 0;
-    }
-
-
-    virtual void init_members(lua_State *L)
-    {
-      LUA_CLASS_MEMBER(_ctor);
-    }
-  };
-
-
-  class LuaOCorn: public LuaClass<OCorn>
-  {
-    static int _ctor(lua_State *L)
-    {
-      store_ptr(L, new OCorn());
-      return 0;
-    }
-
-    LUA_DEFINE_SET2(plant,plant, LARG_scaled, LARG_scaled);
-    LUA_DEFINE_SET0(uproot,uproot);
-
-
-    virtual void init_members(lua_State *L)
-    {
-      LUA_CLASS_MEMBER(_ctor);
-      LUA_CLASS_MEMBER(plant);
-      LUA_CLASS_MEMBER(uproot);
-    }
-  };
-
-
-  class LuaOCornFake: public LuaClass<OCornFake>
-  {
-    static int _ctor(lua_State *L)
-    {
-      store_ptr(L, new OCornFake());
-      return 0;
-    }
-
-
-    virtual void init_members(lua_State *L)
-    {
-      LUA_CLASS_MEMBER(_ctor);
-    }
-  };
-
-
-  class LuaOTomato: public LuaClass<OTomato>
-  {
-    static int _ctor(lua_State *L)
-    {
-      store_ptr(L, new OTomato());
-      return 0;
-    }
-
-
-    virtual void init_members(lua_State *L)
-    {
-      LUA_CLASS_MEMBER(_ctor);
-    }
-  };
-
-
-  class LuaOOrange: public LuaClass<OOrange>
-  {
-    static int _ctor(lua_State *L)
-    {
-      store_ptr(L, new OOrange());
-      return 0;
-    }
-
-
-    virtual void init_members(lua_State *L)
-    {
-      LUA_CLASS_MEMBER(_ctor);
-    }
-  };
-
-
-  void LuaEurobotModule::do_import(lua_State *L)
-  {
-    LUA_IMPORT_CLASS_NS(eurobot2010,ORaisedZone);
-    LUA_IMPORT_CLASS_NS(eurobot2010,OCorn);
-    LUA_IMPORT_CLASS_NS(eurobot2010,OCornFake);
-    LUA_IMPORT_CLASS_NS(eurobot2010,OTomato);
-    LUA_IMPORT_CLASS_NS(eurobot2010,OOrange);
-    LUA_IMPORT_CLASS(Galipeur);
-    LUA_IMPORT_CLASS(OGround);
-  }
-
-  LUA_REGISTER_SUB_CLASS_NS(eurobot2010,ORaisedZone,OSimple);
-  LUA_REGISTER_SUB_CLASS_NS(eurobot2010,OCorn,OSimple);
-  LUA_REGISTER_SUB_CLASS_NS(eurobot2010,OCornFake,OSimple);
-  LUA_REGISTER_SUB_CLASS_NS(eurobot2010,OTomato,OSimple);
-  LUA_REGISTER_SUB_CLASS_NS(eurobot2010,OOrange,OSimple);
 
 }
 

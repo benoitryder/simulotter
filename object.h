@@ -121,9 +121,9 @@ public:
 
   /** @brief Set object shape
    *
-   * In order to prevent LUA scripts to reassign a shape in subclasses, this
-   * function will fail if shape is already set. Implementations may call bullet
-   * functions if they really need to reassign shape.
+   * In order to prevent shape reassignement in subclasses, this function will
+   * fail if shape is already set. Implementations may call bullet functions if
+   * they really need to reassign shape.
    *
    * @note This function must be called to initialize the object.
    */
