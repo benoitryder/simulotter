@@ -60,7 +60,7 @@ namespace eurobot2009
     o->setPos(pos);
   }
 
-  void ODispenser::draw()
+  void ODispenser::draw(Display *d)
   {
     glColor4fv(color_);
     glPushMatrix();
@@ -270,9 +270,9 @@ namespace eurobot2009
     ph_bak->getWorld()->removeRigidBody(pachev_);
   }
 
-  void Galipeur2009::draw()
+  void Galipeur2009::draw(Display *d)
   {
-    Galipeur::draw();
+    Galipeur::draw(d);
 
     glPushMatrix();
     drawTransform(pachev_->getCenterOfMassTransform());

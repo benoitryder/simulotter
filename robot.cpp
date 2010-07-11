@@ -57,7 +57,7 @@ void RBasic::removeFromWorld()
 }
 
 
-void RBasic::draw()
+void RBasic::draw(Display *d)
 {
   glColor4fv(color_);
   glPushMatrix();

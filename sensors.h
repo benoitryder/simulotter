@@ -21,7 +21,7 @@ public:
   virtual ~SRay();
 
   /// Draw the sensor hit zone
-  virtual void draw() const;
+  virtual void draw(Display *d) const;
 
   /** @brief Get hit distance
    *

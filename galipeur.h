@@ -30,7 +30,7 @@ public:
    * Assumes that the robot is not rotated (robot's Z axis aligned with world's
    * Z axis).
    */
-  virtual void draw();
+  virtual void draw(Display *d);
 
   virtual const btTransform &getTrans() const { return body_->getCenterOfMassTransform(); }
   virtual void setTrans(const btTransform &tr) { body_->setCenterOfMassTransform(tr); }

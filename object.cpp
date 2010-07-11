@@ -194,7 +194,7 @@ void OSimple::setPosAbove(const btVector2 &pos)
 }
 
 
-void OSimple::draw()
+void OSimple::draw(Display *d)
 {
   glColor4fv(color_);
   glPushMatrix();
@@ -236,7 +236,7 @@ OGround::~OGround()
 }
 
 
-void OGround::draw()
+void OGround::draw(Display *d)
 {
   glPushMatrix();
 

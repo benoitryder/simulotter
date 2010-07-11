@@ -5,15 +5,22 @@
 
 #include <cstdarg>
 #include <exception>
+#include <string>
 
 /// Logging macro, for convenience.
 #define LOG (::Logger::glog)
 
 
+/// printf-like formatting for std::string.
+std::string stringf(const char *fmt, ...);
+/// printf-like formatting for std::string, variadic version.
+std::string vstringf(const char *fmt, va_list ap);
+
+
 class Logger
 {
 public:
-  Logger() { log("log is running"); }
+  Logger() {}
   ~Logger() {}
 
   void log(const char *fmt, ...);
@@ -31,24 +38,17 @@ private:
 class Error: public std::exception
 {
 public:
-
   Error(const char *fmt, ...);
-  Error(): msg_(NULL) {}
-  ~Error() throw();
-  Error(const Error &e);
-  Error &operator=(const Error &e);
+  Error(const std::string &msg): what_(msg) {}
+  ~Error() throw() {}
 
   virtual const char *what() const throw()
   {
-    return msg_;
+    return what_.c_str();
   }
 
-protected:
-  void setMsg(const char *fmt, ...);
-  void setMsg(const char *fmt, va_list ap);
-
 private:
-  char *msg_;
+  std::string what_;
 };
 
 

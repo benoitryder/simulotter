@@ -6,6 +6,27 @@
 
 
 
+std::string stringf(const char *fmt, ...)
+{
+  va_list ap;
+  va_start(ap, fmt);
+  std::string ret = vstringf(fmt, ap);
+  va_end(ap);
+  return ret;
+}
+
+std::string vstringf(const char *fmt, va_list ap)
+{
+  va_list ap2;
+  va_copy(ap2,ap);
+  int n = vsnprintf(NULL, 0, fmt, ap2) + 1;
+  va_end(ap2);
+  char msg[n];
+  vsnprintf(msg, n, fmt, ap);
+  return std::string(msg);
+}
+
+
 void Logger::log(const char *fmt, ...)
 {
   va_list ap;
@@ -40,59 +61,11 @@ Logger Logger::logger_;
 
 
 
-Error::Error(const char *fmt, ...): msg_(NULL)
+Error::Error(const char *fmt, ...): std::exception()
 {
   va_list ap;
   va_start(ap, fmt);
-  setMsg(fmt, ap);
+  what_ = vstringf(fmt, ap);
   va_end(ap);
-}
-
-Error::Error(const Error &e): std::exception(e)
-{
-  operator=(e);
-}
-
-Error::~Error() throw()
-{
-  delete msg_;
-}
-
-Error &Error::operator=(const Error &e)
-{
-  if( e.msg_ == NULL )
-    msg_ = NULL;
-  else
-  {
-    delete[] msg_;
-    msg_ = NULL;
-    int n = ::strlen(e.msg_);
-    msg_ = new char[n+1];
-    ::strncpy(msg_, e.msg_, n);
-    msg_[n] = '\0';
-  }
-  return *this;
-}
-
-void Error::setMsg(const char *fmt, ...)
-{
-  va_list ap;
-  va_start(ap, fmt);
-  setMsg(fmt, ap);
-  va_end(ap);
-}
-
-void Error::setMsg(const char *fmt, va_list ap)
-{
-  delete[] msg_;
-  msg_ = NULL;
-
-  // build the message string
-  va_list ap2;
-  va_copy(ap2,ap);
-  int n = ::vsnprintf(NULL, 0, fmt, ap2) + 1;
-  va_end(ap2);
-  msg_ = new char[n];
-  ::vsnprintf(msg_, n, fmt, ap);
 }
 

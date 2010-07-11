@@ -69,7 +69,7 @@ namespace eurobot2010
     setShape( shape_ );
   }
 
-  void ORaisedZone::draw()
+  void ORaisedZone::draw(Display *d)
   {
     glPushMatrix();
     drawTransform(getTrans());

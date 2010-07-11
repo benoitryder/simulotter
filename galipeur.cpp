@@ -97,7 +97,7 @@ void Galipeur::removeFromWorld()
   ph_bak->getWorld()->removeRigidBody(body_);
 }
 
-void Galipeur::draw()
+void Galipeur::draw(Display *d)
 {
   glColor4fv(color_);
 
@@ -221,7 +221,7 @@ void Galipeur::draw()
     drawTransform( *it );
     glColor4fv(Color4::white()); //XXX
     glutSolidCube(0.1); //XXX
-    SRay::gp2d12.draw();
+    SRay::gp2d12.draw(d);
     glPopMatrix();
   }
 

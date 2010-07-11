@@ -31,7 +31,6 @@ Display::Display():
   glutInit(&argc, NULL);
 
   screen_ = NULL;
-  screenshot_filename_ = NULL;
 
   camera_mode_ = CAM_FIXED;
   camera_eye_.spheric = btScale( btSpheric3(4.0, M_PI/6, -M_PI/3) );
@@ -174,7 +173,7 @@ void Display::update()
   const std::set< SmartPtr<Object> > &objs = physics_->getObjs();
   std::set< SmartPtr<Object> >::const_iterator it_obj;
   for( it_obj = objs.begin(); it_obj != objs.end(); ++it_obj )
-    (*it_obj)->draw();
+    (*it_obj)->draw(this);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -196,11 +195,9 @@ void Display::update()
   glFlush();
 
   // Save screenshot
-  if( screenshot_filename_ != NULL )
-  {
-    doSavePNGScreenshot(screenshot_filename_);
-    delete[] screenshot_filename_;
-    screenshot_filename_ = NULL;
+  if( ! screenshot_filename_.empty() ) {
+    doSavePNGScreenshot(screenshot_filename_.c_str());
+    screenshot_filename_.clear();
   }
 }
 
@@ -265,16 +262,9 @@ static void png_handler_warning(png_struct * /*png_ptr*/, const char *msg)
 
 //@}
 
-void Display::savePNGScreenshot(const char *filename)
+void Display::savePNGScreenshot(const std::string &filename)
 {
-  if( filename == NULL )
-    return;
-  if( screenshot_filename_ != NULL )
-    delete[] screenshot_filename_;
-  int n = ::strlen(filename);
-  screenshot_filename_ = new char[n+1];
-  strncpy(screenshot_filename_, filename, n);
-  screenshot_filename_[n] = '\0';
+  screenshot_filename_ = filename;
 }
 
 void Display::doSavePNGScreenshot(const char *filename)
@@ -354,12 +344,12 @@ void Display::doSavePNGScreenshot(const char *filename)
 }
 
 
-void Display::drawString(const char *s, int x, int y, Color4 color, void *font)
+void Display::drawString(const std::string &s, int x, int y, Color4 color, void *font)
 {
   y = screen_y_ - y;
   glColor4fv(color);
   glRasterPos2f(x,y);
-  for( unsigned int i=0; i<strlen(s); i++)
+  for( unsigned int i=0; i<s.size(); i++)
     glutBitmapCharacter(font, s[i]);
 }
 

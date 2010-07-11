@@ -63,7 +63,7 @@ public:
    */
   void setColor(const Color4 &color) { color_ = color; }
 
-  virtual void draw();
+  virtual void draw(Display *d);
 
   /** Draw a small direction cone above the robot
    *

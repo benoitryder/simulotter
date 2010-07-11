@@ -9,6 +9,7 @@
 #include "colors.h"
 
 class Physics;
+class Display;
 
 
 /** @brief Object abstract class
@@ -50,7 +51,7 @@ public:
   virtual void tickCallback();
 
   /// Draw the whole object
-  virtual void draw() = 0;
+  virtual void draw(Display *d) = 0;
 
   /** @name Transformation, position and rotation accessors
    */
@@ -157,7 +158,7 @@ public:
    *
    * Shape drawing is stored in a display list.
    */
-  virtual void draw();
+  virtual void draw(Display *d);
 
   virtual const btTransform &getTrans() const { return getCenterOfMassTransform(); }
   virtual void setTrans(const btTransform &tr) { setCenterOfMassTransform(tr); }
@@ -206,7 +207,7 @@ public:
    */
   OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2);
   ~OGround();
-  virtual void draw();
+  virtual void draw(Display *d);
 
 protected:
   /// Starting zone size (scaled)
