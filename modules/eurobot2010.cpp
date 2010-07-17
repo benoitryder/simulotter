@@ -74,15 +74,9 @@ namespace eurobot2010
     glPushMatrix();
     drawTransform(getTrans());
 
-    // NOTE: there should not have several instances, thus we do not really
-    // need a static display list id to share the display list.
-    if( dl_id_ != 0 )
-      glCallList(dl_id_);
-    else
-    {
-      // new display list
-      dl_id_ = glGenLists(1);
-      glNewList(dl_id_, GL_COMPILE_AND_EXECUTE);
+    if( d->callOrCreateDisplayList(this) ) {
+      // There should not have several instances, thus we do not really need to
+      // share the display list.
 
       glColor4fv(Color4(1)); // RAL 9016
 
@@ -118,7 +112,7 @@ namespace eurobot2010
       glTranslatef(0, +(width+wall_width), 0);
       draw_wall();
 
-      glEndList();
+      d->endDisplayList();
     }
 
     glPopMatrix();

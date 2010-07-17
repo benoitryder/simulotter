@@ -172,6 +172,35 @@ private:
   void sceneDestroy();
 
 
+  /** @name Display lists.
+   *
+   * Display lists are stored in an associative map whose keys are typically
+   * pointers to elements drawn by the display list.
+   *
+   * @todo Allow an object to destroy its display list.
+   */
+  //@{
+public:
+
+  /** @brief Call an existing playlist or starts a new one.
+   *
+   * If a list for the given key exists, it is called and false is returned.
+   * Otherwise, a new list is created, ready to be compiled, and true is
+   * returned. endDisplayList() must be called when the list is completed.
+   *
+   * @return true if a new list has been created, false otherwise.
+   */
+  bool callOrCreateDisplayList(void *key);
+  /// End currently initialized display list.
+  void endDisplayList();
+
+private:
+  typedef std::map<void *, GLuint> DisplayListContainer;
+  DisplayListContainer display_lists_;
+
+  //@}
+
+
   /** @name Camera
    *
    * There are three modes for eye and target; depending on it eye and target

@@ -87,15 +87,6 @@ void Object::drawShape(const btCollisionShape *shape)
   }
 }
 
-GLuint Object::createDisplayList(const btCollisionShape *shape)
-{
-  GLuint dl_id = glGenLists(1);
-  glNewList(dl_id, GL_COMPILE);
-  drawShape(shape);
-  glEndList();
-  return dl_id;
-}
-
 void Object::addToWorld(Physics *physics)
 {
   if( physics->getObjs().insert(this).second == false )
@@ -132,11 +123,8 @@ void Object::disableTickCallback()
 }
 
 
-std::map<const btCollisionShape *, GLuint> OSimple::shape2dl_;
-
 OSimple::OSimple():
-  btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL)),
-  dl_id_(0)
+  btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL))
 {
 }
 
@@ -200,17 +188,10 @@ void OSimple::draw(Display *d)
   glPushMatrix();
   drawTransform(m_worldTransform);
 
-  if( dl_id_ == 0 )
-  {
-    std::map<const btCollisionShape *, GLuint>::iterator it;
-    const btCollisionShape *shape = m_collisionShape;
-    it = shape2dl_.find( shape );
-    if( it == shape2dl_.end() )
-      shape2dl_[shape] = dl_id_ = createDisplayList(shape);
-    else
-      dl_id_ = (*it).second;
+  if( d->callOrCreateDisplayList(m_collisionShape) ) {
+    drawShape(m_collisionShape);
+    d->endDisplayList();
   }
-  glCallList(dl_id_);
 
   glPopMatrix();
 }
@@ -230,9 +211,6 @@ OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &colo
 
 OGround::~OGround()
 {
-  if( dl_id_ != 0 )
-    glDeleteLists(dl_id_, 1);
-  dl_id_ = 0;
 }
 
 
@@ -242,18 +220,11 @@ void OGround::draw(Display *d)
 
   drawTransform(m_worldTransform);
 
-  if( dl_id_ != 0 )
-    glCallList(dl_id_);
-  else
-  {
-    // Create the display list
+  if( d->callOrCreateDisplayList(this) ) {
     // Their should be only one ground instance, thus we create one display
     // list per instance. This allow to put color changes in it.
 
     const btVector3 &size = shape_->getHalfExtentsWithMargin();
-
-    dl_id_ = glGenLists(1);
-    glNewList(dl_id_, GL_COMPILE_AND_EXECUTE);
 
     // Ground
 
@@ -286,7 +257,7 @@ void OGround::draw(Display *d)
 
     glPopMatrix();
 
-    glEndList();
+    d->endDisplayList();
   }
 
   glPopMatrix();

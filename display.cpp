@@ -418,6 +418,30 @@ void Display::sceneInit()
 void Display::sceneDestroy() {}
 
 
+bool Display::callOrCreateDisplayList(void *key)
+{
+  DisplayListContainer::const_iterator it = display_lists_.find(key);
+  if( it != display_lists_.end() ) {
+    glCallList( (*it).second );
+    return false;
+  }
+
+  GLuint id = glGenLists(1);
+  if( id == 0 ) {
+    throw(Error("failed to create display list"));
+  }
+  display_lists_[key] = id;
+  glNewList(id, GL_COMPILE_AND_EXECUTE);
+
+  return true;
+}
+
+void Display::endDisplayList()
+{
+  glEndList();
+}
+
+
 
 void Display::processEvents()
 {

@@ -3,8 +3,6 @@
 
 ///@file
 
-#include <GL/gl.h>
-#include <map>
 #include "smart.h"
 #include "colors.h"
 
@@ -175,16 +173,6 @@ public:
 protected:
   /// Object main color
   Color4 color_;
-  /** @brief Display list to draw (0 if none)
-   *
-   * It is initialized in \e draw() method but can be reused by subclasses for
-   * their own drawing method.
-   */
-  GLuint dl_id_;
-
-private:
-  /// Store display lists created in \e draw().
-  static std::map<const btCollisionShape *, GLuint> shape2dl_;
 };
 
 

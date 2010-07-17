@@ -174,10 +174,6 @@ private:
   static SmartPtr<btCompoundShape> shape_;
   static btConvexHullShape body_shape_;
   static btBoxShape wheel_shape_;
-  /** @brief Display list shared by all instances
-   * @todo Created display list is not deleted.
-   */
-  static GLuint dl_id_static_;
 };
 
 

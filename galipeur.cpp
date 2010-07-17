@@ -24,7 +24,6 @@ const btScalar Galipeur::radius  = btSqrt(side*side+d_side*d_side);
 SmartPtr<btCompoundShape> Galipeur::shape_;
 btConvexHullShape Galipeur::body_shape_;
 btBoxShape Galipeur::wheel_shape_( btVector3(h_wheel/2,r_wheel,r_wheel) );
-GLuint Galipeur::dl_id_static_ = 0;
 
 
 Galipeur::Galipeur(btScalar m):
@@ -105,14 +104,7 @@ void Galipeur::draw(Display *d)
   drawTransform(body_->getCenterOfMassTransform());
   btglRotate(-angle_offset*180.0f/M_PI, 0.0f, 0.0f, 1.0f);
 
-  if( dl_id_static_ != 0 )
-    glCallList(dl_id_static_);
-  else
-  {
-    // new display list
-    dl_id_static_ = glGenLists(1);
-    glNewList(dl_id_static_, GL_COMPILE_AND_EXECUTE);
-
+  if( d->callOrCreateDisplayList(this) ) {
     glPushMatrix();
 
     btglTranslate(0, 0, -z_mass);
@@ -210,7 +202,7 @@ void Galipeur::draw(Display *d)
 
     glPopMatrix();
 
-    glEndList();
+    d->endDisplayList();
   }
 
   // Sharps
