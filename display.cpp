@@ -125,6 +125,14 @@ void Display::resize(int width, int height, int mode)
   Uint32 flags = SDL_OPENGL;
   flags |= fullscreen ? SDL_FULLSCREEN : SDL_RESIZABLE;
 
+  // Delete display lists.
+  // They may (should?) be invalidated after setting video mode though.
+  DisplayListContainer::const_iterator it;
+  for( it=display_lists_.begin(); it!=display_lists_.end(); ++it ) {
+    glDeleteLists((*it).second, 1);
+  }
+  display_lists_.clear();
+
   if( (screen_ = SDL_SetVideoMode(width, height, 0, flags)) == NULL )
   {
     windowDestroy();
