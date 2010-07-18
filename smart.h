@@ -14,6 +14,8 @@ template<class T>
 class SmartPtr
 {
 public:
+  typedef T element_type;
+
   SmartPtr(): px_(0) {}
   SmartPtr(T *p): px_(p) { if(px_!=0) SmartPtr_add_ref(px_); }
   SmartPtr(SmartPtr const &rhs): px_(rhs.px_) { if(px_!=0) SmartPtr_add_ref(px_); }

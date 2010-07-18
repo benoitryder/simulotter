@@ -126,7 +126,8 @@ void Display::resize(int width, int height, int mode)
   flags |= fullscreen ? SDL_FULLSCREEN : SDL_RESIZABLE;
 
   // Delete display lists.
-  // They may (should?) be invalidated after setting video mode though.
+  // On Windows setting the video mode resets the current OpenGL context.
+  // We always reset display lists, it's safer.
   DisplayListContainer::const_iterator it;
   for( it=display_lists_.begin(); it!=display_lists_.end(); ++it ) {
     glDeleteLists((*it).second, 1);
@@ -200,7 +201,6 @@ void Display::update()
   glEnable(GL_LIGHTING);
 
   SDL_GL_SwapBuffers();
-  glFlush();
 
   // Save screenshot
   if( ! screenshot_filename_.empty() ) {

@@ -85,7 +85,7 @@ namespace eurobot2010
       // slope x>0
       btglVertex3( +bottom_length/2, +width/2, 0 );
       btglVertex3( +bottom_length/2, -width/2, 0 );
-      btglNormal3( vn_slope.x, 0, vn_slope.y );
+      btglNormal3( vn_slope.x(), 0, vn_slope.y() );
       btglVertex3( +   top_length/2, +width/2, height );
       btglVertex3( +   top_length/2, -width/2, height );
       // top
@@ -93,7 +93,7 @@ namespace eurobot2010
       btglVertex3( -top_length/2, +width/2, height );
       btglVertex3( -top_length/2, -width/2, height );
       // slope x<0
-      btglNormal3( -vn_slope.x, 0, vn_slope.y );
+      btglNormal3( -vn_slope.x(), 0, vn_slope.y() );
       btglVertex3( -bottom_length/2, +width/2, 0 );
       btglVertex3( -bottom_length/2, -width/2, 0 );
       glEnd();
@@ -133,13 +133,13 @@ namespace eurobot2010
     btglNormal3( 1, 0, 0 ); // side x>0
     btglVertex3( +wall_bottom_length/2, -wall_width/2, wall_height );
     btglVertex3( +wall_bottom_length/2, +wall_width/2, wall_height );
-    btglNormal3( vn_slope.x, 0, vn_slope.y ); // slope x>0
+    btglNormal3( vn_slope.x(), 0, vn_slope.y() ); // slope x>0
     btglVertex3( +wall_top_length/2, -wall_width/2, height+wall_height );
     btglVertex3( +wall_top_length/2, +wall_width/2, height+wall_height );
     btglNormal3( 0, 0, 1 ); // top
     btglVertex3( -wall_top_length/2, -wall_width/2, height+wall_height );
     btglVertex3( -wall_top_length/2, +wall_width/2, height+wall_height );
-    btglNormal3( -vn_slope.x, 0, vn_slope.y ); // slope x<0
+    btglNormal3( -vn_slope.x(), 0, vn_slope.y() ); // slope x<0
     btglVertex3( -wall_bottom_length/2, -wall_width/2, wall_height );
     btglVertex3( -wall_bottom_length/2, +wall_width/2, wall_height );
     btglNormal3( -1, 0, 0 ); // side x<0

@@ -8,10 +8,12 @@
 
 class Color4
 {
-public:
+  friend Color4 operator*(const Color4 &c, const GLfloat &f);
+ private:
   GLfloat rgba[4];
+ public:
 
-  Color4() {}
+  Color4() { set(0,0,0,1); }
   Color4(GLfloat r, GLfloat g, GLfloat b, GLfloat a=1.0) { set(r,g,b,a); }
   Color4(GLdouble r, GLdouble g, GLdouble b, GLdouble a=1.0) { set(r,g,b,a); }
   Color4(int r, int g, int b, int a=255) { set(r/255.f,g/255.f,b/255.f,a/255.f); }
@@ -30,6 +32,10 @@ public:
   static Color4 plexi() { return Color4(.70, .90, .95, 0.5); }
 
   inline operator const GLfloat *() const { return rgba; }
+  inline GLfloat r() const { return rgba[0]; }
+  inline GLfloat g() const { return rgba[1]; }
+  inline GLfloat b() const { return rgba[2]; }
+  inline GLfloat a() const { return rgba[3]; }
 
   //inline GLfloat operator[](int i) { return rgba[i]; }
 

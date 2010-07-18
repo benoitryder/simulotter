@@ -184,7 +184,7 @@ inline void RBasic::set_v(btScalar v)
 {
   body_->activate();
   btVector2 vxy = btVector2(v,0).rotated(a_);
-  body_->setLinearVelocity( btVector3(vxy.x, vxy.y,
+  body_->setLinearVelocity( btVector3(vxy.x(), vxy.y(),
         body_->getLinearVelocity().z()) );
 }
 

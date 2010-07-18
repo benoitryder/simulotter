@@ -73,12 +73,6 @@ protected:
    */
   static void drawShape(const btCollisionShape *shape);
 
-  /** @brief Create a display list for the given shape
-   *
-   * Shape is drawn using \e drawShape().
-   */
-  static GLuint createDisplayList(const btCollisionShape *shape);
-
   /** @brief Physical world the object was added to.
    *
    * Since the world keep a reference to its objects, it will not be deleted

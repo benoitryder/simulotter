@@ -39,11 +39,11 @@ Galipeur::Galipeur(btScalar m):
       btVector2 p = btVector2(radius,0).rotated(-a_wheel/2);
       for( int i=0; i<3; i++ )
       {
-        body_shape_.addPoint( btVector3(p.x,p.y,+height/2) );
-        body_shape_.addPoint( btVector3(p.x,p.y,-height/2) );
+        body_shape_.addPoint( btVector3(p.x(),p.y(),+height/2) );
+        body_shape_.addPoint( btVector3(p.x(),p.y(),-height/2) );
         p.rotate(a_wheel);
-        body_shape_.addPoint( btVector3(p.x,p.y,+height/2) );
-        body_shape_.addPoint( btVector3(p.x,p.y,-height/2) );
+        body_shape_.addPoint( btVector3(p.x(),p.y(),+height/2) );
+        body_shape_.addPoint( btVector3(p.x(),p.y(),-height/2) );
         p.rotate(a_side);
       }
     }
@@ -55,16 +55,16 @@ Galipeur::Galipeur(btScalar m):
     btTransform tr = btTransform::getIdentity();
     tr.setRotation( btQuaternion(0, 0, 1, angle_offset) );
     btVector2 vw( d_wheel+h_wheel/2, 0 );
-    tr.setOrigin( btVector3(vw.x, vw.y, -(z_mass - r_wheel)) );
+    tr.setOrigin( btVector3(vw.x(), vw.y(), -(z_mass - r_wheel)) );
     shape_->addChildShape(tr, &wheel_shape_);
 
     vw.rotate(2*M_PI/3);
-    tr.setOrigin( btVector3(vw.x, vw.y, -(z_mass - r_wheel)) );
+    tr.setOrigin( btVector3(vw.x(), vw.y(), -(z_mass - r_wheel)) );
     tr.setRotation( btQuaternion(btVector3(0,0,1), 2*M_PI/3) );
     shape_->addChildShape(tr, &wheel_shape_);
 
     vw.rotate(-4*M_PI/3);
-    tr.setOrigin( btVector3(vw.x, vw.y, -(z_mass - r_wheel)) );
+    tr.setOrigin( btVector3(vw.x(), vw.y(), -(z_mass - r_wheel)) );
     tr.setRotation( btQuaternion(btVector3(0,0,1), -2*M_PI/3) );
     shape_->addChildShape(tr, &wheel_shape_);
   }
@@ -126,24 +126,24 @@ void Galipeur::draw(Display *d)
     for( int i=0; i<3; i++ )
     {
       // wheel side
-      btglNormal3(n.x, n.y, 0.0);
+      btglNormal3(n.x(), n.y(), 0.0);
       n.rotate(M_PI/3);
 
-      btglVertex3(v.x, v.y, 0.0);
-      btglVertex3(v.x, v.y, 1.0);
+      btglVertex3(v.x(), v.y(), 0.0);
+      btglVertex3(v.x(), v.y(), 1.0);
       v.rotate(a_wheel);
-      btglVertex3(v.x, v.y, 1.0);
-      btglVertex3(v.x, v.y, 0.0);
+      btglVertex3(v.x(), v.y(), 1.0);
+      btglVertex3(v.x(), v.y(), 0.0);
 
       // triangle side
-      btglNormal3(n.x, n.y, 0.0);
+      btglNormal3(n.x(), n.y(), 0.0);
       n.rotate(M_PI/3);
 
-      btglVertex3(v.x, v.y, 0.0);
-      btglVertex3(v.x, v.y, 1.0);
+      btglVertex3(v.x(), v.y(), 0.0);
+      btglVertex3(v.x(), v.y(), 1.0);
       v.rotate(a_side);
-      btglVertex3(v.x, v.y, 1.0);
-      btglVertex3(v.x, v.y, 0.0);
+      btglVertex3(v.x(), v.y(), 1.0);
+      btglVertex3(v.x(), v.y(), 0.0);
     }
 
     glEnd();
@@ -154,9 +154,9 @@ void Galipeur::draw(Display *d)
     v = btVector2(1,0).rotated(-a_wheel/2);
     for( int i=0; i<3; i++ )
     {
-      btglVertex3(v.x, v.y, 0.0);
+      btglVertex3(v.x(), v.y(), 0.0);
       v.rotate(a_wheel);
-      btglVertex3(v.x, v.y, 0.0);
+      btglVertex3(v.x(), v.y(), 0.0);
       v.rotate(a_side);
     }
     glEnd();
@@ -167,9 +167,9 @@ void Galipeur::draw(Display *d)
     v = btVector2(1,0).rotated(-a_wheel/2);
     for( int i=0; i<3; i++ )
     {
-      btglVertex3(v.x, v.y, 1.0);
+      btglVertex3(v.x(), v.y(), 1.0);
       v.rotate(a_wheel);
-      btglVertex3(v.x, v.y, 1.0);
+      btglVertex3(v.x(), v.y(), 1.0);
       v.rotate(a_side);
     }
     glEnd();
@@ -182,20 +182,20 @@ void Galipeur::draw(Display *d)
     btVector2 vw( d_wheel, 0 );
 
     glPushMatrix();
-    btglTranslate(0, vw.y, vw.x);
+    btglTranslate(0, vw.y(), vw.x());
     glutSolidCylinder(r_wheel, h_wheel, Display::DRAW_DIV, Display::DRAW_DIV);
     glPopMatrix();
 
     glPushMatrix();
     vw.rotate(2*M_PI/3);
-    btglTranslate(0, vw.y, vw.x);
+    btglTranslate(0, vw.y(), vw.x());
     btglRotate(-120.0f, 1.0f, 0.0f, 0.0f);
     glutSolidCylinder(r_wheel, h_wheel, Display::DRAW_DIV, Display::DRAW_DIV);
     glPopMatrix();
 
     glPushMatrix();
     vw.rotate(-4*M_PI/3);
-    btglTranslate(0, vw.y, vw.x);
+    btglTranslate(0, vw.y(), vw.x());
     btglRotate(120.0f, 1.0f, 0.0f, 0.0f);
     glutSolidCylinder(r_wheel, h_wheel, Display::DRAW_DIV, Display::DRAW_DIV);
     glPopMatrix();
@@ -257,7 +257,7 @@ void Galipeur::asserv()
 void Galipeur::set_v(btVector2 vxy)
 {
   body_->activate();
-  body_->setLinearVelocity( btVector3(vxy.x, vxy.y,
+  body_->setLinearVelocity( btVector3(vxy.x(), vxy.y(),
         body_->getLinearVelocity().z()) );
 }
 
