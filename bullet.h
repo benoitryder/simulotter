@@ -47,10 +47,13 @@
 
 
 /// Scale from user units to Bullet units
-template<typename T> T btScale(T t) { return t / BULLET_SCALE; }
+template<typename T> T btScale(const T &t) { return t / BULLET_SCALE; }
 
 /// Scale from Bullet units to user units
-template<typename T> T btUnscale(T t) { return t * BULLET_SCALE; }
+template<typename T> T btUnscale(const T &t) { return t * BULLET_SCALE; }
+
+template<> inline btTransform btScale(const btTransform &tr) { return btTransform(tr.getBasis(),btScale(tr.getOrigin())); }
+template<> inline btTransform btUnscale(const btTransform &tr) { return btTransform(tr.getBasis(),btUnscale(tr.getOrigin())); }
 
 #undef BULLET_SCALE
 
