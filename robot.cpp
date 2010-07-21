@@ -63,11 +63,11 @@ void RBasic::draw(Display *d)
   glPushMatrix();
   drawTransform(body_->getCenterOfMassTransform());
   drawShape(body_->getCollisionShape());
-  drawDirection();
+  drawDirection(d);
   glPopMatrix();
 }
 
-void RBasic::drawDirection()
+void RBasic::drawDirection(Display *d)
 {
   btVector3 aabb_min, aabb_max;
   body_->getAabb(aabb_min, aabb_max);

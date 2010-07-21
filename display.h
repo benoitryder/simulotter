@@ -9,7 +9,6 @@
 #include <map>
 #include <set>
 #include "smart.h"
-#include "maths.h"
 #include "colors.h"
 
 class Physics;

@@ -38,9 +38,6 @@ protected:
    * Subclasses should create the body as soon as possible to prevent errors.
    */
   RBasic();
-public:
-
-  RBasic(btCollisionShape *shape, btScalar m);
 
   /** @brief Setup function
    *
@@ -50,6 +47,10 @@ public:
    * @note Shape is not freed by destructor.
    */
   void setup(btCollisionShape *shape, btScalar m);
+
+public:
+
+  RBasic(btCollisionShape *shape, btScalar m);
 
   ~RBasic();
 
@@ -69,7 +70,7 @@ public:
    *
    * Current OpenGL matrix is supposed to be on robot center.
    */
-  void drawDirection();
+  void drawDirection(Display *d);
 
   static const float DIRECTION_CONE_R; ///< Direction cone radius
   static const float DIRECTION_CONE_H; ///< Direction cone height

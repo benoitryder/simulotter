@@ -1,6 +1,8 @@
 CXX = g++
 
-CFLAGS = -g -Wall -Werror -I.
+CFLAGS = -Wall -Werror -I.
+# debug info increase compilation significantly, use only when needed
+#CFLAGS += -g
 
 # If Bullet has been built using autotools or Jam
 #BULLET_LIBS = -lbulletdynamics -lbulletcollision -lbulletmath
@@ -22,6 +24,24 @@ TARGET_EXT = .dll
 endif
 
 
+BOOST_PYTHON_LIB = boost_python
+PYTHON_LIB = python
+PY_CFLAGS = $(CFLAGS)
+PY_LDFLAGS = $(LDFLAGS)
+PY_LDLIBS = $(LDLIBS) -l$(BOOST_PYTHON_LIB) -l$(PYTHON_LIB)
+# precompiled header source
+PY_CH_SRC = python/common.h
+
+
+ifeq ($(OS),Windows_NT)
+python_prefix = $(shell python -c 'import sys; print sys.prefix')
+PY_CFLAGS += -I$(python_prefix)/include
+PY_LDFLAGS += -L$(python_prefix)/libs
+BOOST_PYTHON_LIB = boost_python-mgw44-mt-1_43
+PYTHON_LIB = python26
+endif
+
+
 PROJECT_NAME = simulotter
 TARGET = $(PROJECT_NAME)$(TARGET_EXT)
 TARGET_EXT = .so
@@ -30,7 +50,19 @@ OBJS = physics.o display.o object.o sensors.o robot.o galipeur.o log.o
 OBJS += modules/eurobot2009.o modules/eurobot2010.o
 
 
-all: $(TARGET)
+PY_TARGET = $(PROJECT_NAME).pyd
+
+PY_OBJS = $(addprefix python/, main.o utils.o maths.o display.o physics.o object.o robot.o)
+
+
+ALL_OBJS = $(OBJS) $(PY_OBJS)
+
+
+default: $(TARGET)
+
+python: $(PY_TARGET)
+
+all: default python
 
 -include $(ALL_OBJS:.o=.d)
 
@@ -38,12 +70,28 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CXX) $(OBJS) -o $@ -shared $(LDFLAGS) $(LDLIBS)
 
+$(PY_TARGET): $(OBJS) $(PY_OBJS)
+	$(CXX) $(PY_OBJS) $(OBJS) -o $@ -shared $(PY_LDFLAGS) $(PY_LDLIBS)
+
 $(OBJS): %.o: %.cpp
 	$(CXX) $(CFLAGS) -MMD -c $< -o $@
 
+
+ifeq ($(PY_CH_SRC),)
+PY_CH_OBJ = 
+else
+PY_CH_OBJ = $(PY_CH_SRC).gch
+
+$(PY_CH_OBJ): $(PY_CH_SRC)
+	$(CXX) $(PY_CFLAGS) -MMD $< -o $@
+endif
+
+$(PY_OBJS): %.o: %.cpp $(PY_CH_OBJ)
+	$(CXX) $(PY_CFLAGS) -MMD -c $< -o $@
+
 clean: distclean
-	rm -f $(TARGET)
+	rm -f $(TARGET) $(PY_TARGET)
 
 distclean:
-	rm -f $(OBJS) $(OBJS:.o=.d)
+	rm -f $(ALL_OBJS) $(ALL_OBJS:.o=.d) $(PY_CH_OBJ) $(PY_CH_SRC).d
 
