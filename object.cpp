@@ -128,6 +128,15 @@ OSimple::OSimple():
 {
 }
 
+OSimple::OSimple(btCollisionShape *shape, btScalar mass):
+  btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL))
+{
+  setShape(shape);
+  if( mass ) {
+    setMass(mass);
+  }
+}
+
 OSimple::~OSimple()
 {
   // release shape held by Bullet

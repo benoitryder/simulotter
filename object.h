@@ -108,6 +108,7 @@ public:
    * afterwards.
    */
   OSimple();
+  OSimple(btCollisionShape *sh, btScalar mass=0);
   OSimple(const btRigidBodyConstructionInfo &info): btRigidBody(info) {}
 
   virtual ~OSimple();

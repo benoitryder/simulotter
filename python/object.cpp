@@ -24,7 +24,7 @@ void python_module_object()
       ;
 
   py::class_<OSimple, py::bases<Object>, SmartPtr<OSimple>, boost::noncopyable>("OSimple")
-      //TODO set shape, mass, etc. in constructor?
+      .def(py::init<btCollisionShape *, py::optional<btScalar> >())
       .def("setShape", &OSimple::setShape)
       .def("setMass", &OSimple::setMass)
       .def("isInitialized", &OSimple::isInitialized)

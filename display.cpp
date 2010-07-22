@@ -403,6 +403,7 @@ void Display::sceneInit()
   // Clear the background color
   glClearColor(this->bg_color[0], this->bg_color[1],
       this->bg_color[2], this->bg_color[3]);
+  glViewport(0, 0, screen_x_, screen_y_);
 
   glShadeModel(GL_SMOOTH);
   glEnable(GL_LIGHTING);
