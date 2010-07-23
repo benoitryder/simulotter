@@ -4,8 +4,11 @@
 #include "log.h"
 
 
-const btScalar Physics::EARTH_GRAVITY = btScale(9.80665);
-const btScalar Physics::MARGIN_EPSILON = btScale(0.001);
+btScalar Physics::earth_gravity = btScale(9.80665);
+btScalar Physics::margin_epsilon = btScale(0.001);
+btVector3 Physics::world_aabb_min = btScale(btVector3(-10,-5,-2));
+btVector3 Physics::world_aabb_max = btScale(btVector3(10,5,2));
+unsigned int Physics::world_objects_max = 300;
 
 
 Physics::Physics(btScalar step_dt): pause_state_(false), step_dt_(0), time_(0)
@@ -16,20 +19,13 @@ Physics::Physics(btScalar step_dt): pause_state_(false), step_dt_(0), time_(0)
 
   col_config_ = new btDefaultCollisionConfiguration();
   dispatcher_ = new btCollisionDispatcher(col_config_);
-
-  //XXX set world size and max object number
-  broadphase_ = new btAxisSweep3(
-      btScale(btVector3(-10,-5,-2)),
-      btScale(btVector3(10,5,2)),
-      300
-      );
-
+  broadphase_ = new btAxisSweep3(world_aabb_min, world_aabb_max, world_objects_max);
   solver_ = new btSequentialImpulseConstraintSolver();
 
   world_ = new btDiscreteDynamicsWorld(
       dispatcher_, broadphase_, solver_, col_config_
       );
-  world_->setGravity(btVector3(0,0,-EARTH_GRAVITY));
+  world_->setGravity(btVector3(0,0,-earth_gravity));
   world_->setInternalTickCallback(worldTickCallback, this);
 }
 

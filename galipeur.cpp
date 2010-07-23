@@ -183,21 +183,21 @@ void Galipeur::draw(Display *d)
 
     glPushMatrix();
     btglTranslate(0, vw.y(), vw.x());
-    glutSolidCylinder(r_wheel, h_wheel, Display::DRAW_DIV, Display::DRAW_DIV);
+    glutSolidCylinder(r_wheel, h_wheel, Display::draw_div, Display::draw_div);
     glPopMatrix();
 
     glPushMatrix();
     vw.rotate(2*M_PI/3);
     btglTranslate(0, vw.y(), vw.x());
     btglRotate(-120.0f, 1.0f, 0.0f, 0.0f);
-    glutSolidCylinder(r_wheel, h_wheel, Display::DRAW_DIV, Display::DRAW_DIV);
+    glutSolidCylinder(r_wheel, h_wheel, Display::draw_div, Display::draw_div);
     glPopMatrix();
 
     glPushMatrix();
     vw.rotate(-4*M_PI/3);
     btglTranslate(0, vw.y(), vw.x());
     btglRotate(120.0f, 1.0f, 0.0f, 0.0f);
-    glutSolidCylinder(r_wheel, h_wheel, Display::DRAW_DIV, Display::DRAW_DIV);
+    glutSolidCylinder(r_wheel, h_wheel, Display::draw_div, Display::draw_div);
     glPopMatrix();
 
     glPopMatrix();

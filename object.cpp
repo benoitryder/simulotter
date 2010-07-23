@@ -30,7 +30,7 @@ void Object::drawShape(const btCollisionShape *shape)
     case SPHERE_SHAPE_PROXYTYPE:
       {
         const btSphereShape *sphere_shape = static_cast<const btSphereShape*>(shape);
-        glutSolidSphere(sphere_shape->getRadius(), Display::DRAW_DIV, Display::DRAW_DIV);
+        glutSolidSphere(sphere_shape->getRadius(), Display::draw_div, Display::draw_div);
         break;
       }
     case BOX_SHAPE_PROXYTYPE:
@@ -55,10 +55,10 @@ void Object::drawShape(const btCollisionShape *shape)
         const btScalar r = capsule_shape->getRadius();
         const btScalar len = capsule_shape->getHalfHeight();
         btglTranslate(0, 0, -len);
-        glutSolidCylinder(r, 2*len, Display::DRAW_DIV, Display::DRAW_DIV);
-        glutSolidSphere(r, Display::DRAW_DIV, Display::DRAW_DIV);
+        glutSolidCylinder(r, 2*len, Display::draw_div, Display::draw_div);
+        glutSolidSphere(r, Display::draw_div, Display::draw_div);
         btglTranslate(0, 0, 2*len);
-        glutSolidSphere(r, Display::DRAW_DIV, Display::DRAW_DIV);
+        glutSolidSphere(r, Display::draw_div, Display::draw_div);
         break;
       }
     case CYLINDER_SHAPE_PROXYTYPE:
@@ -78,7 +78,7 @@ void Object::drawShape(const btCollisionShape *shape)
             throw(Error("invalid capsule up axis"));
         }
         btglTranslate(0, 0, -len);
-        glutSolidCylinder(r, 2*len, Display::DRAW_DIV, Display::DRAW_DIV);
+        glutSolidCylinder(r, 2*len, Display::draw_div, Display::draw_div);
         break;
       }
     default:
@@ -187,7 +187,7 @@ void OSimple::setPosAbove(const btVector2 &pos)
 {
   btVector3 aabbMin, aabbMax;
   this->getAabb(aabbMin, aabbMax);
-  setPos( btVector3(pos.x(), pos.y(), (aabbMax.z()-aabbMin.z())/2 + Physics::MARGIN_EPSILON) );
+  setPos( btVector3(pos.x(), pos.y(), (aabbMax.z()-aabbMin.z())/2 + Physics::margin_epsilon) );
 }
 
 
@@ -252,7 +252,7 @@ void OGround::draw(Display *d)
 
     glColor4fv(color_t1_);
     btglTranslate(-size[0]+size_start_/2, size[1]-size_start_/2, size[2]);
-    btglScale(size_start_, size_start_, 2*Display::DRAW_EPSILON);
+    btglScale(size_start_, size_start_, 2*Display::draw_epsilon);
     glutSolidCube(1.0f);
 
     glPopMatrix();
@@ -261,7 +261,7 @@ void OGround::draw(Display *d)
 
     glColor4fv(color_t2_);
     btglTranslate(size[0]-size_start_/2, size[1]-size_start_/2, size[2]);
-    btglScale(size_start_, size_start_, 2*Display::DRAW_EPSILON);
+    btglScale(size_start_, size_start_, 2*Display::draw_epsilon);
     glutSolidCube(1.0f);
 
     glPopMatrix();

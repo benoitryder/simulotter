@@ -14,6 +14,9 @@ static void Display_resize(Display &d, int width, int height, py::object mode)
   d.resize(width, height, mode_cpp);
 }
 
+static btScalar Display_get_draw_epsilon() { return btUnscale(Display::draw_epsilon); }
+static void Display_set_draw_epsilon(btScalar v) { Display::draw_epsilon = btScale(v); }
+
 
 void python_module_display()
 {
@@ -26,6 +29,7 @@ void python_module_display()
       .def("update", &Display::update)
       .def("resize", &Display_resize,
            ( py::arg("width"), py::arg("height"), py::arg("mode")=py::object() ))
+      .def("screenshot", &Display::savePNGScreenshot)
       // dynamic configuration
       .def_readwrite("time_scale", &Display::time_scale)
       .def_readwrite("fps", &Display::fps)
@@ -36,9 +40,10 @@ void python_module_display()
       .def_readwrite("perspective_fov", &Display::perspective_fov)
       .def_readwrite("perspective_near", &Display::perspective_near)
       .def_readwrite("perspective_far", &Display::perspective_far)
-      // constants
-      .def_readonly("DRAW_EPSILON", &Display::DRAW_EPSILON)
-      .def_readonly("DRAW_DIV", &Display::DRAW_DIV)
+      // statics
+      .add_static_property("draw_epsilon", &Display_get_draw_epsilon, &Display_set_draw_epsilon)
+      .def_readwrite("draw_div", &Display::draw_div)
+      .def_readwrite("antialias", &Display::antialias)
       ;
 }
 

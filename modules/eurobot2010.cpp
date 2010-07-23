@@ -101,10 +101,10 @@ namespace eurobot2010
       glBegin(GL_QUADS);
       // bottom (with strips)
       btglNormal3( 0, 0, 1 );
-      btglVertex3( -bottom_length/2-strip_length, -width/2, Display::DRAW_EPSILON );
-      btglVertex3( -bottom_length/2-strip_length, +width/2, Display::DRAW_EPSILON );
-      btglVertex3( +bottom_length/2+strip_length, +width/2, Display::DRAW_EPSILON );
-      btglVertex3( +bottom_length/2+strip_length, -width/2, Display::DRAW_EPSILON );
+      btglVertex3( -bottom_length/2-strip_length, -width/2, Display::draw_epsilon );
+      btglVertex3( -bottom_length/2-strip_length, +width/2, Display::draw_epsilon );
+      btglVertex3( +bottom_length/2+strip_length, +width/2, Display::draw_epsilon );
+      btglVertex3( +bottom_length/2+strip_length, -width/2, Display::draw_epsilon );
       glEnd();
 
       glTranslatef(0, -(width+wall_width)/2, 0);

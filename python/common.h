@@ -11,11 +11,11 @@
 #include "maths.h"
 #include "log.h"
 
+namespace py = boost::python;
+
 
 /// Allow to use SmartPtr as Holder for Python classes.
 template <class T> T* get_pointer(SmartPtr<T> const& p) { return p.get(); }
-
-namespace py = boost::python;
 
 
 #endif

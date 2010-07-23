@@ -62,11 +62,21 @@ public:
 class Display: public SmartObject
 {
 public:
-  /// Gap between contiguous surfaces.
-  static const btScalar DRAW_EPSILON;
-  /// Slices and stacks for GLUT geometry objects.
-  static const unsigned int DRAW_DIV;
+  /** @name Configuration values.
+   *
+   * @note Changing some values may not have any effect on already drawn
+   * objects due to usage of display lists.
+   */
+  //@{
 
+  /// Gap between contiguous surfaces.
+  static btScalar draw_epsilon;
+  /// Slices and stacks for GLUT geometry objects.
+  static unsigned int draw_div;
+  /// Multisampling count (0 to disable).
+  static unsigned int antialias;
+
+  //@}
 
   Display();
   virtual ~Display();
@@ -133,25 +143,8 @@ public:
    */
   void run();
 
-  /** @name Screenshots
-   *
-   * Screenshots are scheduled to be taken after next drawn frame.
-   * Only the last filename will be taken in account.
-   */
-  //@{
-
-private:
-  /** @brief Schedule a screenshot.
-   * The filename string is copied and can safely be immediately freed by the
-   * caller.
-   */
-  void savePNGScreenshot(const std::string &filename);
   /// Save a PNG screenshot into a file
-  void doSavePNGScreenshot(const char *filename);
-  /// Filename of the scheduled screenshot, or \e NULL
-  std::string screenshot_filename_;
-
-  //@}
+  void savePNGScreenshot(const std::string &filename);
 
 private:
   SDL_Surface *screen_;
@@ -159,7 +152,6 @@ private:
   int screen_x_; ///< Screen width
   int screen_y_; ///< Screen height
   bool fullscreen_;
-  unsigned int antialias_; ///< Multisampling count (0 to disable)
 
 
   

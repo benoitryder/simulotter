@@ -11,8 +11,9 @@
 
 
 
-const btScalar Display::DRAW_EPSILON = btScale(0.0005);
-const unsigned int Display::DRAW_DIV = 20;
+btScalar Display::draw_epsilon = btScale(0.0005);
+unsigned int Display::draw_div = 20;
+unsigned int Display::antialias = 0;
 
 
 Display::Display():
@@ -25,7 +26,7 @@ Display::Display():
     perspective_near(btScale(0.1)),
     perspective_far(btScale(300.0)),
     screen_x_(800), screen_y_(600),
-    fullscreen_(false), antialias_(0)
+    fullscreen_(false)
 {
   int argc = 1;
   glutInit(&argc, NULL);
@@ -195,13 +196,6 @@ void Display::update()
   glEnable(GL_LIGHTING);
 
   SDL_GL_SwapBuffers();
-  glFlush();
-
-  // Save screenshot
-  if( ! screenshot_filename_.empty() ) {
-    doSavePNGScreenshot(screenshot_filename_.c_str());
-    screenshot_filename_.clear();
-  }
 }
 
 
@@ -270,11 +264,6 @@ static void png_handler_warning(png_struct * /*png_ptr*/, const char *msg)
 
 void Display::savePNGScreenshot(const std::string &filename)
 {
-  screenshot_filename_ = filename;
-}
-
-void Display::doSavePNGScreenshot(const char *filename)
-{
   FILE *fp = NULL;
   png_bytep pixels = NULL;
   png_bytepp row_pointers = NULL;
@@ -282,9 +271,9 @@ void Display::doSavePNGScreenshot(const char *filename)
   try
   {
     // Open output file
-    FILE *fp = fopen(filename, "wb");
+    fp = fopen(filename.c_str(), "wb");
     if( !fp )
-      throw(Error("cannot open file '%s' for writing", filename));
+      throw(Error("cannot open file '%s' for writing", filename.c_str()));
 
     png_error_data error;
 
@@ -317,6 +306,7 @@ void Display::doSavePNGScreenshot(const char *filename)
         PNG_FILTER_TYPE_DEFAULT);
 
     // Get pixels, create pixel rows
+    glFlush();
     SDL_LockSurface(screen_);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     SDL_UnlockSurface(screen_);
@@ -336,7 +326,7 @@ void Display::doSavePNGScreenshot(const char *filename)
     delete[] pixels; pixels = NULL;
     fclose(fp); fp = NULL;
 
-    LOG("screenshot saved: %s", filename);
+    LOG("screenshot saved: %s", filename.c_str());
   }
   catch(const Error &e)
   {
@@ -344,7 +334,7 @@ void Display::doSavePNGScreenshot(const char *filename)
       delete[] row_pointers;
     if( pixels != NULL )
       delete[] pixels;
-      fclose(fp);
+    fclose(fp);
     throw(Error("SDL: cannot save screenshot: %s", e.what()));
   }
 }
@@ -384,11 +374,11 @@ void Display::windowInit()
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-  if( antialias_ > 0 ) {
+  if( antialias > 0 ) {
     if( SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) < 0 )
       throw(Error("SDL: cannot enable multisample buffers"));
-    if( SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, antialias_) < 0 )
-      throw(Error("SDL: cannot set multisample sample count to %d", antialias_));
+    if( SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, antialias) < 0 )
+      throw(Error("SDL: cannot set multisample sample count to %d", antialias));
   }
 }
 

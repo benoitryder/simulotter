@@ -66,7 +66,7 @@ namespace eurobot2009
     glPushMatrix();
     drawTransform(m_worldTransform);
     glTranslatef(0, 0, -height/2);
-    glutWireCylinder(radius, height, Display::DRAW_DIV, 10);
+    glutWireCylinder(radius, height, Display::draw_div, 10);
     glPopMatrix();
   }
 
@@ -131,7 +131,7 @@ namespace eurobot2009
   void OLintelStorage::fill(OLintel *o)
   {
     btVector3 pos = getPos();
-    pos[2] += btScale(0.015)+WALL_HALF_WIDTH+Physics::MARGIN_EPSILON;
+    pos[2] += btScale(0.015)+WALL_HALF_WIDTH+Physics::margin_epsilon;
     o->setPos(pos);
   }
 

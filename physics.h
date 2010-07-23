@@ -18,14 +18,28 @@ class TaskPhysics;
 class Physics: public SmartObject
 {
 public:
+  
+  /** @name Configuration values.
+   */
+  //@{
+
   /// Gravity at the Earth's surface.
-  static const btScalar EARTH_GRAVITY;
+  static btScalar earth_gravity;
   /** @brief Minimal margin distance.
    *
    * Used as gap distance between objects to ensure they do not overlap (e.g.
    * for object dropping height).
    */
-  static const btScalar MARGIN_EPSILON;
+  static btScalar margin_epsilon;
+
+  /// AABB's minimum for new worlds.
+  static btVector3 world_aabb_min;
+  /// AABB's maximum for new worlds.
+  static btVector3 world_aabb_max;
+  /// Maximum object count for new worlds.
+  static unsigned int world_objects_max;
+
+  //@}
 
   Physics(btScalar step_dt=0.002);
   virtual ~Physics();
