@@ -71,11 +71,8 @@ public:
   Display();
   virtual ~Display();
 
-  /// Init video display (using configuration values)
-  void init();
-  bool isInitialized() { return SDL_WasInit(SDL_INIT_VIDEO) != 0; }
-
   SmartPtr<Physics> physics_; ///< Currently drawn Physics
+public:
   Physics *getPhysics() { return physics_; }
   void setPhysics(Physics *ph) { physics_ = ph; }
 
@@ -165,6 +162,8 @@ private:
   unsigned int antialias_; ///< Multisampling count (0 to disable)
 
 
+  
+  bool windowInitialized() const { return SDL_WasInit(SDL_INIT_VIDEO) != 0; }
   void windowInit();
   void windowDestroy();
   void sceneInit();

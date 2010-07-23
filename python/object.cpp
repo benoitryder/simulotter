@@ -28,7 +28,7 @@ void python_module_object()
       .def("setShape", &OSimple::setShape)
       .def("setMass", &OSimple::setMass)
       .def("isInitialized", &OSimple::isInitialized)
-      .def("setColor", &OSimple::setColor)
+      .add_property("color", &OSimple::getColor, &OSimple::setColor)
       .def("setPosAbove", &OSimple_setPosAbove)
       ;
 

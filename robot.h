@@ -57,6 +57,7 @@ public:
   virtual void addToWorld(Physics *physics);
   virtual void removeFromWorld();
 
+  Color4 getColor() const { return color_; }
   /** @brief Set main color
    *
    * Color is used in default drawing function and may ignored by subclass

@@ -17,6 +17,10 @@ static std::string Color4_str(const Color4 &c)
 static const GLfloat *Color4_begin(const Color4 &c) { return (const GLfloat *)c; }
 static const GLfloat *Color4_end(const Color4 &c) { return (const GLfloat *)c+4; }
 
+// templates for shape constructors with scaling
+template <class T, class A1> SmartPtr<T> Shape_init_scale(const A1 &a1) { return new T(btScale(a1)); }
+template <class T, class A1, class A2> SmartPtr<T> Shape_init_scale(const A1 &a1, const A2 &a2) { return new T(btScale(a1), btScale(a2)); }
+
 
 /// Compound shape constructor: list of (shape, trans) pairs.
 static SmartPtr<CompoundShapeSmart> CompoundShape_init(const py::object o)
@@ -68,29 +72,31 @@ void python_module_utils()
 
   // shapes (not all exported)
   //TODO put them in a submodule?
-  //TODO btScale/btUnscale
 
   py::class_<btCollisionShape, SmartPtr<btCollisionShape>, boost::noncopyable>("Shape", py::no_init);
 #define EXPORT_SHAPE_CLASS(n,T,B) \
   py::class_<T, py::bases<B>, SmartPtr<T>, boost::noncopyable>(#n, py::no_init)
+#define EXPORT_SHAPE_CLASS_INIT(n,T,B, ...) \
+  EXPORT_SHAPE_CLASS(n,T,B).def("__init__", py::make_constructor(&Shape_init_scale<T, ## __VA_ARGS__>))
 
-  EXPORT_SHAPE_CLASS(ShSphere,    btSphereShape,    btCollisionShape).def(py::init<btScalar>());
-  EXPORT_SHAPE_CLASS(ShCapsule,   btCapsuleShape,   btCollisionShape).def(py::init<btScalar, btScalar>());
-  EXPORT_SHAPE_CLASS(ShCapsuleX,  btCapsuleShapeX,  btCapsuleShape  ).def(py::init<btScalar, btScalar>());
-  EXPORT_SHAPE_CLASS(ShCapsuleZ,  btCapsuleShapeZ,  btCapsuleShape  ).def(py::init<btScalar, btScalar>());
-  EXPORT_SHAPE_CLASS(ShCone,      btConeShape,      btCollisionShape).def(py::init<btScalar, btScalar>());
-  EXPORT_SHAPE_CLASS(ShConeX,     btConeShapeX,     btConeShape     ).def(py::init<btScalar, btScalar>());
-  EXPORT_SHAPE_CLASS(ShConeZ,     btConeShapeZ,     btConeShape     ).def(py::init<btScalar, btScalar>());
-  EXPORT_SHAPE_CLASS(ShCylinder,  btCylinderShape,  btCollisionShape).def(py::init<btVector3>());
-  EXPORT_SHAPE_CLASS(ShCylinderX, btCylinderShapeX, btCylinderShape ).def(py::init<btVector3>());
-  EXPORT_SHAPE_CLASS(ShCylinderZ, btCylinderShapeZ, btCylinderShape ).def(py::init<btVector3>());
-  EXPORT_SHAPE_CLASS(ShBox,       btBoxShape,       btCollisionShape).def(py::init<btVector3>());
+  EXPORT_SHAPE_CLASS_INIT(ShSphere,    btSphereShape,    btCollisionShape, btScalar);
+  EXPORT_SHAPE_CLASS_INIT(ShCapsule,   btCapsuleShape,   btCollisionShape, btScalar, btScalar);
+  EXPORT_SHAPE_CLASS_INIT(ShCapsuleX,  btCapsuleShapeX,  btCapsuleShape  , btScalar, btScalar);
+  EXPORT_SHAPE_CLASS_INIT(ShCapsuleZ,  btCapsuleShapeZ,  btCapsuleShape  , btScalar, btScalar);
+  EXPORT_SHAPE_CLASS_INIT(ShCone,      btConeShape,      btCollisionShape, btScalar, btScalar);
+  EXPORT_SHAPE_CLASS_INIT(ShConeX,     btConeShapeX,     btConeShape     , btScalar, btScalar);
+  EXPORT_SHAPE_CLASS_INIT(ShConeZ,     btConeShapeZ,     btConeShape     , btScalar, btScalar);
+  EXPORT_SHAPE_CLASS_INIT(ShCylinder,  btCylinderShape,  btCollisionShape, btVector3);
+  EXPORT_SHAPE_CLASS_INIT(ShCylinderX, btCylinderShapeX, btCylinderShape , btVector3);
+  EXPORT_SHAPE_CLASS_INIT(ShCylinderZ, btCylinderShapeZ, btCylinderShape , btVector3);
+  EXPORT_SHAPE_CLASS_INIT(ShBox,       btBoxShape,       btCollisionShape, btVector3);
   // compound shape: special class (memory handling) and special constructor
   EXPORT_SHAPE_CLASS(ShCompound, CompoundShapeSmart, btCollisionShape)
       .def("__init__", py::make_constructor(&CompoundShape_init))
       ;
 
 #undef EXPORT_SHAPE_CLASS
+#undef EXPORT_SHAPE_CLASS_INIT
 
 }
 

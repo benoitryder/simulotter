@@ -23,6 +23,7 @@ public:
   virtual void addToWorld(Physics *physics);
   virtual void removeFromWorld();
 
+  Color4 getColor() const { return color_; }
   void setColor(const Color4 &color) { color_ = color; }
 
   /** @brief Draw the robot

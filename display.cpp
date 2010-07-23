@@ -98,19 +98,13 @@ Display::~Display()
   sceneDestroy();
 }
 
-void Display::init()
-{
-  if( isInitialized() )
-  {
-    LOG("display already initialized, init() call skipped");
-    return;
-  }
-  windowInit();
-}
-
 
 void Display::resize(int width, int height, int mode)
 {
+  if( !windowInitialized() ) {
+    windowInit();
+  }
+
   bool fullscreen;
   if( mode == 0 )
     fullscreen = false;
@@ -201,6 +195,7 @@ void Display::update()
   glEnable(GL_LIGHTING);
 
   SDL_GL_SwapBuffers();
+  glFlush();
 
   // Save screenshot
   if( ! screenshot_filename_.empty() ) {
@@ -212,10 +207,13 @@ void Display::update()
 
 void Display::run()
 {
-  if( ! physics_ )
+  if( ! physics_ ) {
     throw(Error("no physics attached to display"));
-  if( ! isInitialized() )
-    init();
+  }
+  // window not created yet, force resize() to create it
+  if( ! windowInitialized() ) {
+    resize(screen_x_, screen_y_, fullscreen_);
+  }
 
   unsigned int step_dt = (unsigned int)(1000.0*physics_->getStepDt());
   unsigned long time;
@@ -364,6 +362,10 @@ void Display::drawString(const std::string &s, int x, int y, Color4 color, void 
 
 void Display::windowInit()
 {
+  if( windowInitialized() ) {
+    throw(Error("window already initialized")); // should not happen
+  }
+
   if(SDL_Init(SDL_INIT_VIDEO) < 0)
   {
     windowDestroy();
@@ -388,8 +390,6 @@ void Display::windowInit()
     if( SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, antialias_) < 0 )
       throw(Error("SDL: cannot set multisample sample count to %d", antialias_));
   }
-
-  resize(screen_x_, screen_y_, fullscreen_);
 }
 
 void Display::windowDestroy()

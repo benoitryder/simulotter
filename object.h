@@ -140,6 +140,7 @@ public:
 
   bool isInitialized() { return getCollisionShape() != NULL; }
 
+  Color4 getColor() const { return color_; }
   /** @brief Set main color
    *
    * Object color is used in default drawing function and may ignored by
