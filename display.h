@@ -234,8 +234,8 @@ public:
     SmartPtr<Object> obj;
   };
 
-  const CameraPoint &getCameraEye()    const { return camera_eye_;    }
-  const CameraPoint &getCameraTarget() const { return camera_target_; }
+  CameraPoint &getCameraEye()    { return camera_eye_;    }
+  CameraPoint &getCameraTarget() { return camera_target_; }
   int getCameraMode() const { return camera_mode_; }
 
   /** @brief Compute eye and target cartesian global positions

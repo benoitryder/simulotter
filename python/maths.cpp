@@ -87,6 +87,12 @@ static std::string trans_str(const btTransform &t)
 }
 
 
+static std::string spheric3_str(const btSpheric3 &v)
+{
+  return stringf("<rtp: %.2f %.2f %.2f>", v.r, v.theta, v.phi);
+}
+
+
 
 void python_module_maths()
 {
@@ -107,7 +113,6 @@ void python_module_maths()
       .def("normalized", &btVector2::normalized)
       .def("rotate", &vec2_rotate)
       .def("rotated", &btVector2::rotated)
-      .def("absolute", &btVector2::absolute)
       .def("angle", &btVector2::angle)
       .def(py::self == py::self)
       .def(py::self != py::self)
@@ -121,6 +126,7 @@ void python_module_maths()
       .def(py::self -= py::self)
       .def(py::self *= btScalar())
       .def(py::self /= btScalar())
+      .def("__abs__", &btVector2::absolute)
       .def("__str__", vec2_str)
       .def("__iter__", py::range(&vec2_begin, &vec2_end))
       ;
@@ -140,7 +146,6 @@ void python_module_maths()
       .def("normalize", &vec3_normalize)
       .def("normalized", &btVector3::normalized)
       .def("rotate", &btVector3::rotate)
-      .def("absolute", &btVector3::absolute)
       .def("angle", &btVector3::angle)
       .def("cross", &btVector3::cross)
       .def("triple", &btVector3::triple)
@@ -156,6 +161,7 @@ void python_module_maths()
       .def(py::self -= py::self)
       .def(py::self *= btScalar())
       .def(py::self /= btScalar())
+      .def("__abs__", &btVector3::absolute)
       .def("__str__", vec3_str)
       .def("__iter__", py::range(&vec3_begin, &vec3_end))
       ;
@@ -225,7 +231,6 @@ void python_module_maths()
       .def("scaled", &btMatrix3x3::scaled)
       .def("determinant", &btMatrix3x3::determinant)
       .def("adjoint", &btMatrix3x3::adjoint)
-      .def("absolute", &btMatrix3x3::absolute)
       .def("transpose", &btMatrix3x3::transpose)
       .def("transpose_times", &btMatrix3x3::transposeTimes)
       .def("times_transpose", &btMatrix3x3::timesTranspose)
@@ -243,6 +248,7 @@ void python_module_maths()
       .def(py::self * btVector3())
       .def(btVector3() * py::self)
       .def(py::self *= py::self)
+      .def("__abs__", &btMatrix3x3::absolute)
       .def("__str__", matrix3_str)
       .def("__iter__", py::range(&matrix3_begin, &matrix3_end))
       ;
@@ -273,6 +279,21 @@ void python_module_maths()
       .def("__str__", trans_str)
       ;
 
+
+  py::class_<btSpheric3>("spheric3")
+      .def(py::init<btScalar,btScalar,btScalar>())
+      .def(py::init<btSpheric3>())
+      .def("rotate", &btSpheric3::rotate)
+      .def(btScalar() * py::self)
+      .def(py::self * btScalar())
+      .def(py::self / btScalar())
+      .def(py::self *= btScalar())
+      .def(py::self /= btScalar())
+      .def("__str__", spheric3_str)
+      ;
+
+  py::implicitly_convertible<btSpheric3,btVector3>();
+  py::implicitly_convertible<btVector3,btSpheric3>();
 }
 
 
