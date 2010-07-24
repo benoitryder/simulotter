@@ -147,6 +147,10 @@ void Display::update()
 {
   if( ! physics_ )
     throw(Error("no physics attached to display"));
+  // window not created yet, force resize() to create it
+  if( ! windowInitialized() ) {
+    resize(screen_x_, screen_y_, fullscreen_);
+  }
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

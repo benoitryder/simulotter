@@ -13,6 +13,7 @@ void Object::drawTransform(const btTransform &transform)
 
 void Object::drawShape(const btCollisionShape *shape)
 {
+  glPushMatrix();
   switch( shape->getShapeType() )
   {
     case COMPOUND_SHAPE_PROXYTYPE:
@@ -20,10 +21,8 @@ void Object::drawShape(const btCollisionShape *shape)
         const btCompoundShape *compound_shape = static_cast<const btCompoundShape*>(shape);
         for( int i=compound_shape->getNumChildShapes()-1; i>=0; i-- )
         {
-          glPushMatrix();
           drawTransform(compound_shape->getChildTransform(i));
           drawShape(compound_shape->getChildShape(i));
-          glPopMatrix();
         }
         break;
       }
@@ -85,6 +84,7 @@ void Object::drawShape(const btCollisionShape *shape)
       throw(Error("drawing not supported for this geometry class"));
       break;
   }
+  glPopMatrix();
 }
 
 void Object::addToWorld(Physics *physics)

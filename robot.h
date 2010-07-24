@@ -80,14 +80,6 @@ public:
   virtual const btTransform &getTrans() const { return body_->getCenterOfMassTransform(); }
   virtual void setTrans(const btTransform &tr) { body_->setCenterOfMassTransform(tr); }
 
-  /** @brief Update position and velocity values
-   *
-   * Update internal values which will be returned by binding calls.
-   * This method should be called after each simulation step and before asserv
-   * step.
-   */
-  virtual void update();
-
   /** @brief Turn and move forward asserv
    *
    * Simple asserv: first the robot turns to face the target point. Then it
@@ -98,10 +90,13 @@ public:
   /** @name Basic methods used in strategy
    */
   //@{
-  const btVector2 &get_xy()  const { return xy_; }
-  btScalar get_a()  const { return a_; }
-  btScalar get_v()  const { return v_;  }
-  btScalar get_av() const { return av_; }
+  btScalar getAngle() const
+  {
+    const btMatrix3x3 m = this->getRot();
+    return -btAtan2(m[0][1], m[0][0]);
+  }
+  btScalar getVelocity() const { return btVector2(body_->getLinearVelocity()).length(); }
+  btScalar getAngularVelocity() const { return body_->getAngularVelocity().getZ(); };
 
   void order_xy(btVector2 xy, bool rel=false);
   void order_a(btScalar a, bool rel=false);
@@ -112,31 +107,19 @@ public:
   bool is_waiting() { return order_ == ORDER_NONE; }
   //@}
 
-  void set_v_max(btScalar v)  { v_max_  = v; }
-  void set_av_max(btScalar v) { av_max_ = v; }
+  btScalar v_max;
+  btScalar av_max;
 
-  void set_threshold_xy(btScalar t) { threshold_xy_ = t; }
-  void set_threshold_a(btScalar t)  { threshold_a_  = t; }
+  /// Asserv position threshold
+  btScalar threshold_xy;
+  /// Asserv angle threshold
+  btScalar threshold_a;
 
 protected:
   btRigidBody *body_;
 
   /// Robot main color
   Color4 color_;
-
-  /** @name Position and velocity values
-   *
-   * These values are updated after calling \e update().
-   */
-  //@{
-  btVector2 xy_; ///< Position
-  btScalar  a_;  ///< Angular position
-  btScalar  v_;  ///< Velocity
-  btScalar  av_; ///< Angular velocity (radians)
-  //@}
-
-  btScalar v_max_;
-  btScalar av_max_;
 
   /** @name Order targets
    */
@@ -165,11 +148,6 @@ protected:
 
   void set_v(btScalar v);
   void set_av(btScalar v);
-
-  /// Asserv position threshold
-  btScalar threshold_xy_;
-  /// Asserv angle threshold
-  btScalar threshold_a_;
 };
 
 #endif

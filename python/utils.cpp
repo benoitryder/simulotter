@@ -71,7 +71,6 @@ void python_module_utils()
       ;
 
   // shapes (not all exported)
-  //TODO put them in a submodule?
 
   py::class_<btCollisionShape, SmartPtr<btCollisionShape>, boost::noncopyable>("Shape", py::no_init);
 #define EXPORT_SHAPE_CLASS(n,T,B) \

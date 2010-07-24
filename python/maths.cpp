@@ -96,8 +96,6 @@ static std::string spheric3_str(const btSpheric3 &v)
 
 void python_module_maths()
 {
-  //TODO should we return references for trans.basis, etc.?
-
   py::class_<btVector2>("vec2", py::no_init)
       .def("__init__", py::make_constructor(&vec2_init_def))
       .def(py::init<btScalar,btScalar>())
@@ -198,6 +196,7 @@ void python_module_maths()
       .def("identity", &btQuaternion::getIdentity,
            py::return_value_policy<py::return_by_value>()
           ).staticmethod("identity")
+      .def("rotate", &quatRotate)
       .def(py::self == py::self)
       .def(py::self != py::self)
       .def(py::self + py::self)
