@@ -47,15 +47,13 @@ public:
   //@{
   typedef std::vector<btVector2> CheckPoints;
 
-  const btVector2 get_xy() const { return this->getPos(); }
-  const btVector2 get_v()  const { return body_->getLinearVelocity(); }
-  btScalar get_a() const
+  btScalar getAngle() const
   {
-    btScalar a, p, r;
-    this->getRot().getEulerYPR(a,p,r);
-    return a;
+    const btMatrix3x3 m = getRot();
+    return -btAtan2(m[0][1], m[0][0]);
   }
-  btScalar get_av() const { return body_->getAngularVelocity().getZ(); }
+  btVector2 getVelocity() const { return body_->getLinearVelocity(); }
+  btScalar getAngularVelocity() const { return body_->getAngularVelocity().getZ(); }
 
   void order_xy(btVector2 xy, bool rel=false);
   void order_a(btScalar a, bool rel=false);
@@ -125,21 +123,21 @@ public:
   /** @name Shape constants
    */
   //@{
-  static const btScalar z_mass;   ///< Z position of the center of mass
-  static const btScalar ground_clearance;
-  static const btScalar angle_offset; ///< angle of the first wheel
+  static const btScalar Z_MASS;   ///< Z position of the center of mass
+  static const btScalar GROUND_CLEARANCE;
+  static const btScalar ANGLE_OFFSET; ///< angle of the first wheel
 
-  static const btScalar height;   ///< body height
-  static const btScalar side;     ///< triangle side half size
-  static const btScalar w_block;  ///< motor block half width (small side)
-  static const btScalar r_wheel;  ///< wheel radius
-  static const btScalar h_wheel;  ///< wheel height (when laid flat)
+  static const btScalar HEIGHT;   ///< body height
+  static const btScalar SIDE;     ///< triangle side half size
+  static const btScalar W_BLOCK;  ///< motor block half width (small side)
+  static const btScalar R_WHEEL;  ///< wheel radius
+  static const btScalar H_WHEEL;  ///< wheel height (when laid flat)
 
-  static const btScalar d_side;   ///< distance center/triangle side
-  static const btScalar d_wheel;  ///< distance center/wheel side
-  static const btScalar a_side;   ///< center angle of triangle side
-  static const btScalar a_wheel;  ///< center angle of wheel side
-  static const btScalar radius;   ///< outer circle radius
+  static const btScalar D_SIDE;   ///< distance center/triangle side
+  static const btScalar D_WHEEL;  ///< distance center/wheel side
+  static const btScalar A_SIDE;   ///< center angle of triangle side
+  static const btScalar A_WHEEL;  ///< center angle of wheel side
+  static const btScalar RADIUS;   ///< outer circle radius
   //@}
 
 protected:
@@ -180,18 +178,18 @@ private:
 
 bool Galipeur::order_xy_done() const
 {
-  if( this->stopped() )
+  if( stopped() )
     return true;
-  if( !this->lastCheckpoint() )
+  if( !lastCheckpoint() )
     return false;
-  return ((*ckpt_) - get_xy()).length() < threshold_stop_;
+  return ((*ckpt_) - btVector2(getPos())).length() < threshold_stop_;
 }
 
 bool Galipeur::order_a_done() const
 {
-  if( this->stopped() )
+  if( stopped() )
     return true;
-  return btFabs(btNormalizeAngle( target_a_-get_a() )) < threshold_a_;
+  return btFabs(btNormalizeAngle( target_a_-getAngle() )) < threshold_a_;
 }
 
 

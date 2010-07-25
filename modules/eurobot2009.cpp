@@ -27,9 +27,9 @@ namespace eurobot2009
   }
 
 
-  const btScalar ODispenser::radius = btScale(0.040);
-  const btScalar ODispenser::height = btScale(0.150);
-  SmartPtr<btCylinderShapeZ> ODispenser::shape_(new btCylinderShapeZ(btVector3(radius,radius,height/2)));
+  const btScalar ODispenser::RADIUS = btScale(0.040);
+  const btScalar ODispenser::HEIGHT = btScale(0.150);
+  SmartPtr<btCylinderShapeZ> ODispenser::shape_(new btCylinderShapeZ(btVector3(RADIUS,RADIUS,HEIGHT/2)));
 
   ODispenser::ODispenser()
   {
@@ -40,13 +40,13 @@ namespace eurobot2009
 
   void ODispenser::setPos(const btVector3 &v, int side)
   {
-    btVector3 offset(0,0, height/2);
+    btVector3 offset(0,0, HEIGHT/2);
     switch( side )
     {
-      case 0: offset.setY(-radius); break;
-      case 1: offset.setX(-radius); break;
-      case 2: offset.setY( radius); break;
-      case 3: offset.setX( radius); break;
+      case 0: offset.setY(-RADIUS); break;
+      case 1: offset.setX(-RADIUS); break;
+      case 2: offset.setY( RADIUS); break;
+      case 3: offset.setX( RADIUS); break;
       default:
         throw(Error("invalid value for dispenser side"));
     }
@@ -65,8 +65,8 @@ namespace eurobot2009
     glColor4fv(color_);
     glPushMatrix();
     drawTransform(m_worldTransform);
-    glTranslatef(0, 0, -height/2);
-    glutWireCylinder(radius, height, Display::draw_div, 10);
+    glTranslatef(0, 0, -HEIGHT/2);
+    glutWireCylinder(RADIUS, HEIGHT, Display::draw_div, 10);
     glPopMatrix();
   }
 
@@ -75,7 +75,7 @@ namespace eurobot2009
     btRigidBody *o = btRigidBody::upcast(co);
     if( o )
     {
-      if( btVector2(this->getPos()-o->getCenterOfMassPosition()).length() <= radius )
+      if( btVector2(this->getPos()-o->getCenterOfMassPosition()).length() <= RADIUS )
         return false;
     }
     
@@ -137,11 +137,11 @@ namespace eurobot2009
 
 
 
-  const btScalar Galipeur2009::Pachev::width  = btScale(0.080);
-  const btScalar Galipeur2009::Pachev::height = btScale(0.140);
-  const btScalar Galipeur2009::Pachev::z_max  = btScale(0.080);
+  const btScalar Galipeur2009::Pachev::WIDTH  = btScale(0.080);
+  const btScalar Galipeur2009::Pachev::HEIGHT = btScale(0.140);
+  const btScalar Galipeur2009::Pachev::Z_MAX  = btScale(0.080);
 
-  btBoxShape Galipeur2009::Pachev::shape_( 0.5*btVector3(width,width,height) );
+  btBoxShape Galipeur2009::Pachev::shape_( 0.5*btVector3(WIDTH,WIDTH,HEIGHT) );
 
   Galipeur2009::Galipeur2009(btScalar m): Galipeur(m)
   {
@@ -153,8 +153,8 @@ namespace eurobot2009
     tr_b.setIdentity();
     tr_a.getBasis().setEulerZYX(0, -M_PI_2, 0);
     tr_b.getBasis().setEulerZYX(0, -M_PI_2, 0);
-    tr_a.setOrigin( btVector3(-d_side, 0, -height/2) );
-    tr_b.setOrigin( btVector3(btScale(0.04), 0, -Pachev::height/2) );
+    tr_a.setOrigin( btVector3(-D_SIDE, 0, -HEIGHT/2) );
+    tr_b.setOrigin( btVector3(btScale(0.04), 0, -Pachev::HEIGHT/2) );
     pachev_link_ = new btSliderConstraint(*body_, *pachev_, tr_a, tr_b, true);
     pachev_link_->setLowerAngLimit(0);
     pachev_link_->setUpperAngLimit(0);
@@ -202,7 +202,7 @@ namespace eurobot2009
         case PACHEV_RELEASE:
           {
             if( btVector2(this->getCenterOfMassPosition() -
-                  o->getCenterOfMassPosition()).length() <= width/2 )
+                  o->getCenterOfMassPosition()).length() <= WIDTH/2 )
               return false;
           }
           break;
@@ -211,7 +211,7 @@ namespace eurobot2009
           {
             btVector3 diff = this->getCenterOfMassPosition() -
               o->getCenterOfMassPosition();
-            if( btVector2(diff).length() <= width/2 && diff.z() < height/2 )
+            if( btVector2(diff).length() <= WIDTH/2 && diff.z() < HEIGHT/2 )
             {
               // Check if object is already constrained
               for(int i=0; i < getNumConstraintRefs(); i++)
@@ -276,7 +276,7 @@ namespace eurobot2009
 
     glPushMatrix();
     drawTransform(pachev_->getCenterOfMassTransform());
-    btglScale(Pachev::width, Pachev::width, Pachev::height);
+    btglScale(Pachev::WIDTH, Pachev::WIDTH, Pachev::HEIGHT);
     glutWireCube(1.0);
     glPopMatrix();
   }
@@ -292,7 +292,7 @@ namespace eurobot2009
   {
     btTransform tr;
     tr.setIdentity();
-    tr.setOrigin( btVector3(-Galipeur2009::d_side-width/2, 0, height/2) );
+    tr.setOrigin( btVector3(-Galipeur2009::D_SIDE-WIDTH/2, 0, HEIGHT/2) );
     this->setCenterOfMassTransform(robot_->body_->getCenterOfMassTransform()*tr);
   }
 
@@ -329,7 +329,7 @@ namespace eurobot2009
 
   void Galipeur2009::order_pachev_move(btScalar h)
   {
-    target_pachev_pos_ = CLAMP(h,0,Galipeur2009::Pachev::z_max);
+    target_pachev_pos_ = CLAMP(h,0,Galipeur2009::Pachev::Z_MAX);
     LOG("PACHEV MOVE  %f (%f)", target_pachev_pos_, h);
 
     pachev_link_->setLowerLinLimit( 1 );

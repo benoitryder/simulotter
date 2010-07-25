@@ -5,25 +5,25 @@
 #include "log.h"
 
 
-const btScalar Galipeur::z_mass = btScale(0.08);
-const btScalar Galipeur::ground_clearance = btScale(0.009);
-const btScalar Galipeur::angle_offset = -M_PI/2;
+const btScalar Galipeur::Z_MASS = btScale(0.08);
+const btScalar Galipeur::GROUND_CLEARANCE = btScale(0.009);
+const btScalar Galipeur::ANGLE_OFFSET = -M_PI/2;
 
-const btScalar Galipeur::height  = btScale(0.300);
-const btScalar Galipeur::side    = btScale(0.110);
-const btScalar Galipeur::w_block = btScale(0.030);
-const btScalar Galipeur::r_wheel = btScale(0.0246);
-const btScalar Galipeur::h_wheel = btScale(0.0127);
+const btScalar Galipeur::HEIGHT  = btScale(0.300);
+const btScalar Galipeur::SIDE    = btScale(0.110);
+const btScalar Galipeur::W_BLOCK = btScale(0.030);
+const btScalar Galipeur::R_WHEEL = btScale(0.0246);
+const btScalar Galipeur::H_WHEEL = btScale(0.0127);
 
-const btScalar Galipeur::d_side  = ( side + 2*w_block ) / btSqrt(3);
-const btScalar Galipeur::d_wheel = ( w_block + 2*side ) / btSqrt(3);
-const btScalar Galipeur::a_side  = 2*btAtan2( side,    d_side  );
-const btScalar Galipeur::a_wheel = 2*btAtan2( w_block, d_wheel );
-const btScalar Galipeur::radius  = btSqrt(side*side+d_side*d_side);
+const btScalar Galipeur::D_SIDE  = ( SIDE + 2*W_BLOCK ) / btSqrt(3);
+const btScalar Galipeur::D_WHEEL = ( W_BLOCK + 2*SIDE ) / btSqrt(3);
+const btScalar Galipeur::A_SIDE  = 2*btAtan2( SIDE,    D_SIDE  );
+const btScalar Galipeur::A_WHEEL = 2*btAtan2( W_BLOCK, D_WHEEL );
+const btScalar Galipeur::RADIUS  = btSqrt(SIDE*SIDE+D_SIDE*D_SIDE);
 
 SmartPtr<btCompoundShape> Galipeur::shape_;
 btConvexHullShape Galipeur::body_shape_;
-btBoxShape Galipeur::wheel_shape_( btVector3(h_wheel/2,r_wheel,r_wheel) );
+btBoxShape Galipeur::wheel_shape_( btVector3(H_WHEEL/2,R_WHEEL,R_WHEEL) );
 
 
 Galipeur::Galipeur(btScalar m):
@@ -36,35 +36,35 @@ Galipeur::Galipeur(btScalar m):
     // Triangular body
     if( body_shape_.getNumPoints() == 0 )
     {
-      btVector2 p = btVector2(radius,0).rotated(-a_wheel/2);
+      btVector2 p = btVector2(RADIUS,0).rotated(-A_WHEEL/2);
       for( int i=0; i<3; i++ )
       {
-        body_shape_.addPoint( btVector3(p.x(),p.y(),+height/2) );
-        body_shape_.addPoint( btVector3(p.x(),p.y(),-height/2) );
-        p.rotate(a_wheel);
-        body_shape_.addPoint( btVector3(p.x(),p.y(),+height/2) );
-        body_shape_.addPoint( btVector3(p.x(),p.y(),-height/2) );
-        p.rotate(a_side);
+        body_shape_.addPoint( btVector3(p.x(),p.y(),+HEIGHT/2) );
+        body_shape_.addPoint( btVector3(p.x(),p.y(),-HEIGHT/2) );
+        p.rotate(A_WHEEL);
+        body_shape_.addPoint( btVector3(p.x(),p.y(),+HEIGHT/2) );
+        body_shape_.addPoint( btVector3(p.x(),p.y(),-HEIGHT/2) );
+        p.rotate(A_SIDE);
       }
     }
-    shape_->addChildShape( btTransform( btQuaternion(0, 0, 1, angle_offset),
-                           btVector3(0,0,ground_clearance-(z_mass-height/2))),
+    shape_->addChildShape( btTransform( btQuaternion(0, 0, 1, ANGLE_OFFSET),
+                           btVector3(0,0,GROUND_CLEARANCE-(Z_MASS-HEIGHT/2))),
                           &body_shape_);
 
     // Wheels (use boxes instead of cylinders)
     btTransform tr = btTransform::getIdentity();
-    tr.setRotation( btQuaternion(0, 0, 1, angle_offset) );
-    btVector2 vw( d_wheel+h_wheel/2, 0 );
-    tr.setOrigin( btVector3(vw.x(), vw.y(), -(z_mass - r_wheel)) );
+    tr.setRotation( btQuaternion(0, 0, 1, ANGLE_OFFSET) );
+    btVector2 vw( D_WHEEL+H_WHEEL/2, 0 );
+    tr.setOrigin( btVector3(vw.x(), vw.y(), -(Z_MASS - R_WHEEL)) );
     shape_->addChildShape(tr, &wheel_shape_);
 
     vw.rotate(2*M_PI/3);
-    tr.setOrigin( btVector3(vw.x(), vw.y(), -(z_mass - r_wheel)) );
+    tr.setOrigin( btVector3(vw.x(), vw.y(), -(Z_MASS - R_WHEEL)) );
     tr.setRotation( btQuaternion(btVector3(0,0,1), 2*M_PI/3) );
     shape_->addChildShape(tr, &wheel_shape_);
 
     vw.rotate(-4*M_PI/3);
-    tr.setOrigin( btVector3(vw.x(), vw.y(), -(z_mass - r_wheel)) );
+    tr.setOrigin( btVector3(vw.x(), vw.y(), -(Z_MASS - R_WHEEL)) );
     tr.setRotation( btQuaternion(btVector3(0,0,1), -2*M_PI/3) );
     shape_->addChildShape(tr, &wheel_shape_);
   }
@@ -102,26 +102,26 @@ void Galipeur::draw(Display *d)
 
   glPushMatrix();
   drawTransform(body_->getCenterOfMassTransform());
-  btglRotate(-angle_offset*180.0f/M_PI, 0.0f, 0.0f, 1.0f);
+  btglRotate(-ANGLE_OFFSET*180.0f/M_PI, 0.0f, 0.0f, 1.0f);
 
   if( d->callOrCreateDisplayList(this) ) {
     glPushMatrix();
 
-    btglTranslate(0, 0, -z_mass);
+    btglTranslate(0, 0, -Z_MASS);
 
     // Faces
 
     glPushMatrix();
 
-    btglTranslate(0, 0, ground_clearance);
+    btglTranslate(0, 0, GROUND_CLEARANCE);
 
-    btglScale(radius, radius, height);
+    btglScale(RADIUS, RADIUS, HEIGHT);
     btVector2 v;
 
 
     glBegin(GL_QUADS);
 
-    v = btVector2(1,0).rotated(-a_wheel/2);
+    v = btVector2(1,0).rotated(-A_WHEEL/2);
     btVector2 n(1,0); // normal vector
     for( int i=0; i<3; i++ )
     {
@@ -131,7 +131,7 @@ void Galipeur::draw(Display *d)
 
       btglVertex3(v.x(), v.y(), 0.0);
       btglVertex3(v.x(), v.y(), 1.0);
-      v.rotate(a_wheel);
+      v.rotate(A_WHEEL);
       btglVertex3(v.x(), v.y(), 1.0);
       btglVertex3(v.x(), v.y(), 0.0);
 
@@ -141,7 +141,7 @@ void Galipeur::draw(Display *d)
 
       btglVertex3(v.x(), v.y(), 0.0);
       btglVertex3(v.x(), v.y(), 1.0);
-      v.rotate(a_side);
+      v.rotate(A_SIDE);
       btglVertex3(v.x(), v.y(), 1.0);
       btglVertex3(v.x(), v.y(), 0.0);
     }
@@ -151,53 +151,53 @@ void Galipeur::draw(Display *d)
     // Bottom
     glBegin(GL_POLYGON);
     btglNormal3(0.0, 0.0, -1.0);
-    v = btVector2(1,0).rotated(-a_wheel/2);
+    v = btVector2(1,0).rotated(-A_WHEEL/2);
     for( int i=0; i<3; i++ )
     {
       btglVertex3(v.x(), v.y(), 0.0);
-      v.rotate(a_wheel);
+      v.rotate(A_WHEEL);
       btglVertex3(v.x(), v.y(), 0.0);
-      v.rotate(a_side);
+      v.rotate(A_SIDE);
     }
     glEnd();
 
     // Top
     glBegin(GL_POLYGON);
     btglNormal3(0.0, 0.0, 1.0);
-    v = btVector2(1,0).rotated(-a_wheel/2);
+    v = btVector2(1,0).rotated(-A_WHEEL/2);
     for( int i=0; i<3; i++ )
     {
       btglVertex3(v.x(), v.y(), 1.0);
-      v.rotate(a_wheel);
+      v.rotate(A_WHEEL);
       btglVertex3(v.x(), v.y(), 1.0);
-      v.rotate(a_side);
+      v.rotate(A_SIDE);
     }
     glEnd();
 
     glPopMatrix();
 
     // Wheels (box shapes, but drawn using cylinders)
-    btglTranslate(0, 0, r_wheel);
+    btglTranslate(0, 0, R_WHEEL);
     btglRotate(90.0f, 0.0f, 1.0f, 0.0f);
-    btVector2 vw( d_wheel, 0 );
+    btVector2 vw( D_WHEEL, 0 );
 
     glPushMatrix();
     btglTranslate(0, vw.y(), vw.x());
-    glutSolidCylinder(r_wheel, h_wheel, Display::draw_div, Display::draw_div);
+    glutSolidCylinder(R_WHEEL, H_WHEEL, Display::draw_div, Display::draw_div);
     glPopMatrix();
 
     glPushMatrix();
     vw.rotate(2*M_PI/3);
     btglTranslate(0, vw.y(), vw.x());
     btglRotate(-120.0f, 1.0f, 0.0f, 0.0f);
-    glutSolidCylinder(r_wheel, h_wheel, Display::draw_div, Display::draw_div);
+    glutSolidCylinder(R_WHEEL, H_WHEEL, Display::draw_div, Display::draw_div);
     glPopMatrix();
 
     glPushMatrix();
     vw.rotate(-4*M_PI/3);
     btglTranslate(0, vw.y(), vw.x());
     btglRotate(120.0f, 1.0f, 0.0f, 0.0f);
-    glutSolidCylinder(r_wheel, h_wheel, Display::draw_div, Display::draw_div);
+    glutSolidCylinder(R_WHEEL, H_WHEEL, Display::draw_div, Display::draw_div);
     glPopMatrix();
 
     glPopMatrix();
@@ -223,7 +223,7 @@ void Galipeur::draw(Display *d)
 
 void Galipeur::asserv()
 {
-  if( this->stopped() )
+  if( stopped() )
     return;
 
   if( physics_ == NULL )
@@ -234,12 +234,12 @@ void Galipeur::asserv()
     return; // ramp start, wait for the next step
 
   // position
-  btVector2 dxy = (*ckpt_) - get_xy();
-  if( !this->lastCheckpoint() && dxy.length() < threshold_steering_ ) {
+  btVector2 dxy = (*ckpt_) - btVector2(getPos());
+  if( !lastCheckpoint() && dxy.length() < threshold_steering_ ) {
     ++ckpt_; // checkpoint change
-    dxy = (*ckpt_) - get_xy();
+    dxy = (*ckpt_) - btVector2(getPos());
   }
-  if( this->lastCheckpoint() ) {
+  if( lastCheckpoint() ) {
     ramp_xy_.var_dec = va_stop_;
     ramp_xy_.var_v0 = v_stop_;
   } else {
@@ -249,7 +249,7 @@ void Galipeur::asserv()
   set_v( dxy.normalized() * ramp_xy_.step(dt, dxy.length()) );
 
   // angle
-  const btScalar da = btNormalizeAngle( target_a_-get_a() );
+  const btScalar da = btNormalizeAngle( target_a_-getAngle() );
   set_av( ramp_a_.step(dt, da) );
 }
 
@@ -274,9 +274,9 @@ void Galipeur::order_xy(btVector2 xy, bool rel)
 {
   CheckPoints v(1);
   if( rel )
-    xy += this->get_xy();
+    xy += btVector2(getPos());
   v[0] = xy;
-  this->order_trajectory(v);
+  order_trajectory(v);
 }
 
 void Galipeur::order_a(btScalar a, bool rel)
@@ -285,11 +285,11 @@ void Galipeur::order_a(btScalar a, bool rel)
     throw(Error("Galipeur is not in a world"));
 
   if( rel )
-    a += this->get_a();
+    a += getAngle();
   target_a_ = btNormalizeAngle(a);
 
   ramp_last_t_ = physics_->getTime();
-  ramp_a_.reset(get_av());
+  ramp_a_.reset(getAngularVelocity());
 }
 
 void Galipeur::order_xya(btVector2 xy, btScalar a, bool rel)
@@ -297,8 +297,8 @@ void Galipeur::order_xya(btVector2 xy, btScalar a, bool rel)
   if( physics_ == NULL )
     throw(Error("Galipeur is not in a world"));
 
-  this->order_xy(xy, rel);
-  this->order_a(a, rel);
+  order_xy(xy, rel);
+  order_a(a, rel);
 }
 
 void Galipeur::order_stop()
@@ -318,7 +318,7 @@ void Galipeur::order_trajectory(const std::vector<btVector2> &pts)
   ckpt_ = checkpoints_.begin();
 
   ramp_last_t_ = physics_->getTime();
-  ramp_xy_.reset(get_v().length());
+  ramp_xy_.reset(getVelocity().length());
 }
 
 

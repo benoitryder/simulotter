@@ -34,6 +34,7 @@ void python_module_object()
 
   py::class_<OGround, py::bases<OSimple>, SmartPtr<OGround>, boost::noncopyable>(
       "OGround", py::init<Color4, Color4, Color4>())
+      .def_readonly("SIZE_START", OGround::SIZE_START)
       ;
 }
 

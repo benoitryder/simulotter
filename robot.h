@@ -96,7 +96,7 @@ public:
     return -btAtan2(m[0][1], m[0][0]);
   }
   btScalar getVelocity() const { return btVector2(body_->getLinearVelocity()).length(); }
-  btScalar getAngularVelocity() const { return body_->getAngularVelocity().getZ(); };
+  btScalar getAngularVelocity() const { return body_->getAngularVelocity().getZ(); }
 
   void order_xy(btVector2 xy, bool rel=false);
   void order_a(btScalar a, bool rel=false);

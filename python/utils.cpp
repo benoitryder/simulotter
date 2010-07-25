@@ -29,7 +29,7 @@ static SmartPtr<CompoundShapeSmart> CompoundShape_init(const py::object o)
 
   py::stl_input_iterator<py::object> it(o), it_end;
   for( ; it != it_end; ++it ) {
-    py::object p = *it;
+    const py::object &p = *it;
     py::ssize_t n = py::len(p);
     if( n != 2 ) {
       // cast to avoid type length issues

@@ -63,8 +63,8 @@ namespace eurobot2009
     virtual bool checkCollideWithOverride(btCollisionObject *co);
 
   protected:
-    static const btScalar radius;
-    static const btScalar height;
+    static const btScalar RADIUS;
+    static const btScalar HEIGHT;
   private:
     static SmartPtr<btCylinderShapeZ> shape_;
   };
@@ -168,9 +168,9 @@ namespace eurobot2009
        */
       virtual bool checkCollideWithOverride(btCollisionObject *co);
 
-      static const btScalar width;
-      static const btScalar height;
-      static const btScalar z_max; ///< Maximum Z position
+      static const btScalar WIDTH;
+      static const btScalar HEIGHT;
+      static const btScalar Z_MAX; ///< Maximum Z position
     protected:
       /// Reset pàchev's transform according to robot's transform
       void resetTrans();

@@ -193,10 +193,10 @@ public:
   ~OGround();
   virtual void draw(Display *d);
 
-protected:
   /// Starting zone size (scaled)
-  static const btScalar size_start_;
+  static const btScalar SIZE_START;
 
+protected:
   Color4 color_t1_;
   Color4 color_t2_;
 

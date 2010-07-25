@@ -52,11 +52,11 @@ OBJS += modules/eurobot2009.o modules/eurobot2010.o
 
 PY_TARGET = $(PROJECT_NAME).pyd
 
-PY_OBJS = $(addprefix python/, main.o utils.o maths.o display.o physics.o object.o robot.o)
+PY_SRCS = $(wildcard python/*.cpp)
+PY_OBJS = $(PY_SRCS:.cpp=.o)
 
 
 ALL_OBJS = $(OBJS) $(PY_OBJS)
-
 
 default: $(TARGET)
 

@@ -17,15 +17,15 @@ namespace eurobot2010
   class ORaisedZone: public OSimple
   {
   public:
-    static const btScalar width;
-    static const btScalar height;
-    static const btScalar bottom_length;
-    static const btScalar top_length;
-    static const btScalar strip_length;
-    static const btScalar wall_width;
-    static const btScalar wall_height;
-    static const btScalar wall_bottom_length;
-    static const btScalar wall_top_length;
+    static const btScalar WIDTH;
+    static const btScalar HEIGHT;
+    static const btScalar BOTTOM_LENGTH;
+    static const btScalar TOP_LENGTH;
+    static const btScalar STRIP_LENGTH;
+    static const btScalar WALL_WIDTH;
+    static const btScalar WALL_HEIGHT;
+    static const btScalar WALL_BOTTOM_LENGTH;
+    static const btScalar WALL_TOP_LENGTH;
 
     ORaisedZone();
     virtual void draw(Display *d);
@@ -64,8 +64,8 @@ namespace eurobot2010
   private:
     static SmartPtr<btCylinderShapeZ> shape_;
 
-    static const btScalar pivot_radius_;
-    static const btScalar pivot_mass_;
+    static const btScalar PIVOT_RADIUS;
+    static const btScalar PIVOT_MASS;
     static SmartPtr<btCollisionShape> pivot_shape_;
 
     /// Pivot rigid body.

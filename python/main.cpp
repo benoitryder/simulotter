@@ -7,6 +7,7 @@ void python_module_display();
 void python_module_physics();
 void python_module_object();
 void python_module_robot();
+void python_module_galipeur();
 
 
 BOOST_PYTHON_MODULE(simulotter)
@@ -17,6 +18,7 @@ BOOST_PYTHON_MODULE(simulotter)
   python_module_physics();
   python_module_object();
   python_module_robot();
+  python_module_galipeur();
 }
 
 

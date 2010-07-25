@@ -88,7 +88,7 @@ void RBasic::asserv()
 {
   // Go back: order which have priority
   if( order_ & ORDER_GO_BACK ) {
-    btVector2 xy = this->getPos();
+    const btVector2 xy = getPos();
     if( distance2(xy, target_back_xy_) < threshold_xy ) {
       set_v(0);
       order_ &= ~ORDER_GO_BACK;
@@ -100,13 +100,13 @@ void RBasic::asserv()
 
   // Go in position
   if( order_ & ORDER_GO_XY ) {
-    btVector2 xy = this->getPos();
+    const btVector2 xy = getPos();
     if( distance2(xy, target_xy_) < threshold_xy ) {
       set_v(0);
       order_ &= ~ORDER_GO_XY;
     } else {
       // Aim target point, then move
-      btScalar da = btNormalizeAngle( (target_xy_-xy).angle() - this->getAngle() );
+      btScalar da = btNormalizeAngle( (target_xy_-xy).angle() - getAngle() );
       if( btFabs( da ) < threshold_a ) {
         set_av(0);
         set_v(v_max);
@@ -120,7 +120,7 @@ void RBasic::asserv()
 
   // Turn
   if( order_ & ORDER_GO_A ) {
-    btScalar da = btNormalizeAngle( target_a_-this->getAngle() );
+    btScalar da = btNormalizeAngle( target_a_-getAngle() );
     if( btFabs( da ) < threshold_a ) { set_av(0);
       order_ &= ~ORDER_GO_A;
     } else {
@@ -135,7 +135,7 @@ void RBasic::order_xy(btVector2 xy, bool rel)
 {
   target_xy_ = xy;
   if( rel ) {
-    target_xy_ += this->getPos();
+    target_xy_ += getPos();
   }
 
   order_ |= ORDER_GO_XY;
@@ -145,7 +145,7 @@ void RBasic::order_a(btScalar a, bool rel)
 {
   target_a_ = a;
   if( rel )
-    target_a_ += this->getAngle();
+    target_a_ += getAngle();
   target_a_ = btNormalizeAngle(target_a_);
 
   order_ |= ORDER_GO_A;
@@ -153,7 +153,7 @@ void RBasic::order_a(btScalar a, bool rel)
 
 void RBasic::order_back(btScalar d)
 {
-  target_back_xy_ = btVector2(this->getPos()) - d*btVector2(1,0).rotated(this->getAngle());
+  target_back_xy_ = btVector2(getPos()) - d*btVector2(1,0).rotated(getAngle());
 
   order_ |= ORDER_GO_BACK;
 }
@@ -162,7 +162,7 @@ void RBasic::order_back(btScalar d)
 inline void RBasic::set_v(btScalar v)
 {
   body_->activate();
-  btVector2 vxy = btVector2(v,0).rotated(this->getAngle());
+  btVector2 vxy = btVector2(v,0).rotated(getAngle());
   body_->setLinearVelocity( btVector3(vxy.x(), vxy.y(),
         body_->getLinearVelocity().z()) );
 }
