@@ -21,6 +21,8 @@ LDLIBS += $(GL_LIBS) -lSDL -lpng $(BULLET_LIBS) -lm
 ifeq ($(OS),Windows_NT)
 CFLAGS += -DWIN32 -DFREEGLUT_STATIC
 TARGET_EXT = .dll
+else
+TARGET_EXT = .so
 endif
 
 
@@ -44,7 +46,6 @@ endif
 
 PROJECT_NAME = simulotter
 TARGET = $(PROJECT_NAME)$(TARGET_EXT)
-TARGET_EXT = .so
 
 OBJS = physics.o display.o object.o sensors.o robot.o galipeur.o log.o
 OBJS += modules/eurobot2009.o modules/eurobot2010.o
