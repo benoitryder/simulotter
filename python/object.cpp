@@ -13,7 +13,7 @@ static inline btMatrix3x3 Object_getRot(const Object &o) { return o.getRot(); }
 static inline void OSimple_setPosAbove(OSimple &o, const btVector2 &v) { o.setPosAbove(btScale(v)); }
 
 
-void python_module_object()
+void python_export_object()
 {
   py::class_<Object, SmartPtr<Object>, boost::noncopyable>("Object", py::no_init)
       .def("addToWorld", &Object::addToWorld)

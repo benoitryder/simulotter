@@ -340,26 +340,5 @@ public:
   //@}
 };
 
-/** @brief Simple OSD
- *
- * Simple OSD implementation with public access to OSD properties.
- */
-class OSDSimple: public OSDMessage
-{
-public:
-  OSDSimple(): text_(NULL), x_(0),y_(0), color_(Color4::black()) {}
-  virtual ~OSDSimple() {}
-
-  virtual std::string getText() { return text_; }
-  virtual int getX() { return x_; }
-  virtual int getY() { return y_; }
-  virtual Color4 getColor() { return color_; }
-
-private:
-  std::string text_;
-  int x_, y_;
-  Color4 color_;
-};
-
 
 #endif

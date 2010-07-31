@@ -12,7 +12,7 @@ static btVector3 Physics_get_world_aabb_max() { return btUnscale(Physics::world_
 static void Physics_set_world_aabb_max(const btVector3 &v) { Physics::world_aabb_max = btScale(v); }
 
 
-void python_module_physics()
+void python_export_physics()
 {
   py::class_<Physics, SmartPtr<Physics>, boost::noncopyable>("Physics")
       .def("step", &Physics::step)

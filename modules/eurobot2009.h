@@ -33,6 +33,9 @@ namespace eurobot2009
   class ODispenser: public OSimple
   {
   public:
+    static const btScalar RADIUS;
+    static const btScalar HEIGHT;
+
     ODispenser();
 
     /** @brief Set dispenser position from its attach point
@@ -61,10 +64,6 @@ namespace eurobot2009
      * with Z axis).
      */
     virtual bool checkCollideWithOverride(btCollisionObject *co);
-
-  protected:
-    static const btScalar RADIUS;
-    static const btScalar HEIGHT;
   private:
     static SmartPtr<btCylinderShapeZ> shape_;
   };
@@ -103,6 +102,9 @@ namespace eurobot2009
   class Galipeur2009: public Galipeur
   {
   public:
+    /// Velocity of ejected object (configurable).
+    static btScalar pachev_eject_speed;
+
     Galipeur2009(btScalar m);
     virtual ~Galipeur2009();
 
@@ -134,10 +136,7 @@ namespace eurobot2009
     void order_pachev_grab();
     void order_pachev_eject();
 
-    btScalar target_pachev_pos_;
-
     void set_pachev_v(btScalar v)  { pachev_v_  = v; }
-    void set_pachev_eject_v(btScalar f)  { pachev_eject_v_ = f; }
     void set_threshold_pachev(btScalar t) { threshold_pachev_ = t; }
 
     //@}
@@ -194,13 +193,13 @@ namespace eurobot2009
       PACHEV_EJECT
     };
 
+    btScalar target_pachev_pos_;
+
     PachevState pachev_state_;
     bool pachev_moving_; ///< true if the pàchev moving order is active
 
     /// Pàchev slider velocity
     btScalar pachev_v_;
-    /// Velocity of ejected object
-    btScalar pachev_eject_v_;
     /// Asserv pàchev threshold
     btScalar threshold_pachev_;
   };

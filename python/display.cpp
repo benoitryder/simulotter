@@ -33,7 +33,7 @@ static SmartPtr<Object> CamPoint_get_obj(const Display::CameraPoint *p) { return
 static void CamPoint_set_obj(Display::CameraPoint *p, Object *o) { p->obj = o; }
 
 
-void python_module_display()
+void python_export_display()
 {
   py::scope in_Display = py::class_<Display, SmartPtr<Display>, boost::noncopyable>("Display")
       .def("run", &Display::run)

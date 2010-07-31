@@ -140,6 +140,8 @@ namespace eurobot2009
   const btScalar Galipeur2009::Pachev::WIDTH  = btScale(0.080);
   const btScalar Galipeur2009::Pachev::HEIGHT = btScale(0.140);
   const btScalar Galipeur2009::Pachev::Z_MAX  = btScale(0.080);
+  btScalar Galipeur2009::pachev_eject_speed = btScale(0.001);
+
 
   btBoxShape Galipeur2009::Pachev::shape_( 0.5*btVector3(WIDTH,WIDTH,HEIGHT) );
 
@@ -242,7 +244,7 @@ namespace eurobot2009
                 btVector2 v = robot_->pachev_link_->getFrameOffsetB()
                   * this->getCenterOfMassPosition();
                 v.normalize();
-                o->translate( -robot_->pachev_eject_v_ * v );
+                o->translate( pachev_eject_speed * v );
               }
               return false;
             }

@@ -14,7 +14,7 @@ static inline void RBasic_order_back(RBasic &r, btScalar d) { r.order_back(btSca
 
 
 
-void python_module_robot()
+void python_export_robot()
 {
   py::class_<Robot, py::bases<Object>, SmartPtr<Robot>, boost::noncopyable>("Robot", py::no_init);
 
