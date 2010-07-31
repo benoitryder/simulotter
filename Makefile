@@ -41,6 +41,11 @@ PY_CFLAGS += -I$(python_prefix)/include
 PY_LDFLAGS += -L$(python_prefix)/libs
 BOOST_PYTHON_LIB = boost_python-mgw44-mt-1_43
 PYTHON_LIB = python26
+PY_TARGET_EXT = .pyd
+else
+PY_CFLAGS += $(shell python-config --includes)
+PYTHON_LIB = python2.6
+PY_TARGET_EXT = .so
 endif
 
 
@@ -51,7 +56,7 @@ OBJS = physics.o display.o object.o sensors.o robot.o galipeur.o log.o
 OBJS += modules/eurobot2009.o modules/eurobot2010.o
 
 
-PY_TARGET = $(PROJECT_NAME).pyd
+PY_TARGET = py$(PROJECT_NAME)$(PY_TARGET_EXT)
 
 PY_SRCS = $(wildcard python/*.cpp)
 PY_OBJS = $(PY_SRCS:.cpp=.o)

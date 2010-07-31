@@ -18,7 +18,7 @@ namespace py = boost::python;
 template <class T> T* get_pointer(SmartPtr<T> const& p) { return p.get(); }
 
 
-#define SIMULOTTER_MODULE_NAME simulotter
+#define SIMULOTTER_MODULE_NAME pysimulotter
 
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)

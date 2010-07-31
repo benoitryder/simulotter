@@ -3,7 +3,7 @@
 import sys, os
 sys.path.append('.')  # allow to run from project root
 import math
-from simulotter import *
+from pysimulotter import *
 
 
 # Logo configuration constants
@@ -141,6 +141,7 @@ if __name__ == '__main__':
   di.resize(size[0], size[1], False)
   if fout is not None:
     di.update()
+    di.update()  # first frame may be broken on Linux
     di.screenshot(fout)
   else:
     di.run()
