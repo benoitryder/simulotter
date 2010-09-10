@@ -95,8 +95,8 @@ Display::Display():
 
 Display::~Display()
 {
-  windowDestroy();
   sceneDestroy();
+  windowDestroy();
 }
 
 
@@ -256,7 +256,7 @@ static void png_handler_error(png_struct *png_ptr, const char *msg)
   png_error_data *error = (png_error_data *)png_get_error_ptr(png_ptr);
   strncpy(error->msg, msg, PNG_ERROR_SIZE);
   error->msg[PNG_ERROR_SIZE-1] = '\0';
-  longjmp(png_ptr->jmpbuf, 1);
+  longjmp(png_jmpbuf(png_ptr), 1);
 }
 
 static void png_handler_warning(png_struct * /*png_ptr*/, const char *msg)
@@ -297,7 +297,7 @@ void Display::savePNGScreenshot(const std::string &filename)
       throw(Error("png_create_info_struct failed"));
     }
 
-    if( setjmp(png_ptr->jmpbuf) )
+    if( setjmp(png_jmpbuf(png_ptr)) )
     {
       png_destroy_write_struct(&png_ptr, &info_ptr);
       throw(Error(error.msg));
