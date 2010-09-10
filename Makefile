@@ -12,11 +12,13 @@ BULLET_LIBS = -lBulletDynamics -lBulletCollision -lLinearMath
 LDLIBS = 
 ifeq ($(OS),Windows_NT)
 GL_LIBS = -lfreeglut -lopengl32 -lglu32 -lwinmm
-LDLIBS += -mconsole -mwindows
+LDLIBS += -mconsole -mwindows -static-libgcc -static-libstdc++
+# on Windows, use static libs whenever possible
+LDLIBS += -Wl,-Bstatic $(BULLET_LIBS) -lpng -lz -lm $(GL_LIBS) -Wl,-Bdynamic -lSDL
 else
 GL_LIBS = -lGL -lGLU -lglut
+LDLIBS += $(BULLET_LIBS) -lpng -lz -lm $(GL_LIBS) -lSDL
 endif
-LDLIBS += $(GL_LIBS) -lSDL -lpng $(BULLET_LIBS) -lm
 
 ifeq ($(OS),Windows_NT)
 CFLAGS += -DWIN32 -DFREEGLUT_STATIC
@@ -26,20 +28,20 @@ TARGET_EXT = .so
 endif
 
 
-BOOST_PYTHON_LIB = boost_python
+BOOST_VERSION_SUFFIX =
 PYTHON_LIB = python
 PY_CFLAGS = $(CFLAGS)
 PY_LDFLAGS = $(LDFLAGS)
-PY_LDLIBS = $(LDLIBS) -l$(BOOST_PYTHON_LIB) -l$(PYTHON_LIB)
+PY_LDLIBS = $(LDLIBS) -lboost_python$(BOOST_VERSION_SUFFIX) -l$(PYTHON_LIB)
 # precompiled header source
 PY_CH_SRC = python/common.h
 
 
 ifeq ($(OS),Windows_NT)
 python_prefix = $(shell python -c 'import sys; print sys.prefix')
-PY_CFLAGS += -I$(python_prefix)/include
+PY_CFLAGS += -I$(python_prefix)/include -DBOOST_PYTHON_STATIC_LIB
 PY_LDFLAGS += -L$(python_prefix)/libs
-BOOST_PYTHON_LIB = boost_python-mgw44-mt-1_43
+BOOST_VERSION_SUFFIX = -mgw45-mt-1_44
 PYTHON_LIB = python26
 PY_TARGET_EXT = .pyd
 else
