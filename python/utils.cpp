@@ -37,7 +37,7 @@ static SmartPtr<CompoundShapeSmart> CompoundShape_init(const py::object o)
     }
     btCollisionShape *sh = py::extract<btCollisionShape *>( p[0] );
     const btTransform &tr = py::extract<const btTransform &>( p[1] );
-    ret_shape->addChildShape(tr, sh);
+    ret_shape->addChildShape(btScale(tr), sh);
   }
   // On error, updateChildReferences is not called and pointers owned by the
   // compound shape are simply destroyed with it.

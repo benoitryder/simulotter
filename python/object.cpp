@@ -10,7 +10,15 @@ static inline void Object_setTrans(Object &o, const btTransform &tr) { o.setTran
 
 static inline btMatrix3x3 Object_getRot(const Object &o) { return o.getRot(); }
 
-static inline void OSimple_setPosAbove(OSimple &o, const btVector2 &v) { o.setPosAbove(btScale(v)); }
+static inline void OSimple_setPos(OSimple &o, const py::object v)
+{
+  py::extract<const btVector2 &> py_vec2(v);
+  if( py_vec2.check() ) {
+    o.setPosAbove(btScale(py_vec2()));
+  } else {
+    o.setPos(btScale(py::extract<const btVector3 &>(v)()));
+  }
+}
 
 
 void python_export_object()
@@ -21,6 +29,8 @@ void python_export_object()
       .add_property("pos", &Object_getPos, &Object_setPos)
       .add_property("rot", &Object_getRot, &Object::setRot)
       .add_property("trans", &Object_getTrans, &Object_setTrans)
+      .add_property("physics", 
+                    py::make_function(&Object::getPhysics, py::return_internal_reference<>()))
       ;
 
   py::class_<OSimple, py::bases<Object>, SmartPtr<OSimple>, boost::noncopyable>("OSimple")
@@ -29,7 +39,8 @@ void python_export_object()
       .def("setMass", &OSimple::setMass)
       .def("isInitialized", &OSimple::isInitialized)
       .add_property("color", &OSimple::getColor, &OSimple::setColor)
-      .def("setPosAbove", &OSimple_setPosAbove)
+      // redefine to use setPosAbove() when setting vec2
+      .add_property("pos", &Object_getPos, &OSimple_setPos)
       ;
 
   py::class_<OGround, py::bases<OSimple>, SmartPtr<OGround>, boost::noncopyable>(

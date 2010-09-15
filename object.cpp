@@ -21,8 +21,10 @@ void Object::drawShape(const btCollisionShape *shape)
         const btCompoundShape *compound_shape = static_cast<const btCompoundShape*>(shape);
         for( int i=compound_shape->getNumChildShapes()-1; i>=0; i-- )
         {
+          glPushMatrix();
           drawTransform(compound_shape->getChildTransform(i));
           drawShape(compound_shape->getChildShape(i));
+          glPopMatrix();
         }
         break;
       }

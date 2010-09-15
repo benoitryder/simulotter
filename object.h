@@ -29,6 +29,8 @@ public:
    */
   virtual void addToWorld(Physics *physics);
 
+  Physics *getPhysics() const { return physics_; }
+
   /** @brief Remove an object from its physical world.
    *
    * It is the opposite of addToWorld().

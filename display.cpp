@@ -67,7 +67,7 @@ Display::Display():
   // Camera moves
   // TODO correct AZERTY/QWERTY handling
   event.type = SDL_KEYDOWN;
-#ifdef WIN32
+#ifdef _WIN32
   event.key.keysym.sym = SDLK_w;
 #else
   event.key.keysym.sym = SDLK_z;
@@ -75,7 +75,7 @@ Display::Display():
   setHandler(event, new BasicEventHandler(handlerCamAhead));
   event.key.keysym.sym = SDLK_s;
   setHandler(event, new BasicEventHandler(handlerCamBack));
-#ifdef WIN32
+#ifdef _WIN32
   event.key.keysym.sym = SDLK_a;
 #else
   event.key.keysym.sym = SDLK_q;
@@ -83,7 +83,7 @@ Display::Display():
   setHandler(event, new BasicEventHandler(handlerCamLeft));
   event.key.keysym.sym = SDLK_d;
   setHandler(event, new BasicEventHandler(handlerCamRight));
-#ifdef WIN32
+#ifdef _WIN32
   event.key.keysym.sym = SDLK_q;
 #else
   event.key.keysym.sym = SDLK_a;

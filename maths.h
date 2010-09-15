@@ -47,6 +47,7 @@ public:
 
   inline btVector2 &operator+=(const btVector2 &v) { xy[0] += v.xy[0]; xy[1] += v.xy[1]; return *this; }
   inline btVector2 &operator-=(const btVector2 &v) { xy[0] -= v.xy[0]; xy[1] -= v.xy[1]; return *this; }
+  inline btVector2 &operator*=(const btVector2 &v) { xy[0] *= v.xy[0]; xy[1] *= v.xy[1]; return *this; }
   inline btVector2 &operator*=(const btScalar &s) { xy[0] *= s; xy[1] *= s; return *this; }
   inline btVector2 &operator/=(const btScalar &s) { btFullAssert(s != btScalar(0.0)); return *this *= btScalar(1.0) / s; }
   inline btScalar dot(const btVector2 &v) const { return xy[0] * v.xy[0] + xy[1] * v.xy[1]; }
@@ -65,6 +66,7 @@ public:
 
 inline btVector2 operator+(const btVector2 &v1, const btVector2 &v2) { return btVector2(v1.xy[0]+v2.xy[0],v1.xy[1]+v2.xy[1]); }
 inline btVector2 operator-(const btVector2 &v1, const btVector2 &v2) { return btVector2(v1.xy[0]-v2.xy[0],v1.xy[1]-v2.xy[1]); }
+inline btVector2 operator*(const btVector2 &v1, const btVector2 &v2) { return btVector2(v1.xy[0]*v2.xy[0],v1.xy[1]*v2.xy[1]); }
 inline btVector2 operator-(const btVector2 &v) { return btVector2(-v.xy[0],-v.xy[1]); }
 inline btVector2 operator*(const btScalar &s, const btVector2 &v) { return btVector2(s*v.xy[0],s*v.xy[1]); }
 inline btVector2 operator*(const btVector2 &v, const btScalar &s) { return s*v; }

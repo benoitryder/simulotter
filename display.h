@@ -83,7 +83,7 @@ public:
 
   SmartPtr<Physics> physics_; ///< Currently drawn Physics
 public:
-  Physics *getPhysics() { return physics_; }
+  Physics *getPhysics() const { return physics_; }
   void setPhysics(Physics *ph) { physics_ = ph; }
 
   /** @name Dynamic configuration values.
