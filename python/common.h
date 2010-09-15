@@ -18,7 +18,7 @@ namespace py = boost::python;
 template <class T> T* get_pointer(SmartPtr<T> const& p) { return p.get(); }
 
 
-#define SIMULOTTER_MODULE_NAME pysimulotter
+#define SIMULOTTER_MODULE_NAME _simulotter
 
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
@@ -34,7 +34,8 @@ template <class T> T* get_pointer(SmartPtr<T> const& p) { return p.get(); }
  */
 #define SIMULOTTER_PYTHON_SUBMODULE(name) \
   py::object submodule_(py::handle<>(py::borrowed(PyImport_AddModule( \
-      SIMULOTTER_MODULE_NAME_STR "." #name )))); \
+      (py::extract<std::string>(py::scope().attr("__name__"))() \
+       + "." #name).c_str())))); \
   py::scope().attr(#name) = submodule_; \
   py::scope subscope_ = submodule_;
 

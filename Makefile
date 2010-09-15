@@ -11,17 +11,17 @@ BULLET_LIBS = -lBulletDynamics -lBulletCollision -lLinearMath
 
 LDLIBS = 
 ifeq ($(OS),Windows_NT)
-GL_LIBS = -lfreeglut -lopengl32 -lglu32 -lwinmm
+GL_LIBS = -lfreeglut -lopengl32 -lglu32
 LDLIBS += -mconsole -mwindows -static-libgcc -static-libstdc++
 # on Windows, use static libs whenever possible
-LDLIBS += -Wl,-Bstatic $(BULLET_LIBS) -lpng -lz -lm $(GL_LIBS) -Wl,-Bdynamic -lSDL
+LDLIBS += -Wl,-Bstatic $(BULLET_LIBS) -lpng -lz -lm $(GL_LIBS) -Wl,-Bdynamic -lSDL -lwinmm
 else
 GL_LIBS = -lGL -lGLU -lglut
 LDLIBS += $(BULLET_LIBS) -lpng -lz -lm $(GL_LIBS) -lSDL
 endif
 
 ifeq ($(OS),Windows_NT)
-CFLAGS += -DWIN32 -DFREEGLUT_STATIC
+CFLAGS += -DFREEGLUT_STATIC
 TARGET_EXT = .dll
 else
 TARGET_EXT = .so
@@ -58,7 +58,7 @@ OBJS = physics.o display.o object.o sensors.o robot.o galipeur.o log.o
 OBJS += modules/eurobot2009.o modules/eurobot2010.o
 
 
-PY_TARGET = py$(PROJECT_NAME)$(PY_TARGET_EXT)
+PY_TARGET = python/$(PROJECT_NAME)/_$(PROJECT_NAME)$(PY_TARGET_EXT)
 
 PY_SRCS = $(wildcard python/*.cpp)
 PY_OBJS = $(PY_SRCS:.cpp=.o)
@@ -102,4 +102,5 @@ clean: distclean
 
 distclean:
 	rm -f $(ALL_OBJS) $(ALL_OBJS:.o=.d) $(PY_CH_OBJ) $(PY_CH_SRC).d
+
 

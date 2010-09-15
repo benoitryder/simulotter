@@ -21,7 +21,7 @@ void python_export_eurobot2010()
 {
   py::object galipeur = py::scope().attr("Galipeur");
 
-  SIMULOTTER_PYTHON_SUBMODULE(eurobot2010);
+  SIMULOTTER_PYTHON_SUBMODULE(_eurobot2010);
 
   py::class_<ORaisedZone, py::bases<OSimple>, SmartPtr<ORaisedZone>, boost::noncopyable>("ORaisedZone")
       .def_readonly("WIDTH", ORaisedZone_WIDTH)

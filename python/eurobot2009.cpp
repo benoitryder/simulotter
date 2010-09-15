@@ -21,7 +21,7 @@ static void Galipeur_set_pachev_eject_speed(btScalar v) { Galipeur2009::pachev_e
 
 void python_export_eurobot2009()
 {
-  SIMULOTTER_PYTHON_SUBMODULE(eurobot2009);
+  SIMULOTTER_PYTHON_SUBMODULE(_eurobot2009);
 
   py::class_<OColElem, py::bases<OSimple>, SmartPtr<OColElem>, boost::noncopyable>("OColElem");
   py::class_<OLintel, py::bases<OSimple>, SmartPtr<OLintel>, boost::noncopyable>("OLintel");
