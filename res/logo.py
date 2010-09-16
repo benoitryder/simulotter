@@ -3,7 +3,7 @@
 import sys, os
 sys.path.append('.')  # allow to run from project root
 import math
-from pysimulotter import *
+from simulotter import *
 
 
 # Logo configuration constants
