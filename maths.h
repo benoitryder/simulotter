@@ -138,6 +138,7 @@ public:
 
   /// Add given values to theta and phi
   inline void rotate(const btScalar &t, const btScalar &p) { theta+=t; phi+=p; }
+  inline btSpheric3 rotated(const btScalar &t, const btScalar &p) const { return btSpheric3(r, theta+t, phi+p); }
 };
 
 inline btSpheric3 operator*(const btScalar &s, const btSpheric3 &v)
