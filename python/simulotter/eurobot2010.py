@@ -12,6 +12,8 @@ from _simulotter import vec2 as _vec2, vec3 as _vec3
 import math as _math
 from random import randint as _randint
 
+from _simulotter import Galipeur
+
 
 # team colors
 team_colors = (_RAL[5005], _RAL[1023])
@@ -210,7 +212,7 @@ class Match:
       conf_center = _randint(0,3)
     else:
       cond_side, conf_center = self.extractConf(fconf)
-      if not 1 <= conf_side <= 8 or not 0 <= conf_center <= 3:
+      if not 0 <= conf_side <= 8 or not 0 <= conf_center <= 3:
         raise ValueError("invalid field configuration")
 
     self.conf_side, self.conf_center = conf_side, conf_center

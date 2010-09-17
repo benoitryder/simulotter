@@ -19,8 +19,6 @@ static void OCorn_plant(OCorn &o, btScalar x, btScalar y) { o.plant(btScale(x), 
 
 void python_export_eurobot2010()
 {
-  py::object galipeur = py::scope().attr("Galipeur");
-
   SIMULOTTER_PYTHON_SUBMODULE(_eurobot2010);
 
   py::class_<ORaisedZone, py::bases<OSimple>, SmartPtr<ORaisedZone>, boost::noncopyable>("ORaisedZone")
@@ -43,7 +41,5 @@ void python_export_eurobot2010()
   py::class_<OCornFake, py::bases<OSimple>, SmartPtr<OCornFake>, boost::noncopyable>("OCornFake");
   py::class_<OTomato, py::bases<OSimple>, SmartPtr<OTomato>, boost::noncopyable>("OTomato");
   py::class_<OOrange, py::bases<OSimple>, SmartPtr<OOrange>, boost::noncopyable>("OOrange");
-
-  py::scope().attr("Galipeur") = galipeur;
 }
 
