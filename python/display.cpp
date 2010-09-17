@@ -29,8 +29,6 @@ static btVector3 CamPoint_get_cart(const Display::CameraPoint *p) { return btUns
 static void CamPoint_set_cart(Display::CameraPoint *p, const btVector3 &v) { p->cart = btScale(v); }
 static btSpheric3 CamPoint_get_spheric(const Display::CameraPoint *p) { return btUnscale(p->spheric); }
 static void CamPoint_set_spheric(Display::CameraPoint *p, const btSpheric3 &v) { p->spheric = btScale(v); }
-static SmartPtr<Object> CamPoint_get_obj(const Display::CameraPoint *p) { return p->obj; }
-static void CamPoint_set_obj(Display::CameraPoint *p, Object *o) { p->obj = o; }
 
 
 void python_export_display()
@@ -67,9 +65,7 @@ void python_export_display()
   py::class_<Display::CameraPoint, boost::noncopyable>("CamPoint", py::no_init)
       .add_property("cart", &CamPoint_get_cart, &CamPoint_set_cart)
       .add_property("spheric", &CamPoint_get_spheric, &CamPoint_set_spheric)
-      // break strict-aliasing rules, use property instead
-      //.def_readwrite("obj", &Display::CameraPoint::obj)
-      .add_property("obj", &CamPoint_get_obj, &CamPoint_set_obj)
+      .def_readwrite("obj", &Display::CameraPoint::obj)
       ;
 
   py::enum_<Display::CamMode>("CamMode")
