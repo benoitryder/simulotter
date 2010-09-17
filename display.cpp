@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cstring>
 #include <cstdio>
+#include <exception>
 #include <SDL/SDL_opengl.h>
 #include <png.h>
 #include "display.h"
@@ -8,7 +9,6 @@
 #include "object.h"
 #include "log.h"
 #include "icon.h"
-
 
 
 btScalar Display::draw_epsilon = btScale(0.0005);
@@ -26,7 +26,8 @@ Display::Display():
     perspective_near(btScale(0.1)),
     perspective_far(btScale(300.0)),
     screen_x_(800), screen_y_(600),
-    fullscreen_(false)
+    fullscreen_(false),
+    is_running_(false)
 {
   int argc = 1;
   glutInit(&argc, NULL);
@@ -202,9 +203,27 @@ void Display::update()
   SDL_GL_SwapBuffers();
 }
 
+void Display::close()
+{
+  if( !windowInitialized() ) {
+    throw(Error("display window not opened"));
+  }
+  windowDestroy();
+  if( is_running_ ) {
+    abort();
+  }
+}
+
+
+/// Internal exception class to abort.
+class AbortException: public std::exception {};
+
 
 void Display::run()
 {
+  if( is_running_ ) {
+    throw(Error("recursive call to run()"));
+  }
   if( ! physics_ ) {
     throw(Error("no physics attached to display"));
   }
@@ -218,24 +237,40 @@ void Display::run()
   unsigned long time_disp, time_step;
   signed long time_wait;
 
-  time_disp = time_step = SDL_GetTicks();
-  for(;;) {
-    time = SDL_GetTicks();
-    if( time >= time_step ) {
-      physics_->step();
-      time_step += (unsigned long)(step_dt * this->time_scale);
-    }
-    if( time >= time_disp ) {
-      this->processEvents();
-      this->update();
-      time_disp = time + (1000.0/this->fps);
-    }
+  try {
+    is_running_ = true;
+    time_disp = time_step = SDL_GetTicks();
+    for(;;) {
+      time = SDL_GetTicks();
+      if( time >= time_step ) {
+        physics_->step();
+        time_step += (unsigned long)(step_dt * this->time_scale);
+      }
+      if( time >= time_disp ) {
+        this->processEvents();
+        this->update();
+        time_disp = time + (1000.0/this->fps);
+      }
 
-    time_wait = MIN(time_step,time_disp);
-    time_wait -= time;
-    if( time_wait > 0 )
-      SDL_Delay(time_wait);
+      time_wait = MIN(time_step,time_disp);
+      time_wait -= time;
+      if( time_wait > 0 )
+        SDL_Delay(time_wait);
+    }
+  } catch(const AbortException &e) {
+    is_running_ = false;
+  } catch(...) {
+    is_running_ = false;
+    throw;
   }
+}
+
+void Display::abort() const
+{
+  if( !is_running_ ) {
+    throw(Error("cannot abort, not running"));
+  }
+  throw AbortException();
 }
 
 
@@ -572,6 +607,11 @@ void Display::setCameraMode(int mode)
   LOG("camera mode: %x < %x", mode&CAM_EYE_MASK, (mode&CAM_TARGET_MASK)>>8);
 }
 
+
+void Display::handlerQuit(Display *d, const SDL_Event *event)
+{
+  d->abort();
+}
 
 void Display::handlerResize(Display *d, const SDL_Event *event)
 {

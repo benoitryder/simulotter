@@ -124,15 +124,18 @@ public:
   //@}
 
 
-  /** @brief Resize the screen and/or toggle fullscreen
+  /** @brief Resize the screen and/or toggle fullscreen.
    * @param width   window width
    * @param height  window height
    * @param mode    window if 0, fullscreen if >0, current state if <0
    */
   void resize(int width, int height, int mode=-1);
 
-  /// Update display
+  /// Update display.
   void update();
+
+  /// Close display window.
+  void close();
 
   /** @brief Run simulation display.
    *
@@ -142,6 +145,9 @@ public:
    * @note This method never returns.
    */
   void run();
+
+  /// Abort a current call to run().
+  void abort() const;
 
   /// Save a PNG screenshot into a file
   void savePNGScreenshot(const std::string &filename);
@@ -153,8 +159,8 @@ private:
   int screen_y_; ///< Screen height
   bool fullscreen_;
 
+  bool is_running_;  ///< True if run() is being called.
 
-  
   bool windowInitialized() const { return SDL_WasInit(SDL_INIT_VIDEO) != 0; }
   void windowInit();
   void windowDestroy();
@@ -275,7 +281,7 @@ private:
   /** @name Default handlers
    */
   //@{
-  static void handlerQuit    (Display *d, const SDL_Event *event) {throw(0);}
+  static void handlerQuit    (Display *d, const SDL_Event *event);
   static void handlerResize  (Display *d, const SDL_Event *event);
   static void handlerPause   (Display *d, const SDL_Event *event);
   static void handlerCamMouse(Display *d, const SDL_Event *event);

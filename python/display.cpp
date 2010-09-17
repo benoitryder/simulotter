@@ -35,12 +35,14 @@ void python_export_display()
 {
   py::scope in_Display = py::class_<Display, SmartPtr<Display>, boost::noncopyable>("Display")
       .def("run", &Display::run)
+      .def("abort", &Display::abort)
       .add_property("physics",
                     py::make_function(&Display::getPhysics, py::return_internal_reference<>()),
                     &Display::setPhysics)
       .def("update", &Display::update)
       .def("resize", &Display_resize,
            ( py::arg("width"), py::arg("height"), py::arg("mode")=py::object() ))
+      .def("close", &Display::close)
       .def("screenshot", &Display::savePNGScreenshot)
       // dynamic configuration
       .def_readwrite("time_scale", &Display::time_scale)
