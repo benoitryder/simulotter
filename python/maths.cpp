@@ -122,7 +122,7 @@ void python_export_maths()
       .def(btScalar() * py::self)
       .def(py::self / btScalar())
       .def("__abs__", &btVector2::absolute)
-      .def("__str__", vec2_str)
+      .def("__repr__", vec2_str)
       .def("__iter__", py::range(&vec2_begin, &vec2_end))
       ;
 
@@ -153,7 +153,7 @@ void python_export_maths()
       .def(btScalar() * py::self)
       .def(py::self / btScalar())
       .def("__abs__", &btVector3::absolute)
-      .def("__str__", vec3_str)
+      .def("__repr__", vec3_str)
       .def("__iter__", py::range(&vec3_begin, &vec3_end))
       ;
 
@@ -199,7 +199,7 @@ void python_export_maths()
       .def(btVector3() * py::self)
       .def(py::self * py::self)
       .def(py::self / btScalar())
-      .def("__str__", quat_str)
+      .def("__repr__", quat_str)
       .def("__iter__", py::range(&quat_begin, &quat_end))
       ;
 
@@ -234,7 +234,7 @@ void python_export_maths()
       .def(py::self * btVector3())
       .def(btVector3() * py::self)
       .def("__abs__", &btMatrix3x3::absolute)
-      .def("__str__", matrix3_str)
+      .def("__repr__", matrix3_str)
       .def("__iter__", py::range(&matrix3_begin, &matrix3_end))
       ;
 
@@ -262,7 +262,7 @@ void python_export_maths()
       .def(py::self * py::self)
       .def(py::self * btVector3())
       .def(py::self * btQuaternion())
-      .def("__str__", trans_str)
+      .def("__repr__", trans_str)
       ;
 
 
@@ -274,7 +274,7 @@ void python_export_maths()
       .def(btScalar() * py::self)
       .def(py::self * btScalar())
       .def(py::self / btScalar())
-      .def("__str__", spheric3_str)
+      .def("__repr__", spheric3_str)
       ;
 
   py::implicitly_convertible<btSpheric3,btVector3>();
