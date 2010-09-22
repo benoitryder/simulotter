@@ -19,7 +19,8 @@ void python_export_robot()
   py::class_<Robot, py::bases<Object>, SmartPtr<Robot>, boost::noncopyable>("Robot", py::no_init);
 
   py::class_<RBasic, py::bases<Robot>, SmartPtr<RBasic>, boost::noncopyable>("RBasic", py::no_init)
-      .def(py::init<btCollisionShape *, btScalar>())
+      .def(py::init<btCollisionShape *, btScalar>(
+              (py::arg("shape"), py::arg("mass"))))
       .add_property("color", &RBasic::getColor, &RBasic::setColor)
       .def("asserv", &RBasic::asserv)
       .add_property("a", &RBasic::getAngle)

@@ -1,7 +1,6 @@
 #include "python/common.h"
 
 
-static inline btVector2 *vec2_init_def() { return new btVector2(0,0); }
 static inline btScalar vec2_x(const btVector2 &v) { return v.x(); }
 static inline btScalar vec2_y(const btVector2 &v) { return v.y(); }
 static inline const btScalar *vec2_begin(const btVector2 &v) { return v.xy; }
@@ -11,7 +10,6 @@ static std::string vec2_str(const btVector2 &v)
   return stringf("<xy: %.2f %.2f>", v.x(), v.y());
 }
 
-static inline btVector3 *vec3_init_def() { return new btVector3(0,0,0); }
 static inline btScalar vec3_x(const btVector3 &v) { return v.x(); }
 static inline btScalar vec3_y(const btVector3 &v) { return v.y(); }
 static inline btScalar vec3_z(const btVector3 &v) { return v.z(); }
@@ -23,7 +21,6 @@ static std::string vec3_str(const btVector3 &v)
 }
 
 
-static inline btQuaternion *quat_init_def() { return new btQuaternion(btQuaternion::getIdentity()); }
 static inline btScalar quat_x(const btQuaternion &q) { return q.x(); }
 static inline btScalar quat_y(const btQuaternion &q) { return q.y(); }
 static inline btScalar quat_z(const btQuaternion &q) { return q.z(); }
@@ -77,7 +74,6 @@ static std::string matrix3_str(const btMatrix3x3 &m)
 }
 
 
-static inline btTransform *trans_init_def() { return new btTransform(btMatrix3x3::getIdentity()); }
 static inline btTransform *trans_init_vec(const btVector3 &v)
 {
   return new btTransform(btMatrix3x3::getIdentity(), v);
@@ -103,8 +99,8 @@ static std::string spheric3_str(const btSpheric3 &v)
 void python_export_maths()
 {
   py::class_<btVector2>("vec2", py::no_init) // immutable
-      .def("__init__", py::make_constructor(&vec2_init_def))
-      .def(py::init<btScalar,btScalar>())
+      .def(py::init<btScalar,btScalar>(
+              (py::arg("x")=0, py::arg("y")=0)))
       .def(py::init<btVector2>())
       .add_property("x", &vec2_x)
       .add_property("y", &vec2_y)
@@ -131,8 +127,8 @@ void python_export_maths()
       ;
 
   py::class_<btVector3>("vec3", py::no_init) // immutable
-      .def("__init__", py::make_constructor(&vec3_init_def))
-      .def(py::init<btScalar,btScalar,btScalar>())
+      .def(py::init<btScalar,btScalar,btScalar>(
+              (py::arg("x")=0, py::arg("y")=0, py::arg("z")=0)))
       .def(py::init<btVector3>())
       .add_property("x", &vec3_x)
       .add_property("y", &vec3_y)
@@ -169,10 +165,12 @@ void python_export_maths()
   btQuaternion (btQuaternion::*quat_unary_neg)() const = &btQuaternion::operator-;
 
   py::class_<btQuaternion>("quat", py::no_init) // immutable
-      .def("__init__", py::make_constructor(&quat_init_def))
-      .def(py::init<btScalar,btScalar,btScalar,btScalar>())
-      .def(py::init<btVector3,btScalar>())
-      .def(py::init<btScalar,btScalar,btScalar>())
+      .def(py::init<btScalar,btScalar,btScalar,btScalar>(
+              (py::arg("x")=0, py::arg("y")=0, py::arg("z")=0, py::arg("w")=1)))
+      .def(py::init<btVector3,btScalar>(
+              (py::arg("axis"), py::arg("angle")=0)))
+      .def(py::init<btScalar,btScalar,btScalar>(
+              (py::arg("yaw")=0, py::arg("pitch")=0, py::arg("roll")=0)))
       .add_property("x", &quat_x)
       .add_property("y", &quat_y)
       .add_property("z", &quat_z)
@@ -210,7 +208,9 @@ void python_export_maths()
       .def(py::init< btScalar,btScalar,btScalar,
            btScalar,btScalar,btScalar,
            btScalar,btScalar,btScalar >())
-      .def("__init__", py::make_constructor(&matrix3_init_euler))
+      .def("__init__", py::make_constructor(
+              &matrix3_init_euler, py::default_call_policies(), (
+                  py::arg("yaw")=0, py::arg("pitch")=0, py::arg("roll")=0)))
       .def(py::init<btMatrix3x3>())
       //TODO accessors to matrix cells
       .add_property("euler_ypr", &matrix3_get_euler_ypr)
@@ -243,9 +243,11 @@ void python_export_maths()
 
 
   py::class_<btTransform>("trans", py::no_init) // immutable
-      .def("__init__", py::make_constructor(&trans_init_def))
-      .def(py::init<btQuaternion, py::optional<btVector3> >())
-      .def(py::init<btMatrix3x3, py::optional<btVector3> >())
+      .def(py::init<btQuaternion, btVector3>(
+              (py::arg("rot"), py::arg("origin")=btVector3())))
+      .def(py::init<btMatrix3x3, btVector3>(
+              (py::arg("basis")=btMatrix3x3::getIdentity(),
+               py::arg("origin")=btVector3())))
       .def("__init__", py::make_constructor(&trans_init_vec))
       .def(py::init<btTransform>())
       .add_property("basis", &trans_get_basis)
@@ -265,7 +267,8 @@ void python_export_maths()
 
 
   py::class_<btSpheric3>("spheric3") // immutable
-      .def(py::init<btScalar,btScalar,btScalar>())
+      .def(py::init<btScalar,btScalar,btScalar>(
+              (py::arg("r"), py::arg("theta")=0, py::arg("phi")=0)))
       .def(py::init<btSpheric3>())
       .def("rotate", &btSpheric3::rotated)
       .def(btScalar() * py::self)

@@ -34,7 +34,8 @@ void python_export_object()
       ;
 
   py::class_<OSimple, py::bases<Object>, SmartPtr<OSimple>, boost::noncopyable>("OSimple")
-      .def(py::init<btCollisionShape *, py::optional<btScalar> >())
+      .def(py::init<btCollisionShape *, btScalar>(
+              (py::arg("shape"), py::arg("mass")=0)))
       .def("setShape", &OSimple::setShape)
       .def("setMass", &OSimple::setMass)
       .def("isInitialized", &OSimple::isInitialized)
