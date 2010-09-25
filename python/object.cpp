@@ -10,6 +10,7 @@ static inline void Object_setTrans(Object &o, const btTransform &tr) { o.setTran
 
 static inline btMatrix3x3 Object_getRot(const Object &o) { return o.getRot(); }
 
+static const btVector3 OGround_SIZE = btUnscale(OGround::SIZE);
 static inline btScalar OGround_getStartSize(const OGround &o) { return btUnscale(o.getStartSize()); }
 static inline void OGround_setStartSize(OGround &o, const btScalar &v) { o.setStartSize(btScale(v)); }
 
@@ -49,6 +50,7 @@ void python_export_object()
 
   py::class_<OGround, py::bases<OSimple>, SmartPtr<OGround>, boost::noncopyable>(
       "OGround", py::init<Color4, Color4, Color4>())
+      .def_readonly("SIZE", OGround_SIZE)
       .add_property("start_size", &OGround_getStartSize, &OGround_setStartSize)
       ;
 }

@@ -208,12 +208,13 @@ void OSimple::draw(Display *d)
 }
 
 
-SmartPtr<btBoxShape> OGround::shape_( new btBoxShape( btScale(btVector3(3.0/2, 2.1/2, 0.1/2)) ) );
+const btVector3 OGround::SIZE = btScale(btVector3(3.0, 2.1, 0.1));
+SmartPtr<btBoxShape> OGround::shape_( new btBoxShape(SIZE/2) );
 
 OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2): start_size_(0.5)
 {
   setShape(shape_);
-  setPos( btVector3(0, 0, -shape_->getHalfExtentsWithMargin().getZ()) );
+  setPos( btVector3(0, 0, -SIZE[2]/2) );
   setColor(color);
   color_t1_ = color_t1;
   color_t2_ = color_t2;
@@ -243,12 +244,10 @@ void OGround::draw(Display *d)
 
 void OGround::drawBase()
 {
-  const btVector3 &size = shape_->getHalfExtentsWithMargin();
-
   glPushMatrix();
 
   glColor4fv(color_);
-  btglScale(2*size[0], 2*size[1], 2*size[2]);
+  btglScale(SIZE[0], SIZE[1], SIZE[2]);
   glutSolidCube(1.0);
 
   glPopMatrix();
@@ -256,23 +255,14 @@ void OGround::drawBase()
 
 void OGround::drawStartingAreas()
 {
-  const btVector3 &size = shape_->getHalfExtentsWithMargin();
-
   glPushMatrix();
+  btglNormal3(0.0, 0.0, 1.0);
+  btglTranslate(0, 0, SIZE[2]/2+Display::draw_epsilon);
 
   glColor4fv(color_t1_);
-  btglTranslate(-size[0]+start_size_/2, size[1]-start_size_/2, size[2]);
-  btglScale(start_size_, start_size_, 2*Display::draw_epsilon);
-  glutSolidCube(1.0f);
-
-  glPopMatrix();
-
-  glPushMatrix();
-
+  btglRect(-SIZE[0]/2, SIZE[1]/2, -SIZE[0]/2+start_size_, SIZE[1]/2-start_size_);
   glColor4fv(color_t2_);
-  btglTranslate(size[0]-start_size_/2, size[1]-start_size_/2, size[2]);
-  btglScale(start_size_, start_size_, 2*Display::draw_epsilon);
-  glutSolidCube(1.0f);
+  btglRect(SIZE[0]/2, SIZE[1]/2, SIZE[0]/2-start_size_, SIZE[1]/2-start_size_);
 
   glPopMatrix();
 

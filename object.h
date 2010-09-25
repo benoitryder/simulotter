@@ -187,7 +187,7 @@ class OGround: public OSimple
 {
 public:
   /// Ground size.
-  static const btVector3 size;
+  static const btVector3 SIZE;
 
   /** @brief Constructor
    *

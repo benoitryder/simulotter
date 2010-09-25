@@ -27,8 +27,7 @@ void OGround2011::draw(Display *d)
     drawBase();
     drawStartingAreas();
 
-    const btVector3 &size = shape_->getHalfExtentsWithMargin();
-    btglTranslate(0, 0, size[2]);
+    btglTranslate(0, 0, SIZE[2]/2);
 
     // draw the checkerboard
     glPushMatrix();
@@ -72,7 +71,7 @@ void OGround2011::draw(Display *d)
     glColor4fv(Color4(0x14,0x17,0x1c)); // RAL 9017
     for( i=0;; ) { // two steps (x>0 then x<0)
       // vertical side lines
-      btglRect(3*CASE_SIZE, size[1], 3*CASE_SIZE+btScale(0.05), -size[1]);
+      btglRect(3*CASE_SIZE, SIZE[1]/2, 3*CASE_SIZE+btScale(0.05), -SIZE[1]/2);
       // secured zone, top
       btglRect(3*CASE_SIZE, -2*CASE_SIZE, 1*CASE_SIZE, -2*CASE_SIZE-btScale(0.02));
       // secured zone, right

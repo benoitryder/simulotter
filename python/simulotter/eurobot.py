@@ -5,9 +5,10 @@ Common Eurobot definitions.
 
 """
 
-from _simulotter import vec2 as _vec2, vec3 as _vec3
+from _simulotter import vec2 as _vec2, vec3 as _vec3, OGround as _OGround
 
-TABLE_SIZE = _vec2(3.0, 2.1)
+TABLE_SIZE = _vec2(_OGround.SIZE)
+
 WALL_WIDTH = 0.022
 WALL_HEIGHT = 0.070
 
