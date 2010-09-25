@@ -244,10 +244,10 @@ void python_export_maths()
 
   py::class_<btTransform>("trans", py::no_init) // immutable
       .def(py::init<btQuaternion, btVector3>(
-              (py::arg("rot"), py::arg("origin")=btVector3())))
+              (py::arg("rot"), py::arg("origin")=btVector3(0,0,0))))
       .def(py::init<btMatrix3x3, btVector3>(
               (py::arg("basis")=btMatrix3x3::getIdentity(),
-               py::arg("origin")=btVector3())))
+               py::arg("origin")=btVector3(0,0,0))))
       .def("__init__", py::make_constructor(&trans_init_vec))
       .def(py::init<btTransform>())
       .add_property("basis", &trans_get_basis)
