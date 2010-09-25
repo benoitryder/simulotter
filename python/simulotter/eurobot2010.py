@@ -69,7 +69,6 @@ FAKES_FPOS_CENTER = tuple( frozenset(_vec2(*x) for x in l) for l in FAKES_FPOS_C
 class OGround(_so.OGround):
   def __init__(self):
     _so.OGround.__init__(self, _RAL[6018], *team_colors)
-    self.setSizes(TABLE_SIZE, 0.5)
 
 
 class OBranch(_so.OSimple):
@@ -128,9 +127,9 @@ class Bac:
   _plexi_bottom = _so.ShBox(_vec3(SIZE.x+2*WIDTH, WIDTH+SIZE.y, WALL_HEIGHT)/2)
 
   sh_band = _so.ShCompound((
-    (_band_side, _so.trans(_vec3(-SIZE.x-WIDTH, -SIZE.y, 0)/2)),
-    (_band_side, _so.trans(_vec3( SIZE.x+WIDTH, -SIZE.y, 0)/2)),
-    (_band_back, _so.trans(_vec3(0, -2*SIZE.y-WIDTH, 0)/2)),
+    (_band_side, _so.trans(_vec2(-SIZE.x-WIDTH, -SIZE.y)/2)),
+    (_band_side, _so.trans(_vec2( SIZE.x+WIDTH, -SIZE.y)/2)),
+    (_band_back, _so.trans(_vec2(0, -2*SIZE.y-WIDTH)/2)),
     ))
   sh_plexi = _so.ShCompound((
     (_plexi_side,   _so.trans(_vec3(-SIZE.x-WIDTH, -SIZE.y, 0)/2)),
@@ -234,7 +233,7 @@ class Match:
     o.setShape(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, TABLE_SIZE.y+WALL_WIDTH, WALL_HEIGHT)/2
-    o.colors = color
+    o.color = color
 
     sh = _so.ShBox(_vec3(WALL_WIDTH, TABLE_SIZE.y+2*WALL_WIDTH, WALL_HEIGHT)/2)
     o = _so.OSimple()

@@ -10,10 +10,8 @@ static inline void Object_setTrans(Object &o, const btTransform &tr) { o.setTran
 
 static inline btMatrix3x3 Object_getRot(const Object &o) { return o.getRot(); }
 
-static inline void OGround_setSizes(OGround &o, const btVector2 &table, const btScalar &start)
-{
-  o.setSizes(btScale(table), btScale(start));
-}
+static inline btScalar OGround_getStartSize(const OGround &o) { return btUnscale(o.getStartSize()); }
+static inline void OGround_setStartSize(OGround &o, const btScalar &v) { o.setStartSize(btScale(v)); }
 
 static inline void OSimple_setPos(OSimple &o, const py::object v)
 {
@@ -51,7 +49,7 @@ void python_export_object()
 
   py::class_<OGround, py::bases<OSimple>, SmartPtr<OGround>, boost::noncopyable>(
       "OGround", py::init<Color4, Color4, Color4>())
-      .def("setSizes", &OGround_setSizes)
+      .add_property("start_size", &OGround_getStartSize, &OGround_setStartSize)
       ;
 }
 

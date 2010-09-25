@@ -55,7 +55,7 @@ PROJECT_NAME = simulotter
 TARGET = $(PROJECT_NAME)$(TARGET_EXT)
 
 OBJS = physics.o display.o object.o sensors.o robot.o galipeur.o log.o
-OBJS += modules/eurobot2009.o modules/eurobot2010.o
+OBJS += modules/eurobot2009.o modules/eurobot2010.o modules/eurobot2011.o
 
 
 PY_TARGET = python/$(PROJECT_NAME)/_$(PROJECT_NAME)$(PY_TARGET_EXT)

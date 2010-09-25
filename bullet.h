@@ -24,6 +24,7 @@
 #define btglScale      glScaled
 #define btglTranslate  glTranslated
 #define btglRotate     glRotated
+#define btglRect       glRectd
 #else
 #define btglLoadMatrix glLoadMatrixf
 #define btglMultMatrix glMultMatrixf
@@ -32,6 +33,7 @@
 #define btglScale      glScalef
 #define btglTranslate  glTranslatef
 #define btglRotate     glRotatef
+#define btglRect       glRectf
 #endif
 //@}
 

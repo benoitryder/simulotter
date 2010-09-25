@@ -208,8 +208,12 @@ void OSimple::draw(Display *d)
 }
 
 
-OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2): size_start_(0)
+SmartPtr<btBoxShape> OGround::shape_( new btBoxShape( btScale(btVector3(3.0/2, 2.1/2, 0.1/2)) ) );
+
+OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2): start_size_(0.5)
 {
+  setShape(shape_);
+  setPos( btVector3(0, 0, -shape_->getHalfExtentsWithMargin().getZ()) );
   setColor(color);
   color_t1_ = color_t1;
   color_t2_ = color_t2;
@@ -217,20 +221,6 @@ OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &colo
 
 OGround::~OGround()
 {
-}
-
-void OGround::setSizes(const btVector2 &table, const btScalar &start)
-{
-  if( shape_ != NULL ) {
-    throw(Error("cannot reassign sizes"));
-  }
-  if( start <= 0 || start >= table.x()/2 || start >= table.y()/2 ) {
-    throw(Error("invalid sizes"));
-  }
-  size_start_ = start;
-  shape_ = new btBoxShape( btVector3(table.x(), table.y(), btScale(0.1))/2 );
-  setShape(shape_);
-  setPos( btVector3(0, 0, -shape_->getHalfExtentsWithMargin().getZ()) );
 }
 
 
@@ -243,44 +233,48 @@ void OGround::draw(Display *d)
   if( d->callOrCreateDisplayList(this) ) {
     // Their should be only one ground instance, thus we create one display
     // list per instance. This allow to put color changes in it.
-
-    const btVector3 &size = shape_->getHalfExtentsWithMargin();
-
-    // Ground
-
-    glPushMatrix();
-
-    glColor4fv(color_);
-    btglScale(2*size[0], 2*size[1], 2*size[2]);
-    glutSolidCube(1.0);
-
-    glPopMatrix();
-
-
-    // Starting areas
-
-    glPushMatrix();
-
-    glColor4fv(color_t1_);
-    btglTranslate(-size[0]+size_start_/2, size[1]-size_start_/2, size[2]);
-    btglScale(size_start_, size_start_, 2*Display::draw_epsilon);
-    glutSolidCube(1.0f);
-
-    glPopMatrix();
-
-    glPushMatrix();
-
-    glColor4fv(color_t2_);
-    btglTranslate(size[0]-size_start_/2, size[1]-size_start_/2, size[2]);
-    btglScale(size_start_, size_start_, 2*Display::draw_epsilon);
-    glutSolidCube(1.0f);
-
-    glPopMatrix();
-
+    drawBase();
+    drawStartingAreas();
     d->endDisplayList();
   }
 
   glPopMatrix();
 }
 
+void OGround::drawBase()
+{
+  const btVector3 &size = shape_->getHalfExtentsWithMargin();
+
+  glPushMatrix();
+
+  glColor4fv(color_);
+  btglScale(2*size[0], 2*size[1], 2*size[2]);
+  glutSolidCube(1.0);
+
+  glPopMatrix();
+}
+
+void OGround::drawStartingAreas()
+{
+  const btVector3 &size = shape_->getHalfExtentsWithMargin();
+
+  glPushMatrix();
+
+  glColor4fv(color_t1_);
+  btglTranslate(-size[0]+start_size_/2, size[1]-start_size_/2, size[2]);
+  btglScale(start_size_, start_size_, 2*Display::draw_epsilon);
+  glutSolidCube(1.0f);
+
+  glPopMatrix();
+
+  glPushMatrix();
+
+  glColor4fv(color_t2_);
+  btglTranslate(size[0]-start_size_/2, size[1]-start_size_/2, size[2]);
+  btglScale(start_size_, start_size_, 2*Display::draw_epsilon);
+  glutSolidCube(1.0f);
+
+  glPopMatrix();
+
+}
 

@@ -180,10 +180,14 @@ protected:
  *
  * Areas are positioned at positive y.
  * First team field part is at negative x.
+ *
+ * Default starting area size is 50cm. 
  */
 class OGround: public OSimple
 {
 public:
+  /// Ground size.
+  static const btVector3 size;
 
   /** @brief Constructor
    *
@@ -194,17 +198,22 @@ public:
   OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2);
   ~OGround();
 
-  /// Initialize shape and position from sizes.
-  void setSizes(const btVector2 &table, const btScalar &start);
+  btScalar getStartSize() const { return start_size_; }
+  void setStartSize(const btScalar &size) { start_size_ = size; }
 
   virtual void draw(Display *d);
 
 protected:
   Color4 color_t1_;
   Color4 color_t2_;
+  btScalar start_size_;
 
-  SmartPtr<btBoxShape> shape_;
-  btScalar size_start_;
+  /// Draw the ground base.
+  void drawBase();
+  /// Draw starting areas.
+  void drawStartingAreas();
+
+  static SmartPtr<btBoxShape> shape_;
 };
 
 
