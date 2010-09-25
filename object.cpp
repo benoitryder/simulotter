@@ -66,7 +66,7 @@ void Object::drawShape(const btCollisionShape *shape)
       {
         const btCylinderShape *cylinder_shape = static_cast<const btCylinderShape*>(shape);
         const int axis = cylinder_shape->getUpAxis();
-        const btScalar r   = cylinder_shape->getRadius();
+        const btScalar r = cylinder_shape->getRadius();
         // there is not a getHalfHeight() function
         const btVector3 &size = cylinder_shape->getHalfExtentsWithMargin();
         const btScalar len = size[axis];
@@ -76,10 +76,28 @@ void Object::drawShape(const btCollisionShape *shape)
           case 1: btglRotate(-90.0, 1.0, 0.0, 0.0); break;
           case 2: break;
           default:
-            throw(Error("invalid capsule up axis"));
+            throw(Error("invalid cylinder up axis"));
         }
         btglTranslate(0, 0, -len);
         glutSolidCylinder(r, 2*len, Display::draw_div, Display::draw_div);
+        break;
+      }
+    case CONE_SHAPE_PROXYTYPE:
+      {
+        const btConeShape *cone_shape = static_cast<const btConeShape*>(shape);
+        const int axis = cone_shape->getConeUpIndex();
+        const btScalar r = cone_shape->getRadius();
+        const btScalar h = cone_shape->getHeight();
+        switch( axis )
+        {
+          case 0: btglRotate(-90.0, 0.0, 1.0, 0.0); break;
+          case 1: btglRotate(-90.0, 1.0, 0.0, 0.0); break;
+          case 2: break;
+          default:
+            throw(Error("invalid cone up axis"));
+        }
+        btglTranslate(0, 0, -h/2);
+        glutSolidCone(r, h, Display::draw_div, Display::draw_div);
         break;
       }
     default:
