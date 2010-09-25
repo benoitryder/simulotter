@@ -193,17 +193,18 @@ public:
    */
   OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2);
   ~OGround();
-  virtual void draw(Display *d);
 
-  /// Starting zone size (scaled)
-  static const btScalar SIZE_START;
+  /// Initialize shape and position from sizes.
+  void setSizes(const btVector2 &table, const btScalar &start);
+
+  virtual void draw(Display *d);
 
 protected:
   Color4 color_t1_;
   Color4 color_t2_;
 
-private:
-  static SmartPtr<btBoxShape> shape_;
+  SmartPtr<btBoxShape> shape_;
+  btScalar size_start_;
 };
 
 

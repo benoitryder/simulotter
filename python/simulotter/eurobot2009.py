@@ -28,6 +28,7 @@ COL_POS = (
 class OGround(_so.OGround):
   def __init__(self):
     _so.OGround.__init__(self, _RAL[5015], *team_colors)
+    self.setSizes(TABLE_SIZE, 0.5)
 
 
 class Match:

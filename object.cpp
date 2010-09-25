@@ -208,13 +208,8 @@ void OSimple::draw(Display *d)
 }
 
 
-const btScalar OGround::SIZE_START = btScale(0.5);
-SmartPtr<btBoxShape> OGround::shape_( new btBoxShape( btScale(btVector3(3.0/2, 2.1/2, 0.1/2)) ) );
-
-OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2)
+OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2): size_start_(0)
 {
-  setShape( shape_ );
-  setPos( btVector3(0, 0, -shape_->getHalfExtentsWithMargin().getZ()) );
   setColor(color);
   color_t1_ = color_t1;
   color_t2_ = color_t2;
@@ -222,6 +217,20 @@ OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &colo
 
 OGround::~OGround()
 {
+}
+
+void OGround::setSizes(const btVector2 &table, const btScalar &start)
+{
+  if( shape_ != NULL ) {
+    throw(Error("cannot reassign sizes"));
+  }
+  if( start <= 0 || start >= table.x()/2 || start >= table.y()/2 ) {
+    throw(Error("invalid sizes"));
+  }
+  size_start_ = start;
+  shape_ = new btBoxShape( btVector3(table.x(), table.y(), btScale(0.1))/2 );
+  setShape(shape_);
+  setPos( btVector3(0, 0, -shape_->getHalfExtentsWithMargin().getZ()) );
 }
 
 
@@ -253,8 +262,8 @@ void OGround::draw(Display *d)
     glPushMatrix();
 
     glColor4fv(color_t1_);
-    btglTranslate(-size[0]+SIZE_START/2, size[1]-SIZE_START/2, size[2]);
-    btglScale(SIZE_START, SIZE_START, 2*Display::draw_epsilon);
+    btglTranslate(-size[0]+size_start_/2, size[1]-size_start_/2, size[2]);
+    btglScale(size_start_, size_start_, 2*Display::draw_epsilon);
     glutSolidCube(1.0f);
 
     glPopMatrix();
@@ -262,8 +271,8 @@ void OGround::draw(Display *d)
     glPushMatrix();
 
     glColor4fv(color_t2_);
-    btglTranslate(size[0]-SIZE_START/2, size[1]-SIZE_START/2, size[2]);
-    btglScale(SIZE_START, SIZE_START, 2*Display::draw_epsilon);
+    btglTranslate(size[0]-size_start_/2, size[1]-size_start_/2, size[2]);
+    btglScale(size_start_, size_start_, 2*Display::draw_epsilon);
     glutSolidCube(1.0f);
 
     glPopMatrix();
