@@ -32,7 +32,7 @@ set(python_src
   utils.cpp
   eurobot2009.cpp eurobot2010.cpp eurobot2011.cpp
   )
-add_library(py-simulotter MODULE common.h ${python_src})
+add_library(py-simulotter MODULE ${python_src})
 
 target_link_libraries(py-simulotter
   simulotter ${SIMULOTTER_LIBS}

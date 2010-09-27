@@ -24,6 +24,21 @@ endif()
 ##  Dependencies
 ##
 
+# Macro to (temporarily) prefer static libs over shared.
+# Should be followed by a call to prefer_static_restore.
+macro(prefer_static_set)
+  set(_prefer_static_orig_SUFFIXES "${CMAKE_FIND_LIBRARY_SUFFIXES}")
+  if(WIN32)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib "${CMAKE_FIND_LIBRARY_SUFFIXES}")
+  else()
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .a "${CMAKE_FIND_LIBRARY_SUFFIXES}")
+  endif()
+endmacro()
+
+macro(prefer_static_restore)
+  set(CMAKE_FIND_LIBRARY_SUFFIXES "${_prefer_static_orig_SUFFIXES}")
+endmacro()
+
 
 ##  Bullet
 # The built-in Bullet package does not work well.
@@ -62,30 +77,27 @@ endif()
 
 set(Freeglut_LIB_PREFIX "")
 if(Freeglut_USE_STATIC_LIBS)
-  set(_Freeglut_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+  prefer_static_set()
   if(WIN32)
     set(Freeglut_LIB_PREFIX "lib")
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib ${CMAKE_FIND_LIBRARY_SUFFIXES})
-  else()
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
   endif()
-else()
 endif()
 
-find_library(FREEGLUT_LIBRARY
-  NAMES ${Freeglut_LIB_PREFIX}freeglut ${Freeglut_LIB_PREFIX}glut)
+find_library(FREEGLUT_LIBRARY NAMES ${Freeglut_LIB_PREFIX}freeglut ${Freeglut_LIB_PREFIX}glut)
 if(NOT FREEGLUT_LIBRARY)
   message(FATAL_ERROR "Freeglut library not found.")
 endif()
+set(FREEGLUT_LIBRARIES "${FREEGLUT_LIBRARY}")
 
 if(Freeglut_USE_STATIC_LIBS)
-  set(CMAKE_FIND_LIBRARY_SUFFIXES ${_Freeglut_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
+  prefer_static_restore()
 endif()
-if(WIN32) #AND Freeglut_USE_STATIC_LIBS)
+set(FREEGLUT_DEFINITIONS "")
+if(WIN32)
   # always set it, seems to be needed when linking against the DLL
+  #if(Freeglut_USE_STATIC_LIBS)
   set(FREEGLUT_DEFINITIONS -DFREEGLUT_STATIC)
-else()
-  set(FREEGLUT_DEFINITIONS)
+  list(APPEND FREEGLUT_LIBRARIES winmm)
 endif()
 
 
@@ -93,16 +105,23 @@ endif()
 set(SDL_BUILDING_LIBRARY 1)
 find_package(SDL)
 find_package(OpenGL)
+
+if(PNG_USE_STATIC_LIBS)
+  prefer_static_set()
+endif()
 find_package(PNG)
+if(PNG_USE_STATIC_LIBS)
+  prefer_static_restore()
+endif()
 
 
 set(SIMULOTTER_LIBS ${BULLET_LIBRARIES}
-  ${SDL_LIBRARY} ${OPENGL_LIBRARIES} ${FREEGLUT_LIBRARY}
+  ${SDL_LIBRARY} ${FREEGLUT_LIBRARIES} ${OPENGL_LIBRARIES}
   ${PNG_LIBRARIES})
 
 include_directories(
   ${CMAKE_SOURCE_DIR} ${BULLET_INCLUDE_DIR}
-  ${SDL_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${FREEGLUT_INCLUDE_DIR}
+  ${SDL_INCLUDE_DIR} ${FREEGLUT_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR}
   ${PNG_INCLUDE_DIR}
   )
 
