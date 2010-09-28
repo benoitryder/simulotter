@@ -89,6 +89,9 @@ static std::string trans_str(const btTransform &t)
 }
 
 
+static inline btScalar spheric3_get_r(const btSpheric3 &v) { return v.r; }
+static inline btScalar spheric3_get_theta(const btSpheric3 &v) { return v.theta; }
+static inline btScalar spheric3_get_phi(const btSpheric3 &v) { return v.phi; }
 static std::string spheric3_str(const btSpheric3 &v)
 {
   return stringf("<rtp: %.2f %.2f %.2f>", v.r, v.theta, v.phi);
@@ -98,7 +101,7 @@ static std::string spheric3_str(const btSpheric3 &v)
 
 void python_export_maths()
 {
-  py::class_<btVector2>("vec2", py::no_init) // immutable
+  py::class_<btVector2>("vec2", py::no_init)
       .def(py::init<btScalar,btScalar>(
               (py::arg("x")=0, py::arg("y")=0)))
       .def(py::init<btVector2>())
@@ -126,7 +129,7 @@ void python_export_maths()
       .def("__iter__", py::range(&vec2_begin, &vec2_end))
       ;
 
-  py::class_<btVector3>("vec3", py::no_init) // immutable
+  py::class_<btVector3>("vec3", py::no_init)
       .def(py::init<btScalar,btScalar,btScalar>(
               (py::arg("x")=0, py::arg("y")=0, py::arg("z")=0)))
       .def(py::init<btVector3>())
@@ -164,7 +167,7 @@ void python_export_maths()
   // ambiguous unary minus operator, cannot use .def( - (py::self) )
   btQuaternion (btQuaternion::*quat_unary_neg)() const = &btQuaternion::operator-;
 
-  py::class_<btQuaternion>("quat", py::no_init) // immutable
+  py::class_<btQuaternion>("quat", py::no_init)
       .def(py::init<btScalar,btScalar,btScalar,btScalar>(
               (py::arg("x")=0, py::arg("y")=0, py::arg("z")=0, py::arg("w")=1)))
       .def(py::init<btVector3,btScalar>(
@@ -203,7 +206,7 @@ void python_export_maths()
       .def("__iter__", py::range(&quat_begin, &quat_end))
       ;
 
-  py::class_<btMatrix3x3>("matrix3", py::no_init) // immutable
+  py::class_<btMatrix3x3>("matrix3", py::no_init)
       .def("__init__", py::make_constructor(&matrix3_init_def))
       .def(py::init< btScalar,btScalar,btScalar,
            btScalar,btScalar,btScalar,
@@ -242,7 +245,7 @@ void python_export_maths()
   py::implicitly_convertible<btQuaternion,btMatrix3x3>();
 
 
-  py::class_<btTransform>("trans", py::no_init) // immutable
+  py::class_<btTransform>("trans", py::no_init)
       .def(py::init<btQuaternion, btVector3>(
               (py::arg("rot"), py::arg("origin")=btVector3(0,0,0))))
       .def(py::init<btMatrix3x3, btVector3>(
@@ -266,10 +269,13 @@ void python_export_maths()
       ;
 
 
-  py::class_<btSpheric3>("spheric3") // immutable
+  py::class_<btSpheric3>("spheric3", py::no_init)
       .def(py::init<btScalar,btScalar,btScalar>(
-              (py::arg("r"), py::arg("theta")=0, py::arg("phi")=0)))
+              (py::arg("r")=0, py::arg("theta")=0, py::arg("phi")=0)))
       .def(py::init<btSpheric3>())
+      .add_property("r", &spheric3_get_r)
+      .add_property("theta", &spheric3_get_theta)
+      .add_property("phi", &spheric3_get_phi)
       .def("rotate", &btSpheric3::rotated)
       .def(btScalar() * py::self)
       .def(py::self * btScalar())

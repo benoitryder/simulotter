@@ -42,7 +42,6 @@ endmacro()
 
 ##  Bullet
 # The built-in Bullet package does not work well.
-#TODO properly check for errors (not found, ...)
 
 find_path(BULLET_INCLUDE_DIR
   NAMES btBulletCollisionCommon.h
