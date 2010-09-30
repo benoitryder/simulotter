@@ -75,48 +75,48 @@ class Match:
     o.setShape(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, TABLE_SIZE.y+WALL_WIDTH, WALL_HEIGHT)/2
-    o.color = _so.Color4.white()
+    o.color = _so.Color.white()
     sh = _so.ShBox(_vec3(WALL_WIDTH, TABLE_SIZE.y+2*WALL_WIDTH, WALL_HEIGHT)/2)
     o = _so.OSimple()
     o.setShape(sh)
     o.addToWorld(ph)
     o.pos = _vec3(TABLE_SIZE.x+WALL_WIDTH, 0, WALL_HEIGHT)/2
-    o.color = _so.Color4.white()
+    o.color = _so.Color.white()
     o = _so.OSimple()
     o.setShape(sh)
     o.addToWorld(ph)
     o.pos = _vec3(-TABLE_SIZE.x-WALL_WIDTH, 0, WALL_HEIGHT)/2
-    o.color = _so.Color4.white()
+    o.color = _so.Color.white()
 
     sh = _so.ShBox(_vec3(WALL_WIDTH, 0.100, WALL_HEIGHT)/2)
     o = _so.OSimple()
     o.setShape(sh)
     o.addToWorld(ph)
     o.pos = _vec3(1.800+WALL_WIDTH, -TABLE_SIZE.y+0.100, WALL_HEIGHT)/2
-    o.color = _so.Color4.white()
+    o.color = _so.Color.white()
     o = _so.OSimple()
     o.setShape(sh)
     o.addToWorld(ph)
     o.pos = _vec3(-1.800-WALL_WIDTH, -TABLE_SIZE.y+0.100, WALL_HEIGHT)/2
-    o.color = _so.Color4.white()
+    o.color = _so.Color.white()
 
     sh = _so.ShBox(_vec3(1.800+WALL_WIDTH, ph.margin_epsilon, 0.250)/2)
     o = _so.OSimple()
     o.setShape(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, -TABLE_SIZE.y/2, 0.125)
-    o.color = _so.Color4.plexi()
+    o.color = _so.Color.plexi()
     sh = _so.ShBox(_vec3(0.578+WALL_WIDTH, ph.margin_epsilon, WALL_HEIGHT)/2)
     o = _so.OSimple()
     o.setShape(sh)
     o.addToWorld(ph)
     o.pos = _vec3(2.400, -TABLE_SIZE.y, WALL_HEIGHT)/2
-    o.color = _so.Color4.plexi()
+    o.color = _so.Color.plexi()
     o = _so.OSimple()
     o.setShape(sh)
     o.addToWorld(ph)
     o.pos = _vec3(-2.400, -TABLE_SIZE.y, WALL_HEIGHT)/2
-    o.color = _so.Color4.plexi()
+    o.color = _so.Color.plexi()
 
 
     # Building areas

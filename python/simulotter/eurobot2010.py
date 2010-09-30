@@ -80,8 +80,8 @@ class OBranch(_so.OSimple):
     _so.OSimple.__init__(self)
     self.setShape(self._shape)
     #actual color differs from rules
-    #self.color = _so.Color4.white()
-    self.color = _so.Color4.plexi()
+    #self.color = _so.Color.white()
+    self.color = _so.Color.plexi()
     self.h = h
 
   def createOrange(self):
@@ -156,7 +156,7 @@ class Bac:
     op = _so.OSimple()
     op.setShape(self.sh_plexi)
     op.pos = _vec3(0,0, -self.HEIGHT/2) + xy0
-    op.color = _so.Color4.plexi()
+    op.color = _so.Color.plexi()
 
     self.band = ob
     self.plexi = op

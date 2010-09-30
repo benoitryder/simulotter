@@ -50,7 +50,7 @@ static SmartPtr<CompoundShapeSmart> CompoundShape_init(const py::object o)
 
 void python_export_utils()
 {
-  py::class_<Color4>("Color4")
+  py::class_<Color4>("Color")
       .def(py::init<GLfloat, GLfloat, GLfloat, GLfloat>(
               (py::arg("r")=0, py::arg("g")=0, py::arg("b")=0, py::arg("a")=1)))
       .def(py::init<GLfloat>())
