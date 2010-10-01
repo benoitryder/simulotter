@@ -61,6 +61,7 @@ class Match:
     pawns -- list of pawns
     kings -- pair of kings
     queens -- pair of queens
+    ground -- OGround instance
 
   """
 
@@ -91,48 +92,43 @@ class Match:
     ph = self.physics
 
     # Ground and raised zone
-    o = OGround()
-    o.addToWorld(ph)
+    ground = OGround()
+    ground.addToWorld(ph)
+    self.ground = ground
 
     # Walls (N, S, E, W)
     color = _RAL[9017]
     sh = _so.ShBox(_vec3(TABLE_SIZE.x+WALL_WIDTH, WALL_WIDTH, WALL_HEIGHT)/2)
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, TABLE_SIZE.y+WALL_WIDTH, WALL_HEIGHT)/2
     o.color = color
 
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, -TABLE_SIZE.y-WALL_WIDTH, WALL_HEIGHT)/2
     o.color = color
 
     sh = _so.ShBox(_vec3(WALL_WIDTH, TABLE_SIZE.y+2*WALL_WIDTH, WALL_HEIGHT)/2)
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(TABLE_SIZE.x+WALL_WIDTH, 0, WALL_HEIGHT)/2
     o.color = color
 
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(-TABLE_SIZE.x-WALL_WIDTH, 0, WALL_HEIGHT)/2
     o.color = color
 
     # Starting areas, inside borders
-    sh = _so.ShBox(_vec3(OGround.START_SIZE, WALL_WIDTH, WALL_HEIGHT)/2)
-    o = _so.OSimple()
-    o.setShape(sh)
+    sh = _so.ShBox(_vec3(ground.start_size, WALL_WIDTH, WALL_HEIGHT)/2)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
-    o.pos = _vec3(-TABLE_SIZE.x+OGround.START_SIZE, TABLE_SIZE.y-WALL_WIDTH-2*OGround.START_SIZE, WALL_HEIGHT)/2
+    o.pos = _vec3(-TABLE_SIZE.x+ground.start_size, TABLE_SIZE.y-WALL_WIDTH-2*ground.start_size, WALL_HEIGHT)/2
     o.color = team_colors[0]
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
-    o.pos = _vec3(TABLE_SIZE.x-OGround.START_SIZE, TABLE_SIZE.y-WALL_WIDTH-2*OGround.START_SIZE, WALL_HEIGHT)/2
+    o.pos = _vec3(TABLE_SIZE.x-ground.start_size, TABLE_SIZE.y-WALL_WIDTH-2*ground.start_size, WALL_HEIGHT)/2
     o.color = team_colors[1]
 
     # Secured zones, borders (centered on surrounded cases)
@@ -143,13 +139,11 @@ class Match:
       (sh_wall,  _so.trans(_vec2( CASE_SIZE-WALL_WIDTH/2))),
       (sh_block, _so.trans(_vec2(0, (-CASE_SIZE+0.120)/2))),
       ))
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(-2*CASE_SIZE, -2.5*CASE_SIZE, WALL_HEIGHT/2)
     o.color = color
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(2*CASE_SIZE, -2.5*CASE_SIZE, WALL_HEIGHT/2)
     o.color = color
@@ -170,9 +164,9 @@ class Match:
     # Pieces in dispensing zones
 
     pos_king, pos_queen = RANDOM_POS[self.conf_kq]
-    x = (TABLE_SIZE.x - OGround.START_SIZE)/2
+    x = (TABLE_SIZE.x - ground.start_size)/2
     for j in range(5):
-      y = -TABLE_SIZE.y/2 + (5-j)*(TABLE_SIZE.y-OGround.START_SIZE-WALL_WIDTH)/6
+      y = -TABLE_SIZE.y/2 + (5-j)*(TABLE_SIZE.y-ground.start_size-WALL_WIDTH)/6
       if j == pos_king:
         self.kings = ( self.addPiece(-x, y, OKing), self.addPiece(x, y, OKing) )
       elif j == pos_queen:

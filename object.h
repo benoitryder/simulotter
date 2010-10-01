@@ -19,11 +19,10 @@ protected:
 public:
   virtual ~Object() {}
 
-  /** @brief Add an object in a physical world.
+  /** @brief Add an object to a physical world.
    *
    * Add bodies and constraint to the Bullet world.
-   * Object is added to the physics object array, an exception is raised if it
-   * was already in the array.
+   * Object is added to the physics object array.
    *
    * @note Overload functions should call this parent function.
    */
@@ -132,6 +131,7 @@ public:
    * @note Object shape must be set before calling this function.
    */
   void setMass(btScalar mass);
+  btScalar getMass() const { return getInvMass() == 0 ? 0 : 1./getInvMass(); }
 
   /** @brief Add an object in a physics world.
    *

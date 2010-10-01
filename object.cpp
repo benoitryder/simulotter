@@ -109,8 +109,12 @@ void Object::drawShape(const btCollisionShape *shape)
 
 void Object::addToWorld(Physics *physics)
 {
-  if( physics->getObjs().insert(this).second == false )
+  if( physics_ != NULL ) {
+    throw(Error("object is already in a world"));
+  }
+  if( physics->getObjs().insert(this).second == false ) {
     throw(Error("object added to the world twice"));
+  }
   physics_ = physics;
 }
 
@@ -144,12 +148,14 @@ void Object::disableTickCallback()
 
 
 OSimple::OSimple():
-  btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL))
+    btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL)),
+    color_(Color4())
 {
 }
 
 OSimple::OSimple(btCollisionShape *shape, btScalar mass):
-  btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL))
+    btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL)),
+    color_(Color4())
 {
   setShape(shape);
   if( mass ) {
@@ -167,8 +173,12 @@ OSimple::~OSimple()
 
 void OSimple::setShape(btCollisionShape *shape)
 {
-  if( getCollisionShape() != NULL )
+  if( getCollisionShape() != NULL ) {
     throw(Error("cannot reassign shape"));
+  }
+  if( shape == NULL ) {
+    throw(Error("invalid shape"));
+  }
   setCollisionShape(shape);
   // count shape reference held by Bullet
   SmartPtr_add_ref(shape);
@@ -229,7 +239,8 @@ void OSimple::draw(Display *d)
 const btVector3 OGround::SIZE = btScale(btVector3(3.0, 2.1, 0.1));
 SmartPtr<btBoxShape> OGround::shape_( new btBoxShape(SIZE/2) );
 
-OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2): start_size_(0.5)
+OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2):
+    start_size_(btScale(0.5))
 {
   setShape(shape_);
   setPos( btVector3(0, 0, -SIZE[2]/2) );

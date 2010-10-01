@@ -23,8 +23,8 @@ public:
    */
   //@{
 
-  /// Gravity at the Earth's surface.
-  static btScalar earth_gravity;
+  /// Gravity at the world's surface.
+  static btScalar world_gravity;
   /** @brief Minimal margin distance.
    *
    * Used as gap distance between objects to ensure they do not overlap (e.g.

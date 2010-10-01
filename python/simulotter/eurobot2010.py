@@ -78,16 +78,16 @@ class OBranch(_so.OSimple):
 
   def __init__(self, h):
     _so.OSimple.__init__(self)
-    self.setShape(self._shape)
+    self.shape = (self._shape)
     #actual color differs from rules
-    #self.color = _so.Color.white()
-    self.color = _so.Color.plexi()
+    #self.color = _so.Color.white
+    self.color = _so.Color.plexi
     self.h = h
 
   def createOrange(self):
     o = OOrange()
+    o.mass = 0  #XXX oranges not simulated
     o.addToWorld(self.physics)
-    o.setMass(0)  #XXX oranges not simulated
     #XXX references
     p = self.pos
     o.pos = _vec3(p.x, p.y,
@@ -148,15 +148,13 @@ class Bac:
       raise ValueError("invalid team")
     self.team = int(team)
 
-    ob = _so.OSimple()
-    ob.setShape(self.sh_band)
+    ob = _so.OSimple(self.sh_band)
     ob.pos = _vec3(0,0, WALL_HEIGHT/2) + xy0
     ob.color = team_colors[self.team]
 
-    op = _so.OSimple()
-    op.setShape(self.sh_plexi)
+    op = _so.OSimple(self.sh_plexi)
     op.pos = _vec3(0,0, -self.HEIGHT/2) + xy0
-    op.color = _so.Color.plexi()
+    op.color = _so.Color.plexi
 
     self.band = ob
     self.plexi = op
@@ -187,6 +185,7 @@ class Match:
     tomatoes, corns, oranges -- lists of game objects
     bacs -- created bacs (one per team)
     conf_side, conf_center -- field configuration
+    ground -- OGround instance
 
   """
 
@@ -220,8 +219,9 @@ class Match:
     ph = self.physics
 
     # Ground and raised zone
-    o = OGround()
-    o.addToWorld(ph)
+    ground = OGround()
+    ground.addToWorld(ph)
+    self.ground = ground
     o = ORaisedZone()
     o.pos = _vec3(0, TABLE_SIZE.y-0.500, 0)/2
     o.addToWorld(ph)
@@ -229,28 +229,24 @@ class Match:
     # Walls (N, E, W, S)
     color = _RAL[9017]
     sh = _so.ShBox(_vec3(TABLE_SIZE.x+WALL_WIDTH, WALL_WIDTH, WALL_HEIGHT)/2)
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, TABLE_SIZE.y+WALL_WIDTH, WALL_HEIGHT)/2
     o.color = color
 
     sh = _so.ShBox(_vec3(WALL_WIDTH, TABLE_SIZE.y+2*WALL_WIDTH, WALL_HEIGHT)/2)
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(TABLE_SIZE.x+WALL_WIDTH, 0, WALL_HEIGHT)/2
     o.color = color
 
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(-TABLE_SIZE.x-WALL_WIDTH, 0, WALL_HEIGHT)/2
     o.color = color
 
     sh = _so.ShBox(_vec3(TABLE_SIZE.x-2*Bac.SIZE.x, WALL_WIDTH, WALL_HEIGHT)/2)
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, -TABLE_SIZE.y-WALL_WIDTH, WALL_HEIGHT)/2
     o.color = color

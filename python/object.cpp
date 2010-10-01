@@ -14,6 +14,8 @@ static const btVector3 OGround_SIZE = btUnscale(OGround::SIZE);
 static inline btScalar OGround_getStartSize(const OGround &o) { return btUnscale(o.getStartSize()); }
 static inline void OGround_setStartSize(OGround &o, const btScalar &v) { o.setStartSize(btScale(v)); }
 
+// SmartPtr and not const, otherwise Boost.Python cannot convert the shape.
+static inline SmartPtr<btCollisionShape> OSimple_getShape(OSimple &o) { return o.getCollisionShape(); }
 static inline void OSimple_setPos(OSimple &o, const py::object v)
 {
   py::extract<const btVector2 &> py_vec2(v);
@@ -40,9 +42,9 @@ void python_export_object()
   py::class_<OSimple, py::bases<Object>, SmartPtr<OSimple>, boost::noncopyable>("OSimple")
       .def(py::init<btCollisionShape *, btScalar>(
               (py::arg("shape"), py::arg("mass")=0)))
-      .def("setShape", &OSimple::setShape)
-      .def("setMass", &OSimple::setMass)
-      .def("isInitialized", &OSimple::isInitialized)
+      .add_property("shape", &OSimple_getShape, &OSimple::setShape)
+      .add_property("mass", &OSimple::getMass, &OSimple::setMass)
+      .add_property("initialized", &OSimple::isInitialized)
       .add_property("color", &OSimple::getColor, &OSimple::setColor)
       // redefine to use setPosAbove() when setting vec2
       .add_property("pos", &Object_getPos, &OSimple_setPos)

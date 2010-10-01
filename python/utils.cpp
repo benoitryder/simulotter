@@ -8,7 +8,10 @@
 #include "physics.h"
 
 
-static std::string Color4_str(const Color4 &c)
+static const Color4 Color_white = Color4::white();
+static const Color4 Color_black = Color4::black();
+static const Color4 Color_plexi = Color4::plexi();
+static std::string Color_str(const Color4 &c)
 {
   return stringf("<rgba: %.2f %.2f %.2f %.2f>",
                  c.r(), c.g(), c.b(), c.a());
@@ -55,18 +58,17 @@ void python_export_utils()
               (py::arg("r")=0, py::arg("g")=0, py::arg("b")=0, py::arg("a")=1)))
       .def(py::init<GLfloat>())
       .def(py::init<int, int, int, int>(
-              (py::arg("r")=0, py::arg("g")=0, py::arg("b")=0, py::arg("a")=1)))
-      .def(py::init<Color4>())
+              (py::arg("r")=0, py::arg("g")=0, py::arg("b")=0, py::arg("a")=255)))
       .add_property("r", &Color4::r)
       .add_property("g", &Color4::g)
       .add_property("b", &Color4::b)
       .add_property("a", &Color4::a)
       .def(py::self * GLfloat())
       .def(GLfloat() * py::self)
-      .def("white", &Color4::white).staticmethod("white")
-      .def("black", &Color4::black).staticmethod("black")
-      .def("plexi", &Color4::plexi).staticmethod("plexi")
-      .def("__repr__", Color4_str)
+      .def_readonly("white", &Color_white)
+      .def_readonly("black", &Color_black)
+      .def_readonly("plexi", &Color_plexi)
+      .def("__repr__", Color_str)
       .def("__iter__", py::range(&Color4_begin, &Color4_end))
       ;
 

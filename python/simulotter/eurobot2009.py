@@ -37,6 +37,7 @@ class Match:
   Attributes:
     physics -- Physics instance
     conf_col, conf_disp -- field configuration
+    ground -- OGround instance
 
   """
 
@@ -66,77 +67,67 @@ class Match:
     ph = self.physics
 
     # Ground and raised zone
-    o = OGround()
-    o.addToWorld(ph)
+    ground = OGround()
+    ground.addToWorld(ph)
+    self.ground = ground
 
     # Walls (N, E, W, S, small SE, small SW, plexi S)
     sh = _so.ShBox(_vec3(TABLE_SIZE.x+2*WALL_WIDTH, WALL_WIDTH, WALL_HEIGHT)/2)
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, TABLE_SIZE.y+WALL_WIDTH, WALL_HEIGHT)/2
-    o.color = _so.Color.white()
+    o.color = _so.Color.white
     sh = _so.ShBox(_vec3(WALL_WIDTH, TABLE_SIZE.y+2*WALL_WIDTH, WALL_HEIGHT)/2)
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(TABLE_SIZE.x+WALL_WIDTH, 0, WALL_HEIGHT)/2
-    o.color = _so.Color.white()
-    o = _so.OSimple()
-    o.setShape(sh)
+    o.color = _so.Color.white
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(-TABLE_SIZE.x-WALL_WIDTH, 0, WALL_HEIGHT)/2
-    o.color = _so.Color.white()
+    o.color = _so.Color.white
 
     sh = _so.ShBox(_vec3(WALL_WIDTH, 0.100, WALL_HEIGHT)/2)
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(1.800+WALL_WIDTH, -TABLE_SIZE.y+0.100, WALL_HEIGHT)/2
-    o.color = _so.Color.white()
-    o = _so.OSimple()
-    o.setShape(sh)
+    o.color = _so.Color.white
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(-1.800-WALL_WIDTH, -TABLE_SIZE.y+0.100, WALL_HEIGHT)/2
-    o.color = _so.Color.white()
+    o.color = _so.Color.white
 
     sh = _so.ShBox(_vec3(1.800+WALL_WIDTH, ph.margin_epsilon, 0.250)/2)
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, -TABLE_SIZE.y/2, 0.125)
-    o.color = _so.Color.plexi()
+    o.color = _so.Color.plexi
     sh = _so.ShBox(_vec3(0.578+WALL_WIDTH, ph.margin_epsilon, WALL_HEIGHT)/2)
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(2.400, -TABLE_SIZE.y, WALL_HEIGHT)/2
-    o.color = _so.Color.plexi()
-    o = _so.OSimple()
-    o.setShape(sh)
+    o.color = _so.Color.plexi
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(-2.400, -TABLE_SIZE.y, WALL_HEIGHT)/2
-    o.color = _so.Color.plexi()
+    o.color = _so.Color.plexi
 
 
     # Building areas
     sh = _so.ShBox(_vec3(1.800, 0.100, ph.margin_epsilon)/2)
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, 0.050-TABLE_SIZE.y/2, ph.margin_epsilon)
     o.color = _RAL[8017]
 
     sh = _so.ShBox(_vec3(0.600, 0.100, 0.030)/2)
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, 0.050-TABLE_SIZE.y/2, 0.015)
     o.color = _RAL[8017]
 
     sh = _so.ShCylinderZ(_vec3(0.150, 0.150, 0.060/2))
-    o = _so.OSimple()
-    o.setShape(sh)
+    o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, 0, 0.030)
     o.color = _RAL[8017]
