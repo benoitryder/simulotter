@@ -29,14 +29,18 @@ static inline void OSimple_setPos(OSimple &o, const py::object v)
 
 void python_export_object()
 {
+  py_smart_register<Object>();
+
   py::class_<Object, SmartPtr<Object>, boost::noncopyable>("Object", py::no_init)
       .def("addToWorld", &Object::addToWorld)
       .def("removeFromWorld", &Object::removeFromWorld)
       .add_property("pos", &Object_getPos, &Object_setPos)
-      .add_property("rot", &Object_getRot, &Object::setRot)
+      .add_property("rot", py::make_function(
+              &Object::getRot, py::return_value_policy<py::return_by_value>()),
+          &Object::setRot)
       .add_property("trans", &Object_getTrans, &Object_setTrans)
-      .add_property("physics", 
-                    py::make_function(&Object::getPhysics, py::return_internal_reference<>()))
+      .add_property("physics", py::make_function(
+              &Object::getPhysics, py::return_internal_reference<>()))
       ;
 
   py::class_<OSimple, py::bases<Object>, SmartPtr<OSimple>, boost::noncopyable>("OSimple")

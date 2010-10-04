@@ -115,13 +115,6 @@ public:
   /// Coefficient for mouse camera moves
   float camera_mouse_coef;
 
-  /// Perspective field of view (in degrees)
-  float perspective_fov;
-  /// Near clipping plance distance
-  float perspective_near;
-  /// Far clipping plance distance
-  float perspective_far;
-
   //@}
 
 
@@ -131,6 +124,9 @@ public:
    * @param mode    window if 0, fullscreen if >0, current state if <0
    */
   void resize(int width, int height, int mode=-1);
+
+  int getScreenWidth() const { return screen_x_; }
+  int getScreenHeight() const { return screen_y_; }
 
   /// Update display.
   void update();
@@ -197,73 +193,38 @@ private:
 
   //@}
 
+ public:
 
-  /** @name Camera
+  /** @brief Camera.
    *
-   * There are three modes for eye and target; depending on it eye and target
-   * values are cartesian or spherical coordinates:
-   *  - fixed: cartesian coordinates, does not move
-   *  - ref: spherical offset from the other point (eye or target)
-   *  - object: object position with spherical offset
-   */
-  //@{
-public:
-
-  /// Camera modes
-  enum CamMode
-  {
-    CAM_EYE_FIXED  = 0x01,
-    CAM_EYE_REL    = 0x02,
-    CAM_EYE_OBJECT = 0x04,
-    CAM_EYE_MASK   = 0xff,
-
-    CAM_TARGET_FIXED   = 0x0100,
-    CAM_TARGET_REL     = 0x0200,
-    CAM_TARGET_OBJECT  = 0x0400,
-    CAM_TARGET_MASK    = 0xff00,
-
-    // Aliases
-    CAM_FREE    = CAM_EYE_FIXED  | CAM_TARGET_REL,
-    CAM_FIXED   = CAM_EYE_REL    | CAM_TARGET_FIXED,
-    CAM_FOLLOW  = CAM_EYE_REL    | CAM_TARGET_OBJECT,
-    CAM_ONBOARD = CAM_EYE_OBJECT | CAM_TARGET_REL,
-    CAM_LOOK    = CAM_EYE_FIXED  | CAM_TARGET_OBJECT,
-  };
-
-  /** @brief Camera point position
+   * \e trans gives the camera transformation from the camera referential.
+   * If \e obj is not \e NULL the camera referential is the object
+   * transformation. Otherwise, the world's referential is used.
    *
-   * @note \e cart and \e spheric are not used simultaneously.
+   * The camera is oriented along the negative Z axis (towards the ground).
    */
-  struct CameraPoint
+  struct Camera
   {
-    btVector3  cart;
-    btSpheric3 spheric;
+    /// Camera position and orientation.
+    btTransform trans;
+    /// Reference object for embedded camera.
     SmartPtr<Object> obj;
+
+    /// Vertical field of view (in degrees).
+    float fov;
+    /// Near clipping plane distance.
+    float z_near;
+    /// Far clipping plane distance.
+    float z_far;
+
+    /// Default constructor, set default values.
+    Camera();
   };
 
-  CameraPoint &getCameraEye()    { return camera_eye_;    }
-  CameraPoint &getCameraTarget() { return camera_target_; }
-  int getCameraMode() const { return camera_mode_; }
-
-  /** @brief Compute eye and target cartesian global positions
-   *
-   * getCameraEye() and getCameraTarget() return values which may be relative
-   * to each other, this method returns global positions.
-   */
-  void getCameraPos(btVector3 &eye_pos, btVector3 &target_pos) const;
-
-  /** @brief Change camera mode
-   * @note Object(s) must be set before choosing an object mode.
-   */
-  void setCameraMode(int mode);
-
-private:
-  CameraPoint camera_eye_;
-  CameraPoint camera_target_;
-  int camera_mode_;
+  /// Main display camera.
+  Camera camera;
 
   //@}
-
 
 public:
 
@@ -285,6 +246,7 @@ private:
   static void handlerQuit    (Display *d, const SDL_Event *event);
   static void handlerResize  (Display *d, const SDL_Event *event);
   static void handlerPause   (Display *d, const SDL_Event *event);
+#if 0  //TODO:camera
   static void handlerCamMouse(Display *d, const SDL_Event *event);
   static void handlerCamAhead(Display *d, const SDL_Event *event);
   static void handlerCamBack (Display *d, const SDL_Event *event);
@@ -292,6 +254,7 @@ private:
   static void handlerCamRight(Display *d, const SDL_Event *event);
   static void handlerCamUp   (Display *d, const SDL_Event *event);
   static void handlerCamDown (Display *d, const SDL_Event *event);
+#endif
   //@}
 
 

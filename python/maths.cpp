@@ -39,6 +39,12 @@ static inline btMatrix3x3 *matrix3_init_def()
   m->setIdentity();
   return m;
 }
+static inline btMatrix3x3 *matrix3_init_rows(const btVector3 &r0, const btVector3 &r1, const btVector3 &r2)
+{
+  btMatrix3x3 *m = new btMatrix3x3();
+  (*m)[0] = r0; (*m)[1] = r1; (*m)[2] = r2;
+  return m;
+}
 static inline btMatrix3x3 *matrix3_init_euler(const btScalar yaw, const btScalar pitch, const btScalar roll)
 {
   btMatrix3x3 *m = new btMatrix3x3();
@@ -48,6 +54,22 @@ static inline btMatrix3x3 *matrix3_init_euler(const btScalar yaw, const btScalar
   m->setEulerZYX(yaw, pitch, roll);
 #endif
   return m;
+}
+static btVector3 matrix3_row(const btMatrix3x3 &m, int i)
+{
+  if( i < 0 || i > 2 ) {
+    PyErr_SetObject(PyExc_IndexError, PyInt_FromLong(i));
+    throw py::error_already_set(); 
+  }
+  return m.getRow(i);
+}
+static btVector3 matrix3_col(const btMatrix3x3 &m, int i)
+{
+  if( i < 0 || i > 2 ) {
+    PyErr_SetObject(PyExc_IndexError, PyInt_FromLong(i));
+    throw py::error_already_set(); 
+  }
+  return m.getColumn(i);
 }
 static py::tuple matrix3_get_euler_ypr(const btMatrix3x3 &m)
 {
@@ -78,8 +100,6 @@ static inline btTransform *trans_init_vec(const btVector3 &v)
 {
   return new btTransform(btMatrix3x3::getIdentity(), v);
 }
-static inline btMatrix3x3 trans_get_basis(const btTransform &t) { return t.getBasis(); }
-static inline btVector3 trans_get_origin(const btTransform &t) { return t.getOrigin(); }
 static std::string trans_str(const btTransform &t)
 {
   const btVector3 &v = t.getOrigin();
@@ -89,24 +109,14 @@ static std::string trans_str(const btTransform &t)
 }
 
 
-static inline btScalar spheric3_get_r(const btSpheric3 &v) { return v.r; }
-static inline btScalar spheric3_get_theta(const btSpheric3 &v) { return v.theta; }
-static inline btScalar spheric3_get_phi(const btSpheric3 &v) { return v.phi; }
-static std::string spheric3_str(const btSpheric3 &v)
-{
-  return stringf("<rtp: %.2f %.2f %.2f>", v.r, v.theta, v.phi);
-}
-
-
-
 void python_export_maths()
 {
   py::class_<btVector2>("vec2", py::no_init)
       .def(py::init<btScalar,btScalar>(
               (py::arg("x")=0, py::arg("y")=0)))
       .def(py::init<btVector2>())
-      .add_property("x", &vec2_x)
-      .add_property("y", &vec2_y)
+      .add_property("x", py::make_function(&btVector2::x, py::return_value_policy<py::copy_const_reference>()))
+      .add_property("y", py::make_function(&btVector2::y, py::return_value_policy<py::copy_const_reference>()))
       .def("dot", &btVector2::dot)
       .def("length2", &btVector2::length2)
       .def("length", &btVector2::length)
@@ -133,9 +143,9 @@ void python_export_maths()
       .def(py::init<btScalar,btScalar,btScalar>(
               (py::arg("x")=0, py::arg("y")=0, py::arg("z")=0)))
       .def(py::init<btVector3>())
-      .add_property("x", &vec3_x)
-      .add_property("y", &vec3_y)
-      .add_property("z", &vec3_z)
+      .add_property("x", py::make_function(&btVector3::x, py::return_value_policy<py::copy_const_reference>()))
+      .add_property("y", py::make_function(&btVector3::y, py::return_value_policy<py::copy_const_reference>()))
+      .add_property("z", py::make_function(&btVector3::z, py::return_value_policy<py::copy_const_reference>()))
       .def("dot", &btVector3::dot)
       .def("length2", &btVector3::length2)
       .def("length", &btVector3::length)
@@ -174,10 +184,10 @@ void python_export_maths()
               (py::arg("axis"), py::arg("angle")=0)))
       .def(py::init<btScalar,btScalar,btScalar>(
               (py::arg("yaw")=0, py::arg("pitch")=0, py::arg("roll")=0)))
-      .add_property("x", &quat_x)
-      .add_property("y", &quat_y)
-      .add_property("z", &quat_z)
-      .add_property("w", &quat_w)
+      .add_property("x", py::make_function(&btQuaternion::x, py::return_value_policy<py::copy_const_reference>()))
+      .add_property("y", py::make_function(&btQuaternion::y, py::return_value_policy<py::copy_const_reference>()))
+      .add_property("z", py::make_function(&btQuaternion::z, py::return_value_policy<py::copy_const_reference>()))
+      .add_property("w", py::make_function(&btQuaternion::w, py::return_value_policy<py::copy_const_reference>()))
       .def("dot", &btQuaternion::dot)
       .def("length2", &btQuaternion::length2)
       .def("length", &btQuaternion::length)
@@ -205,6 +215,7 @@ void python_export_maths()
 
   py::class_<btMatrix3x3>("matrix3", py::no_init)
       .def("__init__", py::make_constructor(&matrix3_init_def))
+      .def("__init__", py::make_constructor(&matrix3_init_rows))
       .def(py::init< btScalar,btScalar,btScalar,
            btScalar,btScalar,btScalar,
            btScalar,btScalar,btScalar >())
@@ -212,7 +223,9 @@ void python_export_maths()
               &matrix3_init_euler, py::default_call_policies(), (
                   py::arg("yaw")=0, py::arg("pitch")=0, py::arg("roll")=0)))
       .def(py::init<btMatrix3x3>())
-      //TODO accessors to matrix cells
+      .def("row", &matrix3_row)
+      .def("col", &matrix3_col)
+      .def("__getitem__", &matrix3_row)
       .add_property("euler_ypr", &matrix3_get_euler_ypr)
       .add_property("euler_zyx", &matrix3_get_euler_zyx)
       .def("scale", &btMatrix3x3::scaled)
@@ -238,6 +251,9 @@ void python_export_maths()
   //TODO matrix3 -> quat, using matrix3.getRotation()
   py::implicitly_convertible<btQuaternion,btMatrix3x3>();
 
+  // explicit some function pointers to help the compiler
+  const btMatrix3x3 &(btTransform::*const trans_get_basis)() const = &btTransform::getBasis;
+  const btVector3 &(btTransform::*const trans_get_origin)() const = &btTransform::getOrigin;
 
   py::class_<btTransform>("trans", py::no_init)
       .def(py::init<btQuaternion, btVector3>(
@@ -247,8 +263,8 @@ void python_export_maths()
                py::arg("origin")=btVector3(0,0,0))))
       .def("__init__", py::make_constructor(&trans_init_vec))
       .def(py::init<btTransform>())
-      .add_property("basis", &trans_get_basis)
-      .add_property("origin", &trans_get_origin)
+      .add_property("basis", py::make_function(trans_get_basis, py::return_value_policy<py::return_by_value>()))
+      .add_property("origin", py::make_function(trans_get_origin, py::return_value_policy<py::return_by_value>()))
       .add_property("rotation", &btTransform::getRotation)
       .def("inverse", &btTransform::inverse)
       .def("inverse_times", &btTransform::inverseTimes)
@@ -258,24 +274,6 @@ void python_export_maths()
       .def(py::self * btQuaternion())
       .def("__repr__", trans_str)
       ;
-
-
-  py::class_<btSpheric3>("spheric3", py::no_init)
-      .def(py::init<btScalar,btScalar,btScalar>(
-              (py::arg("r")=0, py::arg("theta")=0, py::arg("phi")=0)))
-      .def(py::init<btSpheric3>())
-      .add_property("r", &spheric3_get_r)
-      .add_property("theta", &spheric3_get_theta)
-      .add_property("phi", &spheric3_get_phi)
-      .def("rotate", &btSpheric3::rotated)
-      .def(btScalar() * py::self)
-      .def(py::self * btScalar())
-      .def(py::self / btScalar())
-      .def("__repr__", spheric3_str)
-      ;
-
-  py::implicitly_convertible<btSpheric3,btVector3>();
-  py::implicitly_convertible<btVector3,btSpheric3>();
 }
 
 

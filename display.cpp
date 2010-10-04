@@ -22,9 +22,6 @@ Display::Display():
     camera_step_angle(0.1),
     camera_step_linear(btScale(0.1)),
     camera_mouse_coef(0.1),
-    perspective_fov(45.0),
-    perspective_near(btScale(0.1)),
-    perspective_far(btScale(300.0)),
     screen_x_(800), screen_y_(600),
     fullscreen_(false),
     is_running_(false)
@@ -34,11 +31,10 @@ Display::Display():
 
   screen_ = NULL;
 
-  camera_mode_ = CAM_FIXED;
-  camera_eye_.spheric = btScale( btSpheric3(4.0, M_PI/6, -M_PI/3) );
-  camera_target_.cart = btVector3(0,0,0);
-  camera_eye_.obj    = NULL;
-  camera_target_.obj = NULL;
+  camera.trans = btScale(btTransform(
+      btQuaternion(0, -M_PI/6, 0),
+      btVector3(0, -2, 3)
+      ));
 
   // Default handlers
 
@@ -50,10 +46,12 @@ Display::Display():
   event.type = SDL_VIDEORESIZE;
   setHandler(event, new BasicEventHandler(handlerResize));
 
+#if 0 //TODO:camera
   // Mouse motion
   event.type = SDL_MOUSEMOTION;
   event.motion.state = SDL_BUTTON(1);
   setHandler(event, new BasicEventHandler(handlerCamMouse));
+#endif
 
   // Keyboard
 
@@ -65,6 +63,7 @@ Display::Display():
   event.type = SDL_KEYUP;
   setHandler(event, new BasicEventHandler(handlerPause));
 
+#if 0 //TODO:camera
   // Camera moves
   // TODO correct AZERTY/QWERTY handling
   event.type = SDL_KEYDOWN;
@@ -92,6 +91,7 @@ Display::Display():
   setHandler(event, new BasicEventHandler(handlerCamUp));
   event.key.keysym.sym = SDLK_e;
   setHandler(event, new BasicEventHandler(handlerCamDown));
+#endif
 }
 
 Display::~Display()
@@ -143,7 +143,6 @@ void Display::resize(int width, int height, int mode)
   sceneInit();
 }
 
-
 void Display::update()
 {
   if( ! physics_ )
@@ -157,26 +156,26 @@ void Display::update()
 
   glMatrixMode(GL_PROJECTION); 
   glLoadIdentity();
-  gluPerspective(this->perspective_fov, ((float)screen_x_)/screen_y_,
-      this->perspective_near, this->perspective_far);
+  gluPerspective(camera.fov, ((float)screen_x_)/screen_y_,
+      camera.z_near, camera.z_far);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  btVector3 eye_pos, target_pos;
-  getCameraPos(eye_pos, target_pos);
-
-  float up = (
-      ( (camera_mode_ & CAM_EYE_REL) &&
-        ((int)btCeil(camera_eye_.spheric.theta/M_PI))%2==0 ) ||
-      ( (camera_mode_ & CAM_TARGET_REL) &&
-        ((int)btCeil(camera_target_.spheric.theta/M_PI))%2==0 )
-      ) ? -1.0 : 1.0;
-
-  gluLookAt(
-      eye_pos[0], eye_pos[1], eye_pos[2],
-      target_pos[0], target_pos[1], target_pos[2],
-      0.0, 0.0, up);
+  {
+    btScalar m[16];
+    btTransform tr;
+    if( camera.obj == NULL ) {
+      tr = camera.trans;
+    } else {
+      tr = camera.obj->getTrans() * camera.trans;
+    }
+    tr.getOpenGLMatrix(m);
+    m[12] = m[13] = m[14] = 0;  // no translation yet
+    btglMultMatrix(m);
+    const btVector3 &v = tr.getOrigin();
+    btglTranslate(-v.x(), -v.y(), -v.z());
+  }
 
   // Draw objects
   const std::set< SmartPtr<Object> > &objs = physics_->getObjs();
@@ -212,6 +211,13 @@ void Display::close()
   if( is_running_ ) {
     abort();
   }
+}
+
+
+Display::Camera::Camera():
+    trans(btTransform::getIdentity()),
+    fov(45.0), z_near(btScale(0.1)), z_far(btScale(300.0))
+{
 }
 
 
@@ -257,7 +263,7 @@ void Display::run()
       if( time_wait > 0 )
         SDL_Delay(time_wait);
     }
-  } catch(const AbortException &e) {
+  } catch(const AbortException &) {
     is_running_ = false;
   } catch(...) {
     is_running_ = false;
@@ -504,110 +510,6 @@ void Display::setHandler(const SDL_Event &ev, DisplayEventHandler *h)
 }
 
 
-void Display::getCameraPos(btVector3 &eye_pos, btVector3 &target_pos) const
-{
-  // ref positions depends on the other point.
-  // Thus, fixed and mobile positions are retrieved first.
-
-  if( camera_mode_ & CAM_EYE_FIXED )
-  {
-    eye_pos = camera_eye_.cart;
-  }
-  else if( camera_mode_ & CAM_EYE_OBJECT )
-  {
-    // Convert offset in global coordinates and add it
-    eye_pos = camera_eye_.obj->getTrans() * camera_eye_.cart;
-  }
-
-  if( camera_mode_ & CAM_TARGET_FIXED )
-  {
-    target_pos = camera_target_.cart;
-  }
-  else if( camera_mode_ & CAM_TARGET_OBJECT )
-  {
-    // Convert offset in global coordinates and add it
-    target_pos = camera_target_.obj->getTrans() * camera_target_.cart;
-  }
-
-  if( camera_mode_ & CAM_EYE_REL )
-  {
-    eye_pos = camera_eye_.spheric;
-
-    // Object relative coordinates are in object coordinates
-    // Convert them to global coordinates
-    if( camera_mode_ & CAM_TARGET_OBJECT )
-      eye_pos = quatRotate(camera_target_.obj->getTrans().getRotation(), eye_pos);
-
-    eye_pos += target_pos;
-  }
-  else if( camera_mode_ & CAM_TARGET_REL )
-  {
-    target_pos = camera_target_.spheric;
-
-    // Object relative coordinates are in object coordinates
-    // Convert them to global coordinates
-    if( camera_mode_ & CAM_EYE_OBJECT )
-      target_pos = quatRotate(camera_eye_.obj->getTrans().getRotation(), target_pos);
-
-    target_pos += eye_pos;
-  }
-}
-
-
-void Display::setCameraMode(int mode)
-{
-  if( camera_mode_ == mode )
-    return;
-
-  if( (mode & CAM_EYE_REL) && (mode & CAM_TARGET_REL) )
-    throw(Error("invalid camera mode"));
-
-  // Set new coordinates
-  // Try to keep the same (global) positions
-
-  btVector3 eye_pos, target_pos;
-  getCameraPos(eye_pos, target_pos);
-
-  switch( mode & CAM_EYE_MASK )
-  {
-    case CAM_EYE_FIXED:
-      camera_eye_.cart = eye_pos;
-      break;
-    case CAM_EYE_REL:
-      camera_eye_.spheric = btSpheric3( eye_pos - target_pos );
-      break;
-    case CAM_EYE_OBJECT:
-      if( camera_eye_.obj == NULL )
-        throw(Error("object must be set before setting an object camera mode"));
-      camera_eye_.cart = btVector3(0,0,0);
-      break;
-    default:
-      throw(Error("invalid camera mode"));
-  }
-
-  switch( mode & CAM_TARGET_MASK )
-  {
-    case CAM_TARGET_FIXED:
-      for( int i=0; i<3; i++ )
-        camera_target_.cart = target_pos;
-      break;
-    case CAM_TARGET_REL:
-      camera_target_.spheric = btSpheric3( target_pos - eye_pos );
-      break;
-    case CAM_TARGET_OBJECT:
-      if( camera_target_.obj == NULL )
-        throw(Error("object must be set before setting an object camera mode"));
-      camera_target_.cart = btVector3(0,0,0);
-      break;
-    default:
-      throw(Error("invalid camera mode"));
-  }
-
-  camera_mode_ = mode;
-  LOG("camera mode: %x < %x", mode&CAM_EYE_MASK, (mode&CAM_TARGET_MASK)>>8);
-}
-
-
 void Display::handlerQuit(Display *d, const SDL_Event *event)
 {
   d->abort();
@@ -626,6 +528,7 @@ void Display::handlerPause(Display *d, const SDL_Event *event)
   ph->togglePause();
 }
 
+#if 0 //TODO:camera
 void Display::handlerCamMouse(Display *d, const SDL_Event *event)
 {
   float dx = event->motion.xrel * d->camera_mouse_coef;
@@ -638,7 +541,6 @@ void Display::handlerCamMouse(Display *d, const SDL_Event *event)
                                      -dx*d->camera_step_angle );
   }
 }
-
 
 void Display::handlerCamAhead(Display *d, const SDL_Event *event)
 {
@@ -757,6 +659,7 @@ void Display::handlerCamDown(Display *d, const SDL_Event *event)
     d->camera_eye_.cart += dir;
   }
 }
+#endif
 
 
 bool DisplayEventHandler::Cmp::operator()(const SDL_Event &a, const SDL_Event &b)

@@ -36,6 +36,7 @@ public:
   T &operator*() const { return *px_; }
   T *operator->() const { return px_; }
   operator T *() const { return px_; }
+  bool operator!() const { return px_ == 0; }
 
   void swap(SmartPtr &rhs)
   {
