@@ -26,6 +26,10 @@ static btTransform Camera_get_trans(const Display::Camera &o) { return btUnscale
 static void Camera_set_trans(Display::Camera &o, const btTransform &tr) { o.trans = btScale(tr); }
 static SmartPtr<Object> Camera_get_obj(const Display::Camera &o) { return o.obj; }
 static void Camera_set_obj(Display::Camera &o, const SmartPtr<Object> &obj) { o.obj = obj; }
+static float Camera_get_z_near(const Display::Camera &o) { return btUnscale(o.z_near); }
+static void Camera_set_z_near(Display::Camera &o, float v) { o.z_near = btScale(v); }
+static float Camera_get_z_far(const Display::Camera &o) { return btUnscale(o.z_far); }
+static void Camera_set_z_far(Display::Camera &o, float v) { o.z_far = btScale(v); }
 
 
 void python_export_display()
@@ -59,8 +63,8 @@ void python_export_display()
       // property required for None conversions
       .add_property("obj", &Camera_get_obj, &Camera_set_obj)
       .def_readwrite("fov", &Display::Camera::fov)
-      .def_readwrite("z_near", &Display::Camera::z_far)
-      .def_readwrite("z_far", &Display::Camera::z_far)
+      .add_property("z_near", &Camera_get_z_near, &Camera_set_z_near)
+      .add_property("z_far", &Camera_get_z_far, &Camera_set_z_far)
       ;
 }
 

@@ -138,8 +138,6 @@ public:
    *
    * Initialize the display (if needed) and display simulation.
    * Timings are given by fps and time_scale fields.
-   *
-   * @note This method never returns.
    */
   void run();
 
