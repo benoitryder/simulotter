@@ -44,6 +44,10 @@ multiple windows.
 
     Close the display. If it is not opened an error is raised.
 
+  .. method:: screenshot(filename)
+
+    Save a PNG screenshot to a file.
+
   .. attribute: physics
 
     :class:`Physics` world to display. Required to start the display.

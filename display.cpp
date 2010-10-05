@@ -115,9 +115,6 @@ void Display::resize(int width, int height, int mode)
   else
     fullscreen = fullscreen_;
 
-  LOG("Display resize: %d x %d, %s mode",
-      width, height, fullscreen ? "fullscreen" : "window");
-
   Uint32 flags = SDL_OPENGL;
   flags |= fullscreen ? SDL_FULLSCREEN : SDL_RESIZABLE;
 
@@ -309,6 +306,10 @@ static void png_handler_warning(png_struct * /*png_ptr*/, const char *msg)
 
 void Display::savePNGScreenshot(const std::string &filename)
 {
+  if( screen_ == NULL ) {
+    throw(Error("display not opened"));
+  }
+
   FILE *fp = NULL;
   png_bytep pixels = NULL;
   png_bytepp row_pointers = NULL;
@@ -370,8 +371,6 @@ void Display::savePNGScreenshot(const std::string &filename)
     delete[] row_pointers; row_pointers = NULL;
     delete[] pixels; pixels = NULL;
     fclose(fp); fp = NULL;
-
-    LOG("screenshot saved: %s", filename.c_str());
   }
   catch(const Error &e)
   {
