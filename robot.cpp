@@ -70,7 +70,7 @@ void RBasic::draw(Display *d)
   glPopMatrix();
 }
 
-void RBasic::drawDirection(Display *d)
+void RBasic::drawDirection(Display *)
 {
   btVector3 aabb_min, aabb_max;
   body_->getAabb(aabb_min, aabb_max);

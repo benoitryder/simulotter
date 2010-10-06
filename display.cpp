@@ -31,10 +31,7 @@ Display::Display():
 
   screen_ = NULL;
 
-  camera.trans = btScale(btTransform(
-      btQuaternion(0, -M_PI/6, 0),
-      btVector3(0, -2, 3)
-      ));
+  handlerCamReset(this, NULL);
 
   // Default handlers
 
@@ -42,28 +39,25 @@ Display::Display():
   
   // Window events
   event.type = SDL_QUIT;
-  setHandler(event, new BasicEventHandler(handlerQuit));
+  setHandler(event, handlerQuit);
   event.type = SDL_VIDEORESIZE;
-  setHandler(event, new BasicEventHandler(handlerResize));
+  setHandler(event, handlerResize);
 
-#if 0 //TODO:camera
   // Mouse motion
   event.type = SDL_MOUSEMOTION;
   event.motion.state = SDL_BUTTON(1);
-  setHandler(event, new BasicEventHandler(handlerCamMouse));
-#endif
+  setHandler(event, handlerCamMouse);
 
   // Keyboard
 
   event.key.keysym.sym = SDLK_ESCAPE;
   event.type = SDL_KEYDOWN;
-  setHandler(event, new BasicEventHandler(handlerQuit));
+  setHandler(event, handlerQuit);
 
   event.key.keysym.sym = SDLK_SPACE;
   event.type = SDL_KEYUP;
-  setHandler(event, new BasicEventHandler(handlerPause));
+  setHandler(event, handlerPause);
 
-#if 0 //TODO:camera
   // Camera moves
   // TODO correct AZERTY/QWERTY handling
   event.type = SDL_KEYDOWN;
@@ -72,26 +66,27 @@ Display::Display():
 #else
   event.key.keysym.sym = SDLK_z;
 #endif
-  setHandler(event, new BasicEventHandler(handlerCamAhead));
+  setHandler(event, handlerCamAhead);
   event.key.keysym.sym = SDLK_s;
-  setHandler(event, new BasicEventHandler(handlerCamBack));
+  setHandler(event, handlerCamBack);
 #ifdef _WIN32
   event.key.keysym.sym = SDLK_a;
 #else
   event.key.keysym.sym = SDLK_q;
 #endif
-  setHandler(event, new BasicEventHandler(handlerCamLeft));
+  setHandler(event, handlerCamLeft);
   event.key.keysym.sym = SDLK_d;
-  setHandler(event, new BasicEventHandler(handlerCamRight));
+  setHandler(event, handlerCamRight);
 #ifdef _WIN32
   event.key.keysym.sym = SDLK_q;
 #else
   event.key.keysym.sym = SDLK_a;
 #endif
-  setHandler(event, new BasicEventHandler(handlerCamUp));
+  setHandler(event, handlerCamUp);
   event.key.keysym.sym = SDLK_e;
-  setHandler(event, new BasicEventHandler(handlerCamDown));
-#endif
+  setHandler(event, handlerCamDown);
+  event.key.keysym.sym = SDLK_r;
+  setHandler(event, handlerCamReset);
 }
 
 Display::~Display()
@@ -495,21 +490,21 @@ void Display::processEvents()
   {
     it_h = handlers_.find(event);
     if( it_h != handlers_.end() )
-      (*it_h).second->process(this, &event);
+      (*it_h).second(this, &event);
   }
 }
 
-void Display::setHandler(const SDL_Event &ev, DisplayEventHandler *h)
+void Display::setHandler(const SDL_Event &ev, Display::EventCallback cb)
 {
-  if( h == NULL ) {
+  if( cb == NULL ) {
     handlers_.erase(ev);
   } else {
-    handlers_.insert( EventHandlerContainer::value_type(ev, h) );
+    handlers_.insert( EventHandlerContainer::value_type(ev, cb) );
   }
 }
 
 
-void Display::handlerQuit(Display *d, const SDL_Event *event)
+void Display::handlerQuit(Display *d, const SDL_Event *)
 {
   d->abort();
 }
@@ -519,7 +514,7 @@ void Display::handlerResize(Display *d, const SDL_Event *event)
   d->resize(event->resize.w, event->resize.h);
 }
 
-void Display::handlerPause(Display *d, const SDL_Event *event)
+void Display::handlerPause(Display *d, const SDL_Event *)
 {
   Physics *ph = d->getPhysics();
   if( ! ph )
@@ -527,141 +522,54 @@ void Display::handlerPause(Display *d, const SDL_Event *event)
   ph->togglePause();
 }
 
-#if 0 //TODO:camera
 void Display::handlerCamMouse(Display *d, const SDL_Event *event)
 {
-  float dx = event->motion.xrel * d->camera_mouse_coef;
-  float dy = event->motion.yrel * d->camera_mouse_coef;
-  if( d->camera_mode_ & CAM_EYE_REL ) {
-    d->camera_eye_.spheric.rotate( dy*d->camera_step_angle,
-                                  -dx*d->camera_step_angle );
-  } else if( d->camera_mode_ & CAM_TARGET_REL ) {
-    d->camera_target_.spheric.rotate( dy*d->camera_step_angle,
-                                     -dx*d->camera_step_angle );
-  }
+  const float move = d->camera_mouse_coef * d->camera_step_angle;
+  btMatrix3x3 m;
+  m.setEulerYPR(0, event->motion.xrel * move, event->motion.yrel * move);
+  d->camera.trans.setBasis( m * d->camera.trans.getBasis() );
 }
 
-void Display::handlerCamAhead(Display *d, const SDL_Event *event)
+void Display::handlerCamAhead(Display *d, const SDL_Event *)
 {
-  if( d->camera_mode_ & CAM_EYE_REL )
-  {
-    d->camera_eye_.spheric.r -= d->camera_step_linear;
-    if( d->camera_eye_.spheric.r < 0 )
-      d->camera_eye_.spheric.r = 0;
-  }
-  else
-  {
-    btSpheric3 dir;
-    if( d->camera_mode_ & CAM_TARGET_FIXED )
-      dir = d->camera_target_.cart - d->camera_eye_.cart;
-    else if( d->camera_mode_ & CAM_TARGET_REL )
-      dir = d->camera_target_.spheric;
-    else if( d->camera_mode_ & CAM_TARGET_OBJECT )
-      dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
-    dir.r = d->camera_step_linear;
-    d->camera_eye_.cart += dir;
-  }
+  d->camera.trans.getOrigin() += btVector3(0,0,-d->camera_step_linear) * d->camera.trans.getBasis();
 }
 
-void Display::handlerCamBack(Display *d, const SDL_Event *event)
+void Display::handlerCamBack(Display *d, const SDL_Event *)
 {
-  if( d->camera_mode_ & CAM_EYE_REL )
-    d->camera_eye_.spheric.r += d->camera_step_linear;
-  else
-  {
-    btSpheric3 dir;
-    if( d->camera_mode_ & CAM_TARGET_FIXED )
-      dir = d->camera_target_.cart - d->camera_eye_.cart;
-    else if( d->camera_mode_ & CAM_TARGET_REL )
-      dir = d->camera_target_.spheric;
-    else if( d->camera_mode_ & CAM_TARGET_OBJECT )
-      dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
-    dir.r = -d->camera_step_linear;
-    d->camera_eye_.cart += dir;
-  }
+  d->camera.trans.getOrigin() += btVector3(0,0,+d->camera_step_linear) * d->camera.trans.getBasis();
 }
 
-void Display::handlerCamLeft(Display *d, const SDL_Event *event)
+void Display::handlerCamLeft(Display *d, const SDL_Event *)
 {
-  if( d->camera_mode_ & CAM_EYE_REL )
-    d->camera_eye_.spheric.phi -= d->camera_step_angle;
-  else
-  {
-    btSpheric3 dir;
-    if( d->camera_mode_ & CAM_TARGET_FIXED )
-      dir = d->camera_target_.cart - d->camera_eye_.cart;
-    else if( d->camera_mode_ & CAM_TARGET_REL )
-      dir = d->camera_target_.spheric;
-    else if( d->camera_mode_ & CAM_TARGET_OBJECT )
-      dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
-    dir.r = d->camera_step_linear;
-    dir.theta = M_PI_2;
-    dir.phi += M_PI_2;
-    d->camera_eye_.cart += dir;
-  }
+  d->camera.trans.getOrigin() += btVector3(-d->camera_step_linear,0,0) * d->camera.trans.getBasis();
 }
 
-void Display::handlerCamRight(Display *d, const SDL_Event *event)
+void Display::handlerCamRight(Display *d, const SDL_Event *)
 {
-  if( d->camera_mode_ & CAM_EYE_REL )
-    d->camera_eye_.spheric.phi += d->camera_step_angle;
-  else
-  {
-    btSpheric3 dir;
-    if( d->camera_mode_ & CAM_TARGET_FIXED )
-      dir = d->camera_target_.cart - d->camera_eye_.cart;
-    else if( d->camera_mode_ & CAM_TARGET_REL )
-      dir = d->camera_target_.spheric;
-    else if( d->camera_mode_ & CAM_TARGET_OBJECT )
-      dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
-    dir.r = -d->camera_step_linear;
-    dir.theta = M_PI_2;
-    dir.phi += M_PI_2;
-    d->camera_eye_.cart += dir;
-  }
+  d->camera.trans.getOrigin() += btVector3(+d->camera_step_linear,0,0) * d->camera.trans.getBasis();
 }
 
-void Display::handlerCamUp(Display *d, const SDL_Event *event)
+void Display::handlerCamUp(Display *d, const SDL_Event *)
 {
-  if( d->camera_mode_ & CAM_EYE_REL )
-    d->camera_eye_.spheric.theta -= d->camera_step_angle;
-  else
-  {
-    btSpheric3 dir;
-    if( d->camera_mode_ & CAM_TARGET_FIXED )
-      dir = d->camera_target_.cart - d->camera_eye_.cart;
-    else if( d->camera_mode_ & CAM_TARGET_REL )
-      dir = d->camera_target_.spheric;
-    else if( d->camera_mode_ & CAM_TARGET_OBJECT )
-      dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
-    dir.r = -d->camera_step_linear;
-    dir.theta -= M_PI_2;
-    d->camera_eye_.cart += dir;
-  }
+  d->camera.trans.getOrigin() += btVector3(0,-d->camera_step_linear,0) * d->camera.trans.getBasis();
 }
 
-void Display::handlerCamDown(Display *d, const SDL_Event *event)
+void Display::handlerCamDown(Display *d, const SDL_Event *)
 {
-  if( d->camera_mode_ & CAM_EYE_REL )
-    d->camera_eye_.spheric.theta += d->camera_step_angle;
-  else
-  {
-    btSpheric3 dir;
-    if( d->camera_mode_ & CAM_TARGET_FIXED )
-      dir = d->camera_target_.cart - d->camera_eye_.cart;
-    else if( d->camera_mode_ & CAM_TARGET_REL )
-      dir = d->camera_target_.spheric;
-    else if( d->camera_mode_ & CAM_TARGET_OBJECT )
-      dir = d->camera_target_.obj->getPos() - d->camera_eye_.cart;
-    dir.r = d->camera_step_linear;
-    dir.theta -= M_PI_2;
-    d->camera_eye_.cart += dir;
-  }
+  d->camera.trans.getOrigin() += btVector3(0,+d->camera_step_linear,0) * d->camera.trans.getBasis();
 }
-#endif
+
+void Display::handlerCamReset(Display *d, const SDL_Event *)
+{
+  d->camera.trans = btScale(btTransform(
+      btQuaternion(0, -M_PI/6, 0),
+      btVector3(0, -2, 3)
+      ));
+}
 
 
-bool DisplayEventHandler::Cmp::operator()(const SDL_Event &a, const SDL_Event &b)
+bool Display::EventCmp::operator()(const SDL_Event &a, const SDL_Event &b)
 {
   if( a.type == b.type )
   {

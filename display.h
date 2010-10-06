@@ -8,6 +8,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <boost/function.hpp>
 #include "smart.h"
 #include "physics.h"
 #include "colors.h"
@@ -16,44 +17,6 @@ class Physics;
 class Object;
 class Display;
 class OSDMessage;
-
-
-/** @brief Event handler interface.
- *
- * Handlers are associated to SDL events. Each input event is checked given
- * handlers.
- *
- * Event type are compared using type and type specific fields (e.g. \e
- * keysym for keyboard events), some fields are not compared (e.g. mouse
- * coordinates for motion events).
- *
- * Their could not have several active handlers matching a same event.
- *
- * @note Key repeat is enabled.
- */
-class DisplayEventHandler: public SmartObject
-{
-public:
-  /** @brief Event comparison function class
-   *
-   * Events are first ordered by type, then by specific fields:
-   *  - keydown/up: <tt>keysym.sym</tt>
-   *  - mouse motion: <tt>state</tt>
-   *  - mouse button: <tt>button</tt>
-   *  - user: <tt>code</tt>
-   *  - others: none
-   */
-  class Cmp
-  {
-  public:
-    bool operator()(const SDL_Event &a, const SDL_Event &b);
-  };
-
-  virtual ~DisplayEventHandler() {}
-
-  typedef void (*Callback)(Display *, const SDL_Event *);
-  virtual void process(Display *d, const SDL_Event *ev) const = 0;
-};
 
 
 /** @brief Display and interface events
@@ -199,7 +162,8 @@ private:
    * If \e obj is not \e NULL the camera referential is the object
    * transformation. Otherwise, the world's referential is used.
    *
-   * The camera is oriented along the negative Z axis (towards the ground).
+   * The camera is oriented along the negative Z axis (towards the ground) with
+   * vertical Y axis and horizontal X axis.
    */
   struct Camera
   {
@@ -224,27 +188,59 @@ private:
 
   //@}
 
-public:
+  /** @name Event handling.
+   *
+   * Handlers are associated to SDL events. Each input event is checked against
+   * given handlers.
+   *
+   * Event type are compared using type and type specific fields (e.g. \e
+   * keysym for keyboard events), some fields are not compared (e.g. mouse
+   * coordinates for motion events).
+   *
+   * Their could not have several active handlers matching a same event.
+   *
+   * @note Key repeat is enabled.
+   */
+  //@{
 
-  /// Process SDL events
+ public:
+
+  /// Event handler callback.
+  typedef boost::function<void (Display *, const SDL_Event *)> EventCallback;
+
+  /// Process SDL events.
   void processEvents();
 
-  /// Add, replace or remove an event handler
-  void setHandler(const SDL_Event &ev, DisplayEventHandler *h);
+  /// Add, replace or remove an event handler.
+  void setHandler(const SDL_Event &ev, EventCallback cb);
 
-private:
-  typedef std::map<SDL_Event, SmartPtr<DisplayEventHandler>,
-          DisplayEventHandler::Cmp> EventHandlerContainer;
+ private:
+  /** @brief Event comparison function class.
+   *
+   * Events are first ordered by type, then by specific fields:
+   *  - keydown/up: <tt>keysym.sym</tt>
+   *  - mouse motion: <tt>state</tt>
+   *  - mouse button: <tt>button</tt>
+   *  - user: <tt>code</tt>
+   *  - others: none
+   */
+  struct EventCmp
+  {
+    bool operator()(const SDL_Event &a, const SDL_Event &b);
+  };
+
+  typedef std::map<SDL_Event, EventCallback, EventCmp> EventHandlerContainer;
   /// Event handlers
   EventHandlerContainer handlers_;
 
-  /** @name Default handlers
+  //@}
+
+  /** @name Default handler methods.
    */
   //@{
   static void handlerQuit    (Display *d, const SDL_Event *event);
   static void handlerResize  (Display *d, const SDL_Event *event);
   static void handlerPause   (Display *d, const SDL_Event *event);
-#if 0  //TODO:camera
   static void handlerCamMouse(Display *d, const SDL_Event *event);
   static void handlerCamAhead(Display *d, const SDL_Event *event);
   static void handlerCamBack (Display *d, const SDL_Event *event);
@@ -252,7 +248,7 @@ private:
   static void handlerCamRight(Display *d, const SDL_Event *event);
   static void handlerCamUp   (Display *d, const SDL_Event *event);
   static void handlerCamDown (Display *d, const SDL_Event *event);
-#endif
+  static void handlerCamReset(Display *d, const SDL_Event *event);
   //@}
 
 
@@ -273,18 +269,6 @@ private:
   std::set< SmartPtr<OSDMessage> > osds_;
 
   //@}
-};
-
-
-/** @brief Basic event handler.
- */
-class BasicEventHandler: public DisplayEventHandler
-{
- public:
-  BasicEventHandler(Callback cb): cb_(cb) {}
-  virtual void process(Display *d, const SDL_Event *ev) const { cb_(d,ev); }
- private:
-  Callback cb_;  /// C++ callback
 };
 
 

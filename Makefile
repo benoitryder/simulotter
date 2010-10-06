@@ -1,6 +1,6 @@
 CXX = g++
 
-CFLAGS = -Wall -Werror -I.
+CFLAGS = -Wall -Wextra -Werror -I.
 # debug info increase compilation significantly, use only when needed
 #CFLAGS += -g
 
@@ -15,9 +15,16 @@ GL_LIBS = -lfreeglut -lopengl32 -lglu32
 LDLIBS += -mconsole -mwindows -static-libgcc -static-libstdc++
 # on Windows, use static libs whenever possible
 LDLIBS += -Wl,-Bstatic $(BULLET_LIBS) -lpng -lz -lm $(GL_LIBS) -Wl,-Bdynamic -lSDL -lwinmm
+#XXX:hack (bullet 2.77)
+CFLAGS += -I/mingw/include/bullet
 else
-GL_LIBS = -lGL -lGLU -lglut
+#XXX fix a segfault on exceptions which occurs on some systems
+# libstdc++ should be linked before libGL
+GL_LIBS = -lstdc++
+GL_LIBS += -lGL -lGLU -lglut
 LDLIBS += $(BULLET_LIBS) -lpng -lz -lm $(GL_LIBS) -lSDL
+#XXX:hack (bullet 2.77)
+CFLAGS += -I/usr/local/include/bullet
 endif
 
 ifeq ($(OS),Windows_NT)

@@ -115,7 +115,8 @@ Display camera --- :class:`Display.Camera`
   If :attr:`obj` is not `None` it is ``obj.trans``. Otherwise, the world's
   referential is used.
 
-  The camera is oriented along the negative Z axis (towards the ground).
+  The camera is oriented along the negative Z axis (towards the ground) with
+  vertical Y axis and horizontal X axis.
 
   .. attribute:: trans
 

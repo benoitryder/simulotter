@@ -16,7 +16,7 @@ SRay::~SRay()
 }
 
 
-void SRay::draw(Display *d) const
+void SRay::draw(Display *) const
 {
   glDisable(GL_LIGHTING);
   glBegin(GL_LINES);

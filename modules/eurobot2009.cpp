@@ -60,7 +60,7 @@ namespace eurobot2009
     o->setPos(pos);
   }
 
-  void ODispenser::draw(Display *d)
+  void ODispenser::draw(Display *)
   {
     glColor4fv(color_);
     glPushMatrix();

@@ -79,6 +79,7 @@ class Match:
       line 2: 0 to 19
     Can be defined as a 3-digit hexadecimal value: 0x<k-q><line1><line2>.
     """
+    #TODO a given random card cannot be drawn twice
 
     if fconf is None:
       conf_kq = _randint(0,19)
