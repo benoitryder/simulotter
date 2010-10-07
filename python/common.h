@@ -7,6 +7,7 @@
 
 // this header is precompiled and thus include some "extra" headers.
 #include <boost/python.hpp>
+#include <boost/python/raw_function.hpp>
 #include "smart.h"
 #include "maths.h"
 #include "log.h"
