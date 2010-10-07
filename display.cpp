@@ -499,7 +499,7 @@ void Display::setHandler(const SDL_Event &ev, Display::EventCallback cb)
   if( cb == NULL ) {
     handlers_.erase(ev);
   } else {
-    handlers_.insert( EventHandlerContainer::value_type(ev, cb) );
+    handlers_[ev] = cb;
   }
 }
 
@@ -532,32 +532,32 @@ void Display::handlerCamMouse(Display *d, const SDL_Event *event)
 
 void Display::handlerCamAhead(Display *d, const SDL_Event *)
 {
-  d->camera.trans.getOrigin() += btVector3(0,0,-d->camera_step_linear) * d->camera.trans.getBasis();
+  d->camera.trans.getOrigin() -= d->camera_step_linear * d->camera.trans.getBasis().getRow(2);
 }
 
 void Display::handlerCamBack(Display *d, const SDL_Event *)
 {
-  d->camera.trans.getOrigin() += btVector3(0,0,+d->camera_step_linear) * d->camera.trans.getBasis();
+  d->camera.trans.getOrigin() += d->camera_step_linear * d->camera.trans.getBasis().getRow(2);
 }
 
 void Display::handlerCamLeft(Display *d, const SDL_Event *)
 {
-  d->camera.trans.getOrigin() += btVector3(-d->camera_step_linear,0,0) * d->camera.trans.getBasis();
+  d->camera.trans.getOrigin() -= d->camera_step_linear * d->camera.trans.getBasis().getRow(0);
 }
 
 void Display::handlerCamRight(Display *d, const SDL_Event *)
 {
-  d->camera.trans.getOrigin() += btVector3(+d->camera_step_linear,0,0) * d->camera.trans.getBasis();
+  d->camera.trans.getOrigin() += d->camera_step_linear * d->camera.trans.getBasis().getRow(0);
 }
 
 void Display::handlerCamUp(Display *d, const SDL_Event *)
 {
-  d->camera.trans.getOrigin() += btVector3(0,-d->camera_step_linear,0) * d->camera.trans.getBasis();
+  d->camera.trans.getOrigin() -= d->camera_step_linear * d->camera.trans.getBasis().getRow(1);
 }
 
 void Display::handlerCamDown(Display *d, const SDL_Event *)
 {
-  d->camera.trans.getOrigin() += btVector3(0,+d->camera_step_linear,0) * d->camera.trans.getBasis();
+  d->camera.trans.getOrigin() += d->camera_step_linear * d->camera.trans.getBasis().getRow(1);
 }
 
 void Display::handlerCamReset(Display *d, const SDL_Event *)
