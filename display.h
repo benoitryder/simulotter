@@ -68,6 +68,8 @@ public:
    * @note It also defines the event handling rate.
    */
   float fps;
+  /// If true, simulation is not stepped in run().
+  bool paused;
 
   Color4 bg_color;
 
@@ -106,6 +108,7 @@ public:
 
   /// Abort a current call to run().
   void abort() const;
+
 
   /// Save a PNG screenshot into a file
   void savePNGScreenshot(const std::string &filename);

@@ -62,10 +62,6 @@ public:
    */
   void scheduleTask(TaskPhysics *task, btScalar time=-1);
 
-  void pause()   { pause_state_ = true;  }
-  void unpause() { pause_state_ = false; }
-  void togglePause() { pause_state_ = !pause_state_; }
-
   btDynamicsWorld *getWorld() { return world_; }
   const btDynamicsWorld *getWorld() const { return world_; }
 
@@ -96,9 +92,6 @@ private:
 
   /// Tick callback called by Bullet.
   static void worldTickCallback(btDynamicsWorld *world, btScalar step);
-
-  /// Simulation pause state
-  bool pause_state_;
 
   /// Simulation time step, must not be modified
   btScalar step_dt_;

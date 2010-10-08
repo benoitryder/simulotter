@@ -32,22 +32,18 @@ static void Display_handler_cb(py::object cb, Display *d, const SDL_Event *event
   switch( event->type ) {
     case SDL_KEYDOWN:
     case SDL_KEYUP:
-      //TODO key values
       py_ev.attr("key") = event->key.keysym.sym;
       py_ev.attr("mod") = event->key.keysym.mod;
       break;
     case SDL_MOUSEMOTION:
       py_ev.attr("state") = event->motion.state;
-      py_ev.attr("x") = event->motion.x;
-      py_ev.attr("y") = event->motion.y;
-      py_ev.attr("xrel") = event->motion.xrel;
-      py_ev.attr("yrel") = event->motion.yrel;
+      py_ev.attr("pos") = py::make_tuple(event->motion.x, event->motion.y);
+      py_ev.attr("rel") = py::make_tuple(event->motion.xrel, event->motion.yrel);
       break;
     case SDL_MOUSEBUTTONDOWN:
     case SDL_MOUSEBUTTONUP:
       py_ev.attr("button") = event->button.button;
-      py_ev.attr("x") = event->motion.x;
-      py_ev.attr("y") = event->motion.y;
+      py_ev.attr("pos") = py::make_tuple(event->button.x, event->button.y);
       break;
     default:
       PyErr_SetString(PyExc_ValueError, "unhandled event type");
@@ -150,6 +146,7 @@ void python_export_display()
       // dynamic configuration
       .def_readwrite("time_scale", &Display::time_scale)
       .def_readwrite("fps", &Display::fps)
+      .def_readwrite("paused", &Display::paused)
       .def_readwrite("bg_color", &Display::bg_color)
       .add_property("camera", py::make_getter(&Display::camera, py::return_internal_reference<>()))
       // statics
@@ -337,7 +334,6 @@ void python_export_display()
     .value("POWER", SDLK_POWER)
     .value("EURO", SDLK_EURO)
     .value("UNDO", SDLK_UNDO)
-    .value("LAST", SDLK_LAST)
     ;
 }
 

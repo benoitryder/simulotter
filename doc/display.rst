@@ -48,6 +48,15 @@ multiple windows.
 
     Save a PNG screenshot to a file.
 
+  .. method:: set_handler(cb, type, \*\*kw)
+
+    Set or remove an event handler.
+    The handler is defined by its *type* and additional type-specific keyword arguments.
+    If *cb* is `None` the current handler (if any) is removed. Otherwise, *cb*
+    must be a callable defined as ``cb(display, event)``.
+
+    See :ref:`display-event-handlers` for details.
+
   .. attribute: physics
 
     :class:`Physics` world to display. Required to start the display.
@@ -68,6 +77,10 @@ multiple windows.
     Framerate in frames per second used by :meth:`run`.
 
     Defaults to 60.
+
+  .. attribute:: paused
+
+    If true, the :attr:`physics` world will not be stepped by :meth:`run`.
 
   .. attribute:: bg_color
 
@@ -140,4 +153,184 @@ Display camera --- :class:`Display.Camera`
 
     Defaults to 0.1m and 300m.
 
+
+.. _display-event-handlers:
+
+Event handlers
+--------------
+
+.. currentmodule:: Display
+
+Event handlers allow to bind actions to input events. They are set using
+:meth:`set_handler`. An event handler callback takes two parameters: the
+:class:`Display` which has triggered the event and event information as a
+:class:`Display.Event` instance.
+
+
+Event types
+~~~~~~~~~~~
+
+Events define a :attr:`type` attribute and type-specific attributes which
+provide additional information. To set an event handler, one must provide its
+type and some specific fields to define events that will match.
+
+Event types and their specific attributes are described below.
+They are defined on :class:`Display` and also on :class:`Display.EventType`.
+
+.. data:: KEYDOWN
+          KEYUP
+
+  A key has been pressed (`KEYDOWN`) or released (`KEYUP`).
+
+  .. note::
+    Key repeat is enabled. Thus, `KEYUP` is recommanded for single
+    actions (e.g. pause, screenshots, ...).
+
+  For :class:`set_handler`, the `key` keyword is required.
+
+  .. attribute:: Event.key
+
+    They pressed/released :ref:`key <display-keys>`.
+
+  .. attribute:: Event.mod
+
+    Current state of :ref:`modified keys <display-keys>`.
+
+.. data:: MOUSEMOTION
+
+  Mouse has been moved.
+
+  For :class:`set_handler`, the `state` keyword is required.
+
+  .. attribute:: Event.state
+
+    :ref:`Mouse button <display-mouse-buttons>` state, as a bit mask.
+
+  .. attribute:: Event.pos
+
+    Mouse coordinates as a ``(x, y)`` tuple.
+
+  .. attribute:: Event.rel
+
+    Relative mouse motion as a ``(x, y)`` tuple.
+
+.. data:: MOUSEBUTTONDOWN
+          MOUSEBUTTONUP
+
+  A mouse button has been pressed (`MOUSEBUTTONDOWN`) or released (`MOUSEBUTTONUP`).
+
+  For :class:`set_handler`, the `button` keyword is required.
+
+  .. attribute:: Event.button
+
+    A :ref:`mouse button <display-mouse-buttons>`.
+
+  .. attribute:: Event.pos
+
+    Mouse coordinates as a ``(x, y)`` tuple.
+
+
+.. _display-keys:
+
+Key values and modifiers
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Key values can be provided to :meth:`set_handler` using attributes defined on
+:class:`Key`, their names (as strings) or single ASCII characters (for the
+associatede key).
+
+.. warning:: On Windows keys are those of the QWERTY US keyboard.
+
+
+:class:`Key` attributes names are similar to `values defined by SDL
+<http://www.libsdl.org/docs/html/sdlkey.html>`_ with minor adjustements
+(``WORLDN`` values removed, ``0`` to ``9`` prefixed by ``DIGIT``). Here is the
+complete list (take a breath):
+
+  `BACKSPACE`, `TAB`, `CLEAR`, `RETURN`, `PAUSE`, `ESCAPE`, `SPACE`,
+  `EXCLAIM`, `QUOTEDBL`, `HASH`, `DOLLAR`, `AMPERSAND`, `QUOTE`, `LEFTPAREN`,
+  `RIGHTPAREN`, `ASTERISK`, `PLUS`, `COMMA`, `MINUS`, `PERIOD`, `SLASH`,
+  `DIGIT0` to `DIGIT9`, `COLON`, `SEMICOLON`, `LESS`, `EQUALS`, `GREATER`,
+  `QUESTION`, `AT`, `LEFTBRACKET`, `BACKSLASH`, `RIGHTBRACKET`, `CARET`,
+  `UNDERSCORE`, `BACKQUOTE`, `a` to `z`,
+  `DELETE`, `KP0` to `KP9` `KP_PERIOD`, `KP_DIVIDE`, `KP_MULTIPLY`, `KP_MINUS`,
+  `KP_PLUS`, `KP_ENTER`, `KP_EQUALS`, `UP`, `DOWN`, `RIGHT`, `LEFT`, `INSERT`,
+  `HOME`, `END`, `PAGEUP`, `PAGEDOWN`, `F1` to `F15` `NUMLOCK`, `CAPSLOCK`,
+  `SCROLLOCK`, `RSHIFT`, `LSHIFT`, `RCTRL`, `LCTRL`, `RALT`, `LALT`, `RMETA`,
+  `LMETA`, `LSUPER`, `RSUPER`, `MODE`, `COMPOSE`, `HELP`, `PRINT`, `SYSREQ`,
+  `BREAK`, `MENU`, `POWER`, `EURO`, `UNDO`
+
+For :attr:`Event.mod` the following modifiers are defined on :class:`KMod`.
+They can be OR'd.
+
+  | `NONE` (no modifier)
+  | `LSHIFT`, `RSHIFT`
+  | `LCTRL`, `RCTRL`
+  | `LALT`, `RALT`
+  | `LMETA`, `RMETA`
+  | `NUM`, `CAPS`, `MODE`
+  | `CTRL` (equal to ``LCTRL|RCTRL``)
+  | `SHIFT` (equal to ``LSHIFT|RSHIFT``)
+  | `ALT` (equal to ``LALT|RALT``)
+  | `META` (equal to ``LMETA|RMETA``)
+
+
+.. _display-mouse-buttons:
+
+Mouse buttons
+~~~~~~~~~~~~~
+
+Mouse buttons are represented as integer values, starting from 1.
+Usually:
+
+- 1 is left button;
+- 2 is middle button;
+- 3 is right button;
+- 4 is mouse wheel up;
+- 5 is mouse wheel down.
+
+For the :const:`MOUSEMOTION` event, :attr:`Event.state` is a bit mask. Bit
+indexes are button values given above. For instance, 0 means no button and
+``0b101`` means both left and right buttons.
+
+
+Default handlers
+~~~~~~~~~~~~~~~~
+
+The following default handlers are defined. They can be overridden using :meth:`set_handler`.
+
+- *escape*: close the display;
+- *WASDQE*: move the camera origin along X/Y/Z axes;
+- *left click + mouse move*: change orientation orientation
+- *R*: reset camera to default
+- *space*: pause the simulation
+
+.. note::
+  Actually, defaults camera moves are mapped to ZQSDAE according to the French
+  AZERTY keyboard. This will have no impact on Windows since keys are detected
+  according to the QWERTY US keyboard.
+
+Examples
+~~~~~~~~
+
+::
+
+  from simulotter import *
+
+  di = Display()
+
+  # save a screenshot with the 'print screen' key
+  di.set_handler(lambda d,ev: d.screenshot("simu.png"), di.KEYUP, key='PRINT')
+
+  # speed up/down the simulation with the mouse wheel
+  def handler_time_scale(d, ev):
+    if ev.button == 4:
+      d.time_scale += 0.5
+    elif ev.button == 5:
+      d.time_scale -= 0.5
+  di.set_handler(handler_time_scale, di.MOUSEBUTTONDOWN, button=4)
+  di.set_handler(handler_time_scale, di.MOUSEBUTTONDOWN, button=5)
+
+  # disable default 'left click + mouse move' handler
+  di.set_handler(None, di.MOUSEMOTION, state=1)
 

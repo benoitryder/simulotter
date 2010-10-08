@@ -11,7 +11,7 @@ btVector3 Physics::world_aabb_max = btScale(btVector3(10,5,2));
 unsigned int Physics::world_objects_max = 300;
 
 
-Physics::Physics(btScalar step_dt): pause_state_(false), step_dt_(0), time_(0)
+Physics::Physics(btScalar step_dt): step_dt_(0), time_(0)
 {
   if( step_dt <= 0 )
     throw(Error("invalid step_dt value"));
@@ -50,9 +50,6 @@ Physics::~Physics()
 
 void Physics::step()
 {
-  if( pause_state_ )
-    return;
-
   //XXX Simulation goes smoother with several 1-substep calls than with 1
   // several-substep-call. Yes, it's a bit strange.
   world_->stepSimulation(step_dt_, 0, step_dt_);

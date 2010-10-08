@@ -18,6 +18,7 @@ unsigned int Display::antialias = 0;
 
 Display::Display():
     time_scale(1.0), fps(60.0),
+    paused(false),
     bg_color(Color4(0.8)),
     camera_step_angle(0.1),
     camera_step_linear(btScale(0.1)),
@@ -241,7 +242,9 @@ void Display::run()
     for(;;) {
       time = SDL_GetTicks();
       if( time >= time_step ) {
-        physics_->step();
+        if( ! this->paused ) {
+          physics_->step();
+        }
         time_step += (unsigned long)(step_dt * this->time_scale);
       }
       if( time >= time_disp ) {
@@ -516,10 +519,7 @@ void Display::handlerResize(Display *d, const SDL_Event *event)
 
 void Display::handlerPause(Display *d, const SDL_Event *)
 {
-  Physics *ph = d->getPhysics();
-  if( ! ph )
-    throw(Error("no physics attached to display"));
-  ph->togglePause();
+  d->paused = !d->paused;
 }
 
 void Display::handlerCamMouse(Display *d, const SDL_Event *event)
