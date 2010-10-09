@@ -10,6 +10,7 @@ from eurobot import RAL as _RAL
 import _simulotter as _so
 from _simulotter import vec2 as _vec2, vec3 as _vec3
 from random import randint as _randint
+import math as _math
 
 
 team_colors = (_RAL[3020], _RAL[5017])
@@ -32,10 +33,11 @@ class OPawn(_so.OSimple):
 
 
 class OKing(OPawn):
-  _sh_figure = _so.ShConeZ(0.08, 0.18)
+  _sh_cross_bar = _so.ShBox(_vec3(0.06,0.02,0.02))
   _shape = _so.ShCompound((
       (OPawn._shape, _so.trans()),
-      (_sh_figure, _so.trans(_vec3(z=0.18/2)))
+      (_sh_cross_bar, _so.trans(_vec3(z=0.06+0.05/2))),
+      (_sh_cross_bar, _so.trans(_so.matrix3(pitch=_math.pi/2), _vec3(z=0.06+0.05/2))),
       ))
   _mass = 0.5  # 300g to 700g
 
