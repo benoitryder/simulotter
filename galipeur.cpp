@@ -223,34 +223,36 @@ void Galipeur::draw(Display *d)
 
 void Galipeur::asserv()
 {
-  if( stopped() )
-    return;
-
   if( physics_ == NULL )
     throw(Error("Galipeur is not in a world"));
 
   const btScalar dt = physics_->getTime() - ramp_last_t_;
-  if( dt == 0 )
+  if( dt == 0 ) {
     return; // ramp start, wait for the next step
+  }
 
   // position
-  btVector2 dxy = (*ckpt_) - btVector2(getPos());
-  if( !lastCheckpoint() && dxy.length() < threshold_steering_ ) {
-    ++ckpt_; // checkpoint change
-    dxy = (*ckpt_) - btVector2(getPos());
+  if( ! order_xy_done() ) {
+    btVector2 dxy = (*ckpt_) - btVector2(getPos());
+    if( !lastCheckpoint() && dxy.length() < threshold_steering_ ) {
+      ++ckpt_; // checkpoint change
+      dxy = (*ckpt_) - btVector2(getPos());
+    }
+    if( lastCheckpoint() ) {
+      ramp_xy_.var_dec = va_stop_;
+      ramp_xy_.var_v0 = v_stop_;
+    } else {
+      ramp_xy_.var_dec = va_steering_;
+      ramp_xy_.var_v0 = v_steering_;
+    }
+    set_v( dxy.normalized() * ramp_xy_.step(dt, dxy.length()) );
   }
-  if( lastCheckpoint() ) {
-    ramp_xy_.var_dec = va_stop_;
-    ramp_xy_.var_v0 = v_stop_;
-  } else {
-    ramp_xy_.var_dec = va_steering_;
-    ramp_xy_.var_v0 = v_steering_;
-  }
-  set_v( dxy.normalized() * ramp_xy_.step(dt, dxy.length()) );
 
   // angle
-  const btScalar da = btNormalizeAngle( target_a_-getAngle() );
-  set_av( ramp_a_.step(dt, da) );
+  if( ! order_a_done() ) {
+    const btScalar da = btNormalizeAngle( target_a_-getAngle() );
+    set_av( ramp_a_.step(dt, da) );
+  }
 }
 
 

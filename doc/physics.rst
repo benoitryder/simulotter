@@ -29,6 +29,15 @@ simulated and displayed independently.
     Advance the simulation of one step. :attr:`time` will be increased by the
     value of :attr:`step_dt`.
 
+  .. method:: schedule(task, time=None)
+  .. method:: schedule(cb, period=None, time=None)
+
+    Schedule a :class:`Task` at a given time and return it. If *time* is None
+    or a time is the past, task will be executed at the next step.
+
+    The second form create a new task with given *cb* and *period*.
+    It is equivalent to ``schedule(Task(cb, period), time)``.
+
 
 Class attributes affect elements related to physical worlds, including
 configuration of created worlds. These values should be modified at startup if
@@ -59,6 +68,57 @@ needed.
   Used for instance when setting :attr:`OSimple.pos` to a :class:`vec2` to put an object above the ground.
 
   Defaults to 0.001.
+
+
+Scheduling actions
+~~~~~~~~~~~~~~~~~~
+
+:class:`Physics.Task` allow to schedule actions at given simulation times (given by
+:attr:`Physics.time`). They are set using :meth:`Physics.schedule`.
+
+One of the main use is the scheduling of asserv steps and orders for
+:ref:`robots <robots>`::
+
+  from simulotter import *
+
+  ph = Physics()
+  robot = Galipeur(4)
+  robot.addToWorld(ph)
+
+  # execute the asserv step every 100ms
+  task_asserv = ph.schedule(lambda ph: robot.asserv(), period=0.1)
+
+  # robot strategy (orders, ...), defined as a generator
+  def strategy():
+    ... first order ...
+    while not robot.is_waiting():
+      yield
+    ... second order ...
+    while not robot.is_waiting():
+      yield
+    # end: stop the robot
+    robot.order_stop()
+    task_asserv.cancel()
+
+  # the strategy will be executed every 500ms, starting at 1s
+  print ph.schedule(strategy(), period=0.5, time=1)
+
+
+.. class:: Physics.Task(cb, period=None)
+           Physics.Task(it, period=None)
+
+  Return a new task which will be executed periodically at given period or once
+  if *period* is `None` or 0.
+
+  When using the first form, *cb* must be defined as ``cb(physics)``.
+  
+  When using the second second form, *it* is an iterable. When executed the
+  task iterates *it*. When there are no further items, the task is cancelled.
+  The iterator form is especially useful with generators.
+
+  .. method:: cancel()
+
+    Cancel the task. It will not be executed anymore.
 
 
 Simulated objects

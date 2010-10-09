@@ -62,7 +62,6 @@ public:
 
   void order_trajectory(const CheckPoints &pts);
 
-  bool stopped() const { return checkpoints_.empty(); }
   /// Return \e true if position target has been reached.
   inline bool order_xy_done() const;
   /// Return \e true if angle target has been reached.
@@ -178,7 +177,7 @@ private:
 
 bool Galipeur::order_xy_done() const
 {
-  if( stopped() )
+  if( checkpoints_.empty() )
     return true;
   if( !lastCheckpoint() )
     return false;
@@ -187,8 +186,6 @@ bool Galipeur::order_xy_done() const
 
 bool Galipeur::order_a_done() const
 {
-  if( stopped() )
-    return true;
   return btFabs(btNormalizeAngle( target_a_-getAngle() )) < threshold_a_;
 }
 

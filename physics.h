@@ -6,6 +6,7 @@
 #include <set>
 #include <queue>
 #include <vector>
+#include <boost/function.hpp>
 #include "smart.h"
 
 class Object;
@@ -131,7 +132,7 @@ public:
   /// Cancel the task
   void cancel() { cancelled_ = true; }
 
-  typedef void (*Callback)(Physics *ph);
+  typedef boost::function<void (Physics *)> Callback;
   void setCallback(Callback cb) { callback_ = cb; }
 
 protected:
