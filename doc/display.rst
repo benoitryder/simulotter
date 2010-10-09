@@ -299,8 +299,8 @@ Default handlers
 
 The following default handlers are defined. They can be overridden using :meth:`set_handler`.
 
-- *escape*: close the display;
-- *WASDQE*: move the camera origin along X/Y/Z axes;
+- *escape*: close the display
+- *WASDQE*: move the camera origin along X/Y/Z axes
 - *left click + mouse move*: change orientation orientation
 - *R*: reset camera to default
 - *space*: pause the simulation

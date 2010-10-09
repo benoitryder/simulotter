@@ -8,5 +8,6 @@ SimulOtter
   maths
   physics
   display
+  robots
   misc
 

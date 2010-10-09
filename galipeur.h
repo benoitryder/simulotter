@@ -68,7 +68,7 @@ public:
   /// Return \e true if angle target has been reached.
   inline bool order_a_done() const;
   inline bool is_waiting() const { return order_xy_done() && order_a_done(); }
-  /// Return the current checkpoint zero-based index.
+  /// Return the current zero-based checkpoint index.
   inline size_t current_checkpoint() const { return ckpt_ - checkpoints_.begin(); }
 
   btScalar test_sensor(unsigned int i) const;

@@ -10,6 +10,11 @@ immutable and iterable.
 
 Each color component is stored as a float value, clamped to the range [0,1]. For the alpha component, 1 is fully opaque and 0 is fully transparent.
 
+.. note::
+  The alpha channel is not properly processed yet. Since objects are not drawn
+  in the right order, transparence rendering may not be what could be expected.
+
+
 .. class:: Color(r=0.0, g=0.0, b=0.0, a=1.0)
            Color(r=0, g=0, b=0, a=255)
            Color(gray)
