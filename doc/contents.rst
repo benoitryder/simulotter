@@ -9,5 +9,6 @@ SimulOtter
   physics
   display
   robots
+  eurobot
   misc
 

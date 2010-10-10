@@ -23,7 +23,7 @@ def beacon_pos(team, y):
   x = team == 1 and -1 or 1
   return _vec3(
       (y==0 and x or -x) * TABLE_SIZE.x/2 + WALL_WIDTH,
-      y * TABLE_SIZE.y/2 + WALL_HEIGHT,
+      y * TABLE_SIZE.y/2 + WALL_WIDTH,
       0.350
       )
 
@@ -43,4 +43,28 @@ RAL = {
     6024: _Color(0x24,0x91,0x40),
     }
 del _Color
+
+TEAM_COLORS = (None, None)
+
+
+class Match:
+  """
+  Gather match data.
+
+  Attributes:
+    physics -- Physics instance
+    conf -- field configuration
+
+  """
+
+  def __init__(self, ph=None):
+    if ph is None:
+      ph = _so.Physics()
+    self.physics = ph
+    self.conf = None
+
+  def prepare(self, fconf=None):
+    """Add game elements."""
+    raise NotImplemented
+
 

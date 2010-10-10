@@ -14,7 +14,7 @@ namespace eurobot2011
 class OGround2011: public OGround
 {
  public:
-  static const btScalar CASE_SIZE;
+  static const btScalar SQUARE_SIZE;
   static const btScalar START_SIZE;
 
   OGround2011();

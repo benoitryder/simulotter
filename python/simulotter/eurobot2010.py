@@ -4,19 +4,16 @@ Eurobot 2010: Feed the World.
 """
 
 from _simulotter._eurobot2010 import *
-from eurobot import TABLE_SIZE, WALL_WIDTH, WALL_HEIGHT, beacon_pos
-from eurobot import RAL as _RAL
-
 import _simulotter as _so
-from _simulotter import vec2 as _vec2, vec3 as _vec3
+import eurobot as _eb
 import math as _math
-from random import randint as _randint
 
-from _simulotter import Galipeur
+from _simulotter import vec2 as _vec2, vec3 as _vec3
+from eurobot import TABLE_SIZE, WALL_WIDTH, WALL_HEIGHT, beacon_pos
 
 
 # team colors
-team_colors = (_RAL[5005], _RAL[1023])
+TEAM_COLORS = (_eb.RAL[5005], _eb.RAL[1023])
 
 # field contants
 FIELD_POS_DXY = _vec2(0.450, 0.250)
@@ -68,13 +65,13 @@ FAKES_FPOS_CENTER = tuple( frozenset(_vec2(*x) for x in l) for l in FAKES_FPOS_C
 
 class OGround(_so.OGround):
   def __init__(self):
-    _so.OGround.__init__(self, _RAL[6018], *team_colors)
+    _so.OGround.__init__(self, _eb.RAL[6018], *TEAM_COLORS)
 
 
 class OBranch(_so.OSimple):
 
-  HEIGHT = 0.25
-  _shape = _so.ShCylinderZ(_vec3(0.025, 0.025, HEIGHT/2))
+  _HEIGHT = 0.25
+  _shape = _so.ShCylinderZ(_vec3(0.025, 0.025, _HEIGHT/2))
 
   def __init__(self, h):
     _so.OSimple.__init__(self)
@@ -88,15 +85,13 @@ class OBranch(_so.OSimple):
     o = OOrange()
     o.mass = 0  #XXX oranges not simulated
     o.addToWorld(self.physics)
-    #XXX references
-    p = self.pos
-    o.pos = _vec3(p.x, p.y,
-        ORaisedZone.HEIGHT+self.h+0.050*_math.cos(_math.asin(0.025/0.050)))
+    z = ORaisedZone.HEIGHT+self.h+0.050*_math.cos(_math.asin(0.025/0.050))
+    o.pos = _vec3(self.pos.x, self.pos.y, z)
     return o
 
   @classmethod
   def branchPos(cls, x, y, h):
-    """Compute position of a given branch from a given tree.
+    """Compute position of a given branch for a given tree.
     x and y are -1 or 1 and give tree position.
     """
     assert x in (1,-1) and y in (-1,1), "invalid tree position"
@@ -107,7 +102,7 @@ class OBranch(_so.OSimple):
     return _vec3(
         x * (0.500/2-0.080-0.055 + dx),
         y0 + dy + TABLE_SIZE.y/2-0.250,
-        ORaisedZone.HEIGHT-cls.HEIGHT/2+h
+        ORaisedZone.HEIGHT-cls._HEIGHT/2+h
         )
 
 
@@ -150,7 +145,7 @@ class Bac:
 
     ob = _so.OSimple(self.sh_band)
     ob.pos = _vec3(0,0, WALL_HEIGHT/2) + xy0
-    ob.color = team_colors[self.team]
+    ob.color = TEAM_COLORS[self.team]
 
     op = _so.OSimple(self.sh_plexi)
     op.pos = _vec3(0,0, -self.HEIGHT/2) + xy0
@@ -161,7 +156,7 @@ class Bac:
 
   def contains(self, o):
     """Return True if the object is in the bac.
-    Test is based on object's center position.
+    Test is based on object's center of mass position.
     """
     d = abs(o.pos - self.plexi.pos)
     return d.x < self.SIZE.x and d.y < self.SIZE.y and d.z < self.HEIGHT
@@ -176,45 +171,44 @@ class Bac:
 
 
 
-class Match:
+class Match(_eb.Match):
   """
   Gather match data.
 
   Attributes:
-    physics -- Physics instance
     tomatoes, corns, oranges -- lists of game objects
     bacs -- created bacs (one per team)
-    conf_side, conf_center -- field configuration
     ground -- OGround instance
+
+  Field configuration:
+    side: 0 to 8
+    center: 0 to 3
 
   """
 
-  def __init__(self, ph=None):
-    if ph is None:
-      ph = _so.Physics()
-    self.physics = ph
+  class Conf:
+    def __init__(self, side, center):
+      assert 0 <= side <= 8
+      assert 0 <= center <= 3
+      self.side, self.center = side, center
+
+    @classmethod
+    def random(cls):
+      import random
+      return cls(random.randint(0,8), random.randint(0,3))
+
+  def __init__(self, *args):
+    _eb.Match.__init__(self, *args)
     self.tomatoes = []
     self.corns = []
     self.oranges = []
     self.bacs = []
 
-  def start(self, fconf=None):
-    """Add game elements.
-
-    Field configuration:
-      lateral: 0 to 8
-      central: (0 to 3) * 16
-    Can be defined as 2-digit hexadecimal value: 0x<side><center>.
-    """
+  def prepare(self, fconf=None):
     if fconf is None:
-      conf_side = _randint(0,8)
-      conf_center = _randint(0,3)
+      self.conf = self.Conf.random()
     else:
-      cond_side, conf_center = self.extractConf(fconf)
-      if not 0 <= conf_side <= 8 or not 0 <= conf_center <= 3:
-        raise ValueError("invalid field configuration")
-
-    self.conf_side, self.conf_center = conf_side, conf_center
+      self.conf = self.Conf(*fconf)
 
     ph = self.physics
 
@@ -227,7 +221,7 @@ class Match:
     o.addToWorld(ph)
 
     # Walls (N, E, W, S)
-    color = _RAL[9017]
+    color = _eb.RAL[9017]
     sh = _so.ShBox(_vec3(TABLE_SIZE.x+WALL_WIDTH, WALL_WIDTH, WALL_HEIGHT)/2)
     o = _so.OSimple(sh)
     o.addToWorld(ph)
@@ -261,7 +255,7 @@ class Match:
       self.addTomato(v)
 
     # Corns
-    fakes = FAKES_FPOS_CENTER[conf_center] | FAKES_FPOS_SIDE[conf_side]
+    fakes = FAKES_FPOS_CENTER[self.conf.center] | FAKES_FPOS_SIDE[self.conf.side]
     for v in CORNS_FPOS:
       self.addCorn(v, v in fakes)
 
@@ -286,11 +280,6 @@ class Match:
         return b.team
     return False
 
-
-  @classmethod
-  def extractConf(cls, fconf):
-    """Get lateral/central random index from field configuration."""
-    return fconf % 16, fconf // 16
 
   def addTree(self, x, y):
     """Add a tree (3 branches and their oranges).

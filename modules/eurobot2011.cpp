@@ -6,7 +6,7 @@
 namespace eurobot2011
 {
 
-const btScalar OGround2011::CASE_SIZE = btScale(0.350);
+const btScalar OGround2011::SQUARE_SIZE = btScale(0.350);
 const btScalar OGround2011::START_SIZE = btScale(0.400);
 
 OGround2011::OGround2011():
@@ -34,9 +34,9 @@ void OGround2011::draw(Display *d)
     btglNormal3(0.0, 0.0, 1.0);
 
     btglTranslate(0, 0, Display::draw_epsilon);
-    btglScale(CASE_SIZE, CASE_SIZE, 1);
+    btglScale(SQUARE_SIZE, SQUARE_SIZE, 1);
 
-    // 6 lines, 6 columns, 1 case out of 2 (for each color)
+    // 6 lines, 6 columns, 1 square out of 2 (for each color)
     int i, j;
 
     glColor4fv(color_t1_);
@@ -71,18 +71,18 @@ void OGround2011::draw(Display *d)
     glColor4fv(Color4(0x14,0x17,0x1c)); // RAL 9017
     for( i=0;; ) { // two steps (x>0 then x<0)
       // vertical side lines
-      btglRect(3*CASE_SIZE, SIZE[1]/2, 3*CASE_SIZE+btScale(0.05), -SIZE[1]/2);
+      btglRect(3*SQUARE_SIZE, SIZE[1]/2, 3*SQUARE_SIZE+btScale(0.05), -SIZE[1]/2);
       // secured zone, top
-      btglRect(3*CASE_SIZE, -2*CASE_SIZE, 1*CASE_SIZE, -2*CASE_SIZE-btScale(0.02));
+      btglRect(3*SQUARE_SIZE, -2*SQUARE_SIZE, 1*SQUARE_SIZE, -2*SQUARE_SIZE-btScale(0.02));
       // secured zone, right
-      btglRect(1*CASE_SIZE, -2*CASE_SIZE, 1*CASE_SIZE+btScale(0.02), -3*CASE_SIZE);
+      btglRect(1*SQUARE_SIZE, -2*SQUARE_SIZE, 1*SQUARE_SIZE+btScale(0.02), -3*SQUARE_SIZE);
       // bonus positions (from bottom to top)
       glPushMatrix();
-      btglTranslate(0.5*CASE_SIZE, -2.5*CASE_SIZE, 0);
+      btglTranslate(0.5*SQUARE_SIZE, -2.5*SQUARE_SIZE, 0);
       gluDisk(quadric, 0, btScale(0.1/2), Display::draw_div, Display::draw_div);
-      btglTranslate(1*CASE_SIZE, 2*CASE_SIZE, 0);
+      btglTranslate(1*SQUARE_SIZE, 2*SQUARE_SIZE, 0);
       gluDisk(quadric, 0, btScale(0.1/2), Display::draw_div, Display::draw_div);
-      btglTranslate(0, 2*CASE_SIZE, 0);
+      btglTranslate(0, 2*SQUARE_SIZE, 0);
       gluDisk(quadric, 0, btScale(0.1/2), Display::draw_div, Display::draw_div);
       glPopMatrix();
 

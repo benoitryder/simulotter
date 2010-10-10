@@ -332,7 +332,6 @@ namespace eurobot2009
   void Galipeur2009::order_pachev_move(btScalar h)
   {
     target_pachev_pos_ = CLAMP(h,0,Galipeur2009::Pachev::Z_MAX);
-    LOG("PACHEV MOVE  %f (%f)", target_pachev_pos_, h);
 
     pachev_link_->setLowerLinLimit( 1 );
     pachev_link_->setUpperLinLimit( 0 );
@@ -345,14 +344,12 @@ namespace eurobot2009
 
   void Galipeur2009::order_pachev_release()
   {
-    LOG("PACHEV RELEASE");
     releaseObjects();
     pachev_state_ = PACHEV_RELEASE;
   }
 
   void Galipeur2009::order_pachev_grab()
   {
-    LOG("PACHEV GRAB");
     pachev_state_ = PACHEV_GRAB;
   }
 
@@ -361,7 +358,6 @@ namespace eurobot2009
     if( pachev_state_ != PACHEV_RELEASE )
       order_pachev_release();
 
-    LOG("PACHEV EJECT");
     pachev_state_ = PACHEV_EJECT;
   }
 

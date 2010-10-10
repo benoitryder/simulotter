@@ -4,21 +4,19 @@ Eurobot 2011: Chess'Up!
 """
 
 from _simulotter._eurobot2011 import *
-from eurobot import TABLE_SIZE, WALL_WIDTH, WALL_HEIGHT
-from eurobot import RAL as _RAL
-
 import _simulotter as _so
-from _simulotter import vec2 as _vec2, vec3 as _vec3
-from random import randint as _randint
+import eurobot as _eb
 import math as _math
 
+from _simulotter import vec2 as _vec2, vec3 as _vec3
+from eurobot import TABLE_SIZE, WALL_WIDTH, WALL_HEIGHT
+
 def beacon_pos(team, y):
-  from eurobot import beacon_pos as _beacon_pos
-  return _beacon_pos(1-team, y)  # swap team
+  return _eb.beacon_pos(1-team, y)  # swap team
 
-team_colors = (_RAL[3020], _RAL[5017])
+TEAM_COLORS = (_eb.RAL[3020], _eb.RAL[5017])
 
-CASE_SIZE = OGround.CASE_SIZE
+SQUARE_SIZE = OGround.SQUARE_SIZE
 
 
 # Random configurations values.
@@ -32,7 +30,7 @@ class OPawn(_so.OSimple):
 
   def __init__(self):
     _so.OSimple.__init__(self, self._shape, self._mass)
-    self.color = _RAL[1023]
+    self.color = _eb.RAL[1023]
 
 
 class OKing(OPawn):
@@ -54,46 +52,44 @@ class OQueen(OPawn):
 
 
 
-class Match:
+class Match(_eb.Match):
   """
   Gather match data.
 
   Attributes:
-    physics -- Physics instance
-    conf_kq -- random positions of king and queen
-    conf_l1 -- random positions on lines 1
-    conf_l2 -- random positions on lines 2
     pawns -- list of pawns
     kings -- pair of kings
     queens -- pair of queens
     ground -- OGround instance
 
+  Field configuration
+    kingqueen: 0 to 19
+    line1: 0 to 19
+    line2: 0 to 19
+
   """
 
-  def __init__(self, ph=None):
-    if ph is None:
-      ph = _so.Physics()
-    self.physics = ph
+  class Conf:
+    def __init__(self, kq, l1, l2):
+      l = [kq,l1,l2]
+      assert len(set(l)) == 3  # no duplicates
+      for x in l:
+        assert 0 <= x <= 19
+      self.kingqueen, self.line1, self.line2 = kq, l1, l2
 
-  def start(self, fconf=None):
-    """Add game elements.
+    @classmethod
+    def random(cls):
+      import random
+      cards = range(20)
+      random.shuffle(cards)
+      return cls(*cards[0:3])
 
-    Field configuration:
-      king and queen: 0 to 19
-      line 1: 0 to 19
-      line 2: 0 to 19
-    Can be defined as a 3-digit hexadecimal value: 0x<k-q><line1><line2>.
-    """
-    #TODO a given random card cannot be drawn twice
 
+  def prepare(self, fconf=None):
     if fconf is None:
-      conf_kq = _randint(0,19)
-      conf_l1 = _randint(0,19)
-      conf_l2 = _randint(0,19)
+      self.conf = self.Conf.random()
     else:
-      conf_kq, conf_l1, conf_l2 = self.extractConf(fconf)
-
-    self.conf_kq, self.conf_l1, self.conf_l2 = conf_kq, conf_l1, conf_l2
+      self.conf = self.Conf(*fconf)
 
     ph = self.physics
 
@@ -103,7 +99,7 @@ class Match:
     self.ground = ground
 
     # Walls (N, S, E, W)
-    color = _RAL[9017]
+    color = _eb.RAL[9017]
     sh = _so.ShBox(_vec3(TABLE_SIZE.x+WALL_WIDTH, WALL_WIDTH, WALL_HEIGHT)/2)
     o = _so.OSimple(sh)
     o.addToWorld(ph)
@@ -131,45 +127,45 @@ class Match:
     o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(-TABLE_SIZE.x+ground.start_size, TABLE_SIZE.y-WALL_WIDTH-2*ground.start_size, WALL_HEIGHT)/2
-    o.color = team_colors[0]
+    o.color = TEAM_COLORS[0]
     o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(TABLE_SIZE.x-ground.start_size, TABLE_SIZE.y-WALL_WIDTH-2*ground.start_size, WALL_HEIGHT)/2
-    o.color = team_colors[1]
+    o.color = TEAM_COLORS[1]
 
-    # Secured zones, borders (centered on surrounded cases)
+    # Secured zones, borders (centered on surrounded squares)
     sh_wall = _so.ShBox(_vec3(WALL_WIDTH, 0.150, WALL_HEIGHT)/2)
     sh_block = _so.ShBox(_vec3(0.700, 0.120, WALL_HEIGHT)/2)
     sh = _so.ShCompound((
-      (sh_wall,  _so.trans(_vec2(-CASE_SIZE+WALL_WIDTH/2))),
-      (sh_wall,  _so.trans(_vec2( CASE_SIZE-WALL_WIDTH/2))),
-      (sh_block, _so.trans(_vec2(0, (-CASE_SIZE+0.120)/2))),
+      (sh_wall,  _so.trans(_vec2(-SQUARE_SIZE+WALL_WIDTH/2))),
+      (sh_wall,  _so.trans(_vec2( SQUARE_SIZE-WALL_WIDTH/2))),
+      (sh_block, _so.trans(_vec2(0, (-SQUARE_SIZE+0.120)/2))),
       ))
     o = _so.OSimple(sh)
     o.addToWorld(ph)
-    o.pos = _vec3(-2*CASE_SIZE, -2.5*CASE_SIZE, WALL_HEIGHT/2)
+    o.pos = _vec3(-2*SQUARE_SIZE, -2.5*SQUARE_SIZE, WALL_HEIGHT/2)
     o.color = color
     o = _so.OSimple(sh)
     o.addToWorld(ph)
-    o.pos = _vec3(2*CASE_SIZE, -2.5*CASE_SIZE, WALL_HEIGHT/2)
+    o.pos = _vec3(2*SQUARE_SIZE, -2.5*SQUARE_SIZE, WALL_HEIGHT/2)
     o.color = color
 
 
     # Pawns on the field
 
     self.pawns = [ self.addPiece(0,0) ]
-    for j in RANDOM_POS[self.conf_l1]:
-      y = (j-2)*CASE_SIZE
-      self.pawns.append( self.addPiece(-2*CASE_SIZE,y) )
-      self.pawns.append( self.addPiece( 2*CASE_SIZE,y) )
-    for j in RANDOM_POS[self.conf_l2]:
-      y = (j-2)*CASE_SIZE
-      self.pawns.append( self.addPiece(-1*CASE_SIZE,y) )
-      self.pawns.append( self.addPiece( 1*CASE_SIZE,y) )
+    for j in RANDOM_POS[self.conf.line1]:
+      y = (j-2)*SQUARE_SIZE
+      self.pawns.append( self.addPiece(-2*SQUARE_SIZE,y) )
+      self.pawns.append( self.addPiece( 2*SQUARE_SIZE,y) )
+    for j in RANDOM_POS[self.conf.line2]:
+      y = (j-2)*SQUARE_SIZE
+      self.pawns.append( self.addPiece(-1*SQUARE_SIZE,y) )
+      self.pawns.append( self.addPiece( 1*SQUARE_SIZE,y) )
 
     # Pieces in dispensing zones
 
-    pos_king, pos_queen = RANDOM_POS[self.conf_kq]
+    pos_king, pos_queen = RANDOM_POS[self.conf.kingqueen]
     x = (TABLE_SIZE.x - ground.start_size)/2
     for j in range(5):
       y = -TABLE_SIZE.y/2 + (5-j)*(TABLE_SIZE.y-ground.start_size-WALL_WIDTH)/6
@@ -180,12 +176,6 @@ class Match:
       else:
         self.pawns.append( self.addPiece(-x,y) )
         self.pawns.append( self.addPiece( x,y) )
-
-
-  @classmethod
-  def extractConf(cls, fconf):
-    """Get configuration random indexes from field configuration."""
-    return fconf&0xf, (fconf>>4)&0xf, (fconf>>8)&0xf
 
 
   def addPiece(self, x, y, cls=OPawn):

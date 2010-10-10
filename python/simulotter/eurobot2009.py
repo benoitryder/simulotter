@@ -4,15 +4,14 @@ Eurobot 2009: Temples of Atlantis.
 """
 
 from _simulotter._eurobot2009 import *
-from eurobot import TABLE_SIZE, WALL_WIDTH, WALL_HEIGHT, beacon_pos
-from eurobot import RAL as _RAL
-
 import _simulotter as _so
+import eurobot as _eb
+
 from _simulotter import vec2 as _vec2, vec3 as _vec3
-from random import randint as _randint
+from eurobot import TABLE_SIZE, WALL_WIDTH, WALL_HEIGHT, beacon_pos
 
 
-team_colors = (_RAL[6018], _RAL[3020])
+TEAM_COLORS = (_eb.RAL[6018], _eb.RAL[3020])
 
 # field contants
 COL_SPACE_XY = _vec2(0.250, 0.200)
@@ -27,42 +26,38 @@ COL_POS = (
 
 class OGround(_so.OGround):
   def __init__(self):
-    _so.OGround.__init__(self, _RAL[5015], *team_colors)
+    _so.OGround.__init__(self, _eb.RAL[5015], *TEAM_COLORS)
 
 
-class Match:
+class Match(_eb.Match):
   """
   Gather match data.
 
   Attributes:
-    physics -- Physics instance
-    conf_col, conf_disp -- field configuration
     ground -- OGround instance
+
+  Field configuration
+    col: 0 to 9
+    disp: 0 or 1
 
   """
 
-  def __init__(self, ph=None):
-    if ph is None:
-      ph = _so.Physics()
-    self.physics = ph
+  class Conf:
+    def __init__(self, col, disp):
+      assert 0 <= col <= 9
+      assert disp in (0,1)
+      self.col, self.disp = col, disp
 
-  def start(self, fconf=None):
-    """Add game elements.
+    @classmethod
+    def random(cls):
+      import random
+      return cls(random.randint(0,9), random.randint(0,1))
 
-    Field configuration:
-      columns: 0 to 9
-      dispensers: (0 to 1) * 16
-    Can be defined as 2-digit hexadecimal value: 0x<disp><col>.
-    """
+  def prepare(self, fconf=None):
     if fconf is None:
-      conf_col = _randint(0,9)
-      conf_disp = _randint(0,1)
+      self.conf = self.Conf.random()
     else:
-      cond_col, conf_disp = self.extractConf(fconf)
-      if not 0 <= conf_col <= 9 or not 0 <= conf_disp <= 1:
-        raise ValueError("invalid field configuration")
-
-    self.conf_col, self.conf_disp = conf_col, conf_disp
+      self.conf = self.Conf(*fconf)
 
     ph = self.physics
 
@@ -118,40 +113,40 @@ class Match:
     o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, 0.050-TABLE_SIZE.y/2, ph.margin_epsilon)
-    o.color = _RAL[8017]
+    o.color = _eb.RAL[8017]
 
     sh = _so.ShBox(_vec3(0.600, 0.100, 0.030)/2)
     o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, 0.050-TABLE_SIZE.y/2, 0.015)
-    o.color = _RAL[8017]
+    o.color = _eb.RAL[8017]
 
     sh = _so.ShCylinderZ(_vec3(0.150, 0.150, 0.060/2))
     o = _so.OSimple(sh)
     o.addToWorld(ph)
     o.pos = _vec3(0, 0, 0.030)
-    o.color = _RAL[8017]
+    o.color = _eb.RAL[8017]
 
 
     # Random column elements
-    for j in COL_POS[conf_col]:
+    for j in COL_POS[self.conf.col]:
       # first team
       o = OColElem()
       o.addToWorld(ph)
-      o.color = team_colors[0]
+      o.color = TEAM_COLORS[0]
       o.pos = COL_SPACE_XY * _vec2(j%3-2, 3-j//3) - COL_OFFSET_XY
       o = OColElem()
       o.addToWorld(ph)
-      o.color = team_colors[0]
+      o.color = TEAM_COLORS[0]
       o.pos = COL_SPACE_XY * _vec2(j%3-2,   j//3) - COL_OFFSET_XY
       # second team
       o = OColElem()
       o.addToWorld(ph)
-      o.color = team_colors[1]
+      o.color = TEAM_COLORS[1]
       o.pos = (COL_SPACE_XY * _vec2(j%3-2, 3-j//3) - COL_OFFSET_XY)*_vec2(-1,1)
       o = OColElem()
       o.addToWorld(ph)
-      o.color = team_colors[1]
+      o.color = TEAM_COLORS[1]
       o.pos = (COL_SPACE_XY * _vec2(j%3-2,   j//3) - COL_OFFSET_XY)*_vec2(-1,1)
 
 
@@ -164,7 +159,7 @@ class Match:
     for i in range(4):
       o = OColElem()
       o.addToWorld(ph)
-      o.color = team_colors[0]
+      o.color = TEAM_COLORS[0]
       od.fill(o, (i+1)*0.035)
     od = ODispenser()
     od.addToWorld(ph)
@@ -172,18 +167,18 @@ class Match:
     for i in range(4):
       o = OColElem()
       o.addToWorld(ph)
-      o.color = team_colors[1]
+      o.color = TEAM_COLORS[1]
       od.fill(o, (i+1)*0.035)
 
     # Random
-    ky = 1 if conf_disp == 0 else -1
+    ky = 1 if self.conf.disp == 0 else -1
     od = ODispenser()
     od.addToWorld(ph)
     od.setPos( _vec3(TABLE_SIZE.x-WALL_WIDTH, DISP_OFFSET.y, DISP_OFFSET.z)*_vec3(.5,ky,1), 1 )
     for i in range(4):
       o = OColElem()
       o.addToWorld(ph)
-      o.color = team_colors[0]
+      o.color = TEAM_COLORS[0]
       od.fill(o, (i+1)*0.035)
     od = ODispenser()
     od.addToWorld(ph)
@@ -191,7 +186,7 @@ class Match:
     for i in range(4):
       o = OColElem()
       o.addToWorld(ph)
-      o.color = team_colors[1]
+      o.color = TEAM_COLORS[1]
       od.fill(o, (i+1)*0.035)
 
 
@@ -201,7 +196,7 @@ class Match:
     ols.setPos(-0.200, 0)
     ol = OLintel()
     ol.addToWorld(ph)
-    ol.color = team_colors[0]
+    ol.color = TEAM_COLORS[0]
     ols.fill(ol)
 
     ols = OLintelStorage()
@@ -209,7 +204,7 @@ class Match:
     ols.setPos(-0.600, 0)
     ol = OLintel()
     ol.addToWorld(ph)
-    ol.color = team_colors[0]
+    ol.color = TEAM_COLORS[0]
     ols.fill(ol)
 
     ols = OLintelStorage()
@@ -217,7 +212,7 @@ class Match:
     ols.setPos(0.200, 0)
     ol = OLintel()
     ol.addToWorld(ph)
-    ol.color = team_colors[1]
+    ol.color = TEAM_COLORS[1]
     ols.fill(ol)
 
     ols = OLintelStorage()
@@ -225,12 +220,7 @@ class Match:
     ols.setPos(0.600, 0)
     ol = OLintel()
     ol.addToWorld(ph)
-    ol.color = team_colors[1]
+    ol.color = TEAM_COLORS[1]
     ols.fill(ol)
 
-
-  @classmethod
-  def extractConf(cls, fconf):
-    """Get random indexes from field configuration."""
-    return fconf % 16, fconf // 16
 
