@@ -4,7 +4,7 @@ Eurobot 2011: Chess'Up!
 """
 
 from _simulotter._eurobot2011 import *
-from eurobot import TABLE_SIZE, WALL_WIDTH, WALL_HEIGHT, beacon_pos
+from eurobot import TABLE_SIZE, WALL_WIDTH, WALL_HEIGHT
 from eurobot import RAL as _RAL
 
 import _simulotter as _so
@@ -12,6 +12,9 @@ from _simulotter import vec2 as _vec2, vec3 as _vec3
 from random import randint as _randint
 import math as _math
 
+def beacon_pos(team, y):
+  from eurobot import beacon_pos as _beacon_pos
+  return _beacon_pos(1-team, y)  # swap team
 
 team_colors = (_RAL[3020], _RAL[5017])
 
