@@ -70,8 +70,8 @@ void python_export_physics()
       .def("step", &Physics::step)
       .add_property("step_dt", &Physics::getStepDt)
       .add_property("time", &Physics::getTime)
-      .def("schedule", &Physics_schedule_task, ( py::arg("task"), py::arg("time")=NULL ))
-      .def("schedule", &Physics_schedule_cb, ( py::arg("cb"), py::arg("period"), py::arg("time")=NULL ))
+      .def("schedule", &Physics_schedule_task, ( py::arg("task"), py::arg("time")=py::object() ))
+      .def("schedule", &Physics_schedule_cb, ( py::arg("cb"), py::arg("period"), py::arg("time")=py::object() ))
       // statics
       .add_static_property("world_gravity", &Physics_get_world_gravity, &Physics_set_world_gravity)
       .add_static_property("margin_epsilon", &Physics_get_margin_epsilon, &Physics_set_margin_epsilon)
@@ -82,7 +82,7 @@ void python_export_physics()
 
   py::class_<TaskBasic, SmartPtr<TaskBasic>, boost::noncopyable>("Task", py::no_init)
       .def("__init__", py::make_constructor(&Task_init, py::default_call_policies(), (
-                  py::arg("cb"), py::arg("period")=NULL )))
+                  py::arg("cb"), py::arg("period")=py::object() )))
       .def("cancel", &TaskBasic::cancel)
       ;
 }
