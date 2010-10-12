@@ -5,6 +5,7 @@ SimulOtter
 
 .. toctree::
 
+  start
   maths
   physics
   display
