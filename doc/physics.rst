@@ -2,8 +2,6 @@
 Physical simulation
 ===================
 
-.. todo:: General description and explanation on physical worlds, objects, etc.
-
 Physical world --- :class:`Physics`
 -----------------------------------
 
