@@ -226,10 +226,12 @@ void Galipeur::asserv()
   if( physics_ == NULL )
     throw(Error("Galipeur is not in a world"));
 
-  const btScalar dt = physics_->getTime() - ramp_last_t_;
+  const btScalar tnow = physics_->getTime();
+  const btScalar dt = tnow - ramp_last_t_;
   if( dt == 0 ) {
     return; // ramp start, wait for the next step
   }
+  ramp_last_t_ = dt;
 
   // position
   if( ! order_xy_done() ) {
@@ -346,6 +348,10 @@ btScalar Galipeur::Quadramp::step(btScalar dt, btScalar d)
   if( d < 0 ) {
     target_v *= -1;
   }
+  if(var_v0==0) //XXX:debug
+      LOG("[%p] v: %.3f %+.3f | d: %.3f, d_dec: %.3f, tv: %.3f, a: %.3f", this, cur_v_, CLAMP(target_v-cur_v_, -a*dt, a*dt), d, d_dec, target_v, a);
+  //TODO does not work when var_v0 == 0
+  // in fact, the new speed should not be target_v
   cur_v_ = cur_v_ + CLAMP(target_v-cur_v_, -a*dt, a*dt);
   return cur_v_;
 }

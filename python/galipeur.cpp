@@ -25,9 +25,9 @@ static py::object Galipeur_test_sensor(const Galipeur &g, unsigned int i)
   return py::object(ret);
 }
 
-static inline void Galipeur_set_speed_xy(Galipeur &g, btScalar v, btScalar a) { g.set_speed_xy(btScale(v), a); }
-static inline void Galipeur_set_speed_steering(Galipeur &g, btScalar v, btScalar a) { g.set_speed_steering(btScale(v), a); }
-static inline void Galipeur_set_speed_stop(Galipeur &g, btScalar v, btScalar a) { g.set_speed_stop(btScale(v), a); }
+static inline void Galipeur_set_speed_xy(Galipeur &g, btScalar v, btScalar a) { g.set_speed_xy(btScale(v), btScale(a)); }
+static inline void Galipeur_set_speed_steering(Galipeur &g, btScalar v, btScalar a) { g.set_speed_steering(btScale(v), btScale(a)); }
+static inline void Galipeur_set_speed_stop(Galipeur &g, btScalar v, btScalar a) { g.set_speed_stop(btScale(v), btScale(a)); }
 static inline void Galipeur_set_threshold_stop(Galipeur &g, btScalar r, btScalar l) { g.set_threshold_stop(btScale(r), l); }
 static inline void Galipeur_set_threshold_steering(Galipeur &g, btScalar t) { g.set_threshold_steering(btScale(t)); }
 

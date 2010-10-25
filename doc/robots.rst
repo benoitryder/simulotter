@@ -139,7 +139,7 @@ consider that a target checkpoint or angle has been reached.
 
   .. method:: asserv()
 
-   Execute an sserv step. This method must be called at regular interval for
+   Execute an asserv step. This method must be called at regular interval for
    Galipeur to execute orders.
 
   .. method:: order_xy(xy, rel=False)
