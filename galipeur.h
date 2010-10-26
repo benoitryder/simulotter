@@ -89,12 +89,15 @@ public:
    * It is not an exact equivalent of the aversive module, it is only intended
    * to have the same behavior. Actually it offers more possibilities.
    *
+   * Computations are made on positive (absolute) distances and speeds.
+   * Velocity signs has to be handled by the user.
+   *
    * Deceleration distance can be computed as following:
    * \f{eqnarray*}{
-   *   v_{dec}(t) & = & (v-v_0) - a_{dec} t \\
-   *   x_{dec}(t) & = & (v-v_0) t - \frac12 a_{dec} t^2 \\
-   *   t_{dec}    & = & \frac{v-v_0}{a_{dec}} \\
-   *   d_{dec}    & = & x_{dec}(t_{dec}) = \frac12 \frac{(v-v_0)^2}a_{dec}
+   *   v_{dec}(t) & = & (v_{max}-v_0) - a_{dec} t \\
+   *   x_{dec}(t) & = & (v_{max}-v_0) t - \frac12 a_{dec} t^2 \\
+   *   t_{dec}    & = & \frac{v_{max}-v_0}{a_{dec}} \\
+   *   d_{dec}    & = & x_{dec}(t_{dec}) = \frac12 \frac{(v_{max}-v_0)^2}a_{dec}
    * \f}
    */
   class Quadramp
@@ -105,10 +108,10 @@ public:
     void reset(btScalar v=0) { cur_v_ = v; }
     /** @brief Feed the filter and return the new velocity.
      *
-     * @param d   actual distance to target
      * @param dt  elapsed time since the last step
+     * @param d   actual distance to target
      */
-    btScalar step(btScalar d, btScalar dt);
+    btScalar step(btScalar dt, btScalar d);
 
   public:
     btScalar var_v;    ///< maximum speed (cruise speed)

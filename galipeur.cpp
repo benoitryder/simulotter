@@ -253,7 +253,8 @@ void Galipeur::asserv()
   // angle
   if( ! order_a_done() ) {
     const btScalar da = btNormalizeAngle( target_a_-getAngle() );
-    set_av( ramp_a_.step(dt, da) );
+    const btScalar new_av = ramp_a_.step(dt, btFabs(da));
+    set_av( da > 0 ? new_av : -new_av );
   }
 }
 
@@ -336,23 +337,33 @@ btScalar Galipeur::test_sensor(unsigned int i) const
 
 btScalar Galipeur::Quadramp::step(btScalar dt, btScalar d)
 {
-  const btScalar d_dec = 0.5 * (cur_v_-var_v0)*(cur_v_-var_v0) / var_dec;
+  btFullAssert( d >= 0 );
+  const btScalar dv2 = (var_v-var_v0)*(var_v-var_v0);
+  const btScalar d_dec = 0.5 * dv2 / var_dec;
   btScalar target_v, a;
-  if( btFabs(d) < d_dec ) {
-    target_v = var_v0;
+  if( d < d_dec ) {
+    // deceleration: compute the targeted speed
+    // it is computed from the deceleration time t:
+    //   1/2 var_dec t² - dv t + d = 0
+    // Since t < dv/var_dec (deceleration duration), there is only one valid
+    // solution:
+    //   t = ( dv - sqrt( dv² - 2 var_dec d_r ) ) / var_dec
+    // Then, target_v = v_dec(t)
+    target_v = btSqrt( dv2 - 2 * var_dec * d );
+    // if we have to accelerate, the target speed will not be reached (we
+    // will have to decelerate at next step).
+    // In such a case, limit the target speed to avoid oscillations.
+    // The '2*' is needed to actually reach the target (avoid asymptotic
+    // approach of the target).
+    if( target_v * dt > 2*d ) {
+      target_v = 2*d/dt;
+    }
     a = var_dec;
   } else {
     target_v = var_v;
     a = var_acc;
   }
-  if( d < 0 ) {
-    target_v *= -1;
-  }
-  if(var_v0==0) //XXX:debug
-      LOG("[%p] v: %.3f %+.3f | d: %.3f, d_dec: %.3f, tv: %.3f, a: %.3f", this, cur_v_, CLAMP(target_v-cur_v_, -a*dt, a*dt), d, d_dec, target_v, a);
-  //TODO does not work when var_v0 == 0
-  // in fact, the new speed should not be target_v
-  cur_v_ = cur_v_ + CLAMP(target_v-cur_v_, -a*dt, a*dt);
+  cur_v_ += CLAMP(target_v-cur_v_, -a*dt, a*dt);
   return cur_v_;
 }
 
