@@ -32,6 +32,7 @@ Galipeur::Galipeur(btScalar m):
   // First instance: initialize shape
   if( shape_ == NULL )
   {
+    const btVector3 up(0,0,1);
     shape_ = new btCompoundShape();
     // Triangular body
     if( body_shape_.getNumPoints() == 0 )
@@ -47,25 +48,26 @@ Galipeur::Galipeur(btScalar m):
         p.rotate(A_SIDE);
       }
     }
-    shape_->addChildShape( btTransform( btQuaternion(0, 0, 1, ANGLE_OFFSET),
+    shape_->addChildShape( btTransform( btQuaternion(up, -ANGLE_OFFSET),
                            btVector3(0,0,GROUND_CLEARANCE-(Z_MASS-HEIGHT/2))),
                           &body_shape_);
 
     // Wheels (use boxes instead of cylinders)
     btTransform tr = btTransform::getIdentity();
-    tr.setRotation( btQuaternion(0, 0, 1, ANGLE_OFFSET) );
+    tr.setRotation( btQuaternion(up, ANGLE_OFFSET) );
     btVector2 vw( D_WHEEL+H_WHEEL/2, 0 );
+    vw.rotate(-ANGLE_OFFSET);
     tr.setOrigin( btVector3(vw.x(), vw.y(), -(Z_MASS - R_WHEEL)) );
     shape_->addChildShape(tr, &wheel_shape_);
 
     vw.rotate(2*M_PI/3);
     tr.setOrigin( btVector3(vw.x(), vw.y(), -(Z_MASS - R_WHEEL)) );
-    tr.setRotation( btQuaternion(btVector3(0,0,1), 2*M_PI/3) );
+    tr.setRotation( btQuaternion(up, ANGLE_OFFSET+2*M_PI/3) );
     shape_->addChildShape(tr, &wheel_shape_);
 
     vw.rotate(-4*M_PI/3);
     tr.setOrigin( btVector3(vw.x(), vw.y(), -(Z_MASS - R_WHEEL)) );
-    tr.setRotation( btQuaternion(btVector3(0,0,1), -2*M_PI/3) );
+    tr.setRotation( btQuaternion(up, ANGLE_OFFSET-2*M_PI/3) );
     shape_->addChildShape(tr, &wheel_shape_);
   }
 
