@@ -118,6 +118,10 @@ One of the main use is the scheduling of asserv steps and orders for
 
     Cancel the task. It will not be executed anymore.
 
+  .. attribute:: cancelled
+
+    `True` if the task has been cancelled.
+
 
 Simulated objects
 -----------------

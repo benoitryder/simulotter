@@ -135,6 +135,8 @@ public:
   typedef boost::function<void (Physics *)> Callback;
   void setCallback(Callback cb) { callback_ = cb; }
 
+  bool cancelled() const { return cancelled_; }
+
 protected:
   btScalar period_; /// Period for repeated tasks (or 0)
   Callback callback_;

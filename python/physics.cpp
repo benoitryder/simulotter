@@ -84,6 +84,7 @@ void python_export_physics()
       .def("__init__", py::make_constructor(&Task_init, py::default_call_policies(), (
                   py::arg("cb"), py::arg("period")=py::object() )))
       .def("cancel", &TaskBasic::cancel)
+      .add_property("cancelled", &TaskBasic::cancelled)
       ;
 }
 
