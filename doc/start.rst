@@ -155,7 +155,7 @@ Last but not least, our robot. We make it inherit from the basic
       self.set_speed_a(math.pi, 2*math.pi)
       self.set_speed_steering(0.3, 1.0)
       self.set_speed_stop(0.1, 1.0)
-      self.set_threshold_stop(0.05, math.radians(5))
+      self.set_threshold_stop(0.01, math.radians(1))
       self.set_threshold_steering(0.05)
 
       # position
