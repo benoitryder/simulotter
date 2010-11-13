@@ -125,6 +125,11 @@ consider that a target checkpoint or angle has been reached.
 
     Galipeur's color. Defaults to gray 30%.
 
+  .. attribute:: pos
+
+    Extends :attr:`Object.pos`. If set to a :class:`vec2`, places Galipeur
+    above the ground instead of setting *z* to 0.
+
   .. attribute:: a
 
     Rotation angle around Z axis.

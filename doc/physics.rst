@@ -201,7 +201,7 @@ create static and dynamic bodies with basic geometrical shapes.
 
   .. attribute:: pos
 
-    Extends :attr:`Object.pos`. If set to a :class:`vec2`, place the object
+    Extends :attr:`Object.pos`. If set to a :class:`vec2`, places the object
     above the ground (based on its bounding box) instead of setting *z* to 0.
 
 

@@ -223,6 +223,12 @@ void Galipeur::draw(Display *d)
 }
 
 
+void Galipeur::setPosAbove(const btVector2 &pos)
+{
+  setPos( btVector3(pos.x(), pos.y(), Z_MASS + Physics::margin_epsilon) );
+}
+
+
 void Galipeur::asserv()
 {
   if( physics_ == NULL )

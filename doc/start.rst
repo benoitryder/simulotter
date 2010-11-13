@@ -160,10 +160,9 @@ Last but not least, our robot. We make it inherit from the basic
 
       # position
       k = -1 if team == 0 else 1
-      self.pos = so.vec3(
+      self.pos = so.vec2(
           k*(eb.TABLE_SIZE.x-match.ground.start_size)/2,
-          (eb.TABLE_SIZE.y-match.ground.start_size)/2,
-          0.1)
+          (eb.TABLE_SIZE.y-match.ground.start_size)/2)
 
       # don't forget to add it to the world
       self.addToWorld(match.physics)

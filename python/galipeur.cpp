@@ -3,6 +3,17 @@
 #include "galipeur.h"
 
 
+static inline btVector3 Galipeur_getPos(const Galipeur &o) { return btUnscale(o.getPos()); }
+static inline void Galipeur_setPos(Galipeur &o, const py::object v)
+{
+  py::extract<const btVector2 &> py_vec2(v);
+  if( py_vec2.check() ) {
+    o.setPosAbove(btScale(py_vec2()));
+  } else {
+    o.setPos(btScale(py::extract<const btVector3 &>(v)()));
+  }
+}
+
 static inline btVector2 Galipeur_get_v(const Galipeur &g) { return btUnscale(g.getVelocity()); }
 
 static inline void Galipeur_order_xy(Galipeur &g, const btVector2 &xy, bool rel) { g.order_xy(btScale(xy), rel); }
@@ -48,6 +59,8 @@ void python_export_galipeur()
   py::class_<Galipeur, py::bases<Robot>, SmartPtr<Galipeur>, boost::noncopyable>("Galipeur", py::no_init)
       .def(py::init<btScalar>())
       .add_property("color", &Galipeur::getColor, &Galipeur::setColor)
+      // redefine to use setPosAbove() when setting vec2
+      .add_property("pos", &Galipeur_getPos, &Galipeur_setPos)
       .def("asserv", &Galipeur::asserv)
       .add_property("a", &Galipeur::getAngle)
       .add_property("v", &Galipeur_get_v)

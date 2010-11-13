@@ -26,8 +26,6 @@ public:
  *
  * @note Asserv moves the robot by setting velocity at each step (using
  * set_v()) which may cause odd behaviors.
- *
- * @todo Add a setPosAbove() function.
  */
 class RBasic: public Robot
 {

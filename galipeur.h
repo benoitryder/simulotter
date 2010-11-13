@@ -36,6 +36,15 @@ public:
   virtual const btTransform &getTrans() const { return body_->getCenterOfMassTransform(); }
   virtual void setTrans(const btTransform &tr) { body_->setCenterOfMassTransform(tr); }
 
+  /** @brief Place above (not on or in) the ground
+   *
+   * @note The setPos() name has not been reused because it would make the
+   * compiler use the btVector2 version by default, even when passing a
+   * btVector3 (since it can be converted to). This would lead to tricky bugs
+   * if one forgets to force using Galipeur::setPos().
+   */
+  void setPosAbove(const btVector2 &pos);
+
   /** @brief Asserv step
    *
    * Go in position and/or turn according to current target.
