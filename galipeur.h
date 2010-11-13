@@ -94,10 +94,10 @@ public:
    *
    * Deceleration distance can be computed as following:
    * \f{eqnarray*}{
-   *   v_{dec}(t) & = & (v_{max}-v_0) - a_{dec} t \\
-   *   x_{dec}(t) & = & (v_{max}-v_0) t - \frac12 a_{dec} t^2 \\
-   *   t_{dec}    & = & \frac{v_{max}-v_0}{a_{dec}} \\
-   *   d_{dec}    & = & x_{dec}(t_{dec}) = \frac12 \frac{(v_{max}-v_0)^2}a_{dec}
+   *   v_{dec}(t) & = & (v_{cur}-v_0) - a_{dec} t \\
+   *   x_{dec}(t) & = & (v_{cur}-v_0) t - \frac12 a_{dec} t^2 \\
+   *   t_{dec}    & = & \frac{v_{cur}-v_0}{a_{dec}} \\
+   *   d_{dec}    & = & x_{dec}(t_{dec}) = \frac12 \frac{v_{cur}^2-v_0^2}a_{dec}
    * \f}
    */
   class Quadramp

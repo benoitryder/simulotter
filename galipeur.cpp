@@ -340,32 +340,16 @@ btScalar Galipeur::test_sensor(unsigned int i) const
 btScalar Galipeur::Quadramp::step(btScalar dt, btScalar d)
 {
   btFullAssert( d >= 0 );
-  const btScalar dv2 = (var_v-var_v0)*(var_v-var_v0);
-  const btScalar d_dec = 0.5 * dv2 / var_dec;
-  btScalar target_v, a;
+  const btScalar d_dec = 0.5 * (cur_v_*cur_v_ - var_v0*var_v0) / var_dec;
   if( d < d_dec ) {
-    // deceleration: compute the targeted speed
-    // it is computed from the deceleration time t:
-    //   1/2 var_dec t² - dv t + d = 0
-    // Since t < dv/var_dec (deceleration duration), there is only one valid
-    // solution:
-    //   t = ( dv - sqrt( dv² - 2 var_dec d_r ) ) / var_dec
-    // Then, target_v = v_dec(t)
-    target_v = btSqrt( dv2 - 2 * var_dec * d );
-    // if we have to accelerate, the target speed will not be reached (we
-    // will have to decelerate at next step).
-    // In such a case, limit the target speed to avoid oscillations.
-    // The '2*' is needed to actually reach the target (avoid asymptotic
-    // approach of the target).
-    if( target_v * dt > 2*d ) {
-      target_v = 2*d/dt;
-    }
-    a = var_dec;
+    // deceleration
+    cur_v_ = btMax(var_v0, cur_v_ - var_dec * dt);
+  } else if( cur_v_ < var_v ) {
+    // acceleration
+    cur_v_ = btMin(var_v, cur_v_ + var_dec * dt);
   } else {
-    target_v = var_v;
-    a = var_acc;
+    // stable, nothing to do
   }
-  cur_v_ += CLAMP(target_v-cur_v_, -a*dt, a*dt);
   return cur_v_;
 }
 
