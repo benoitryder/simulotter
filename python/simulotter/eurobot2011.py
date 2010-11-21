@@ -18,6 +18,9 @@ TEAM_COLORS = (_eb.RAL[3020], _eb.RAL[5017])
 
 SQUARE_SIZE = OGround.SQUARE_SIZE
 
+# Y offset used for elements in the dispensing zone
+DISPENSING_DY = 0.280
+
 
 # Random configurations values.
 # Values are pairs of king and queen positions. 0 is top, 4 is bottom.
@@ -168,7 +171,7 @@ class Match(_eb.Match):
     pos_king, pos_queen = RANDOM_POS[self.conf.kingqueen]
     x = (TABLE_SIZE.x - ground.start_size)/2
     for j in range(5):
-      y = -TABLE_SIZE.y/2 + (5-j)*(TABLE_SIZE.y-ground.start_size-WALL_WIDTH)/6
+      y = -TABLE_SIZE.y/2 + (5-j)*DISPENSING_DY
       if j == pos_king:
         self.kings = ( self.addPiece(-x, y, OKing), self.addPiece(x, y, OKing) )
       elif j == pos_queen:
