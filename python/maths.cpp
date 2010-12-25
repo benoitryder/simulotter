@@ -1,8 +1,6 @@
 #include "python/common.h"
 
 
-static inline btScalar vec2_x(const btVector2 &v) { return v.x(); }
-static inline btScalar vec2_y(const btVector2 &v) { return v.y(); }
 static inline const btScalar *vec2_begin(const btVector2 &v) { return v.xy; }
 static inline const btScalar *vec2_end(const btVector2 &v) { return v.xy+2; }
 static std::string vec2_str(const btVector2 &v)
@@ -10,9 +8,6 @@ static std::string vec2_str(const btVector2 &v)
   return stringf("<xy: %.2f %.2f>", v.x(), v.y());
 }
 
-static inline btScalar vec3_x(const btVector3 &v) { return v.x(); }
-static inline btScalar vec3_y(const btVector3 &v) { return v.y(); }
-static inline btScalar vec3_z(const btVector3 &v) { return v.z(); }
 static inline const btScalar *vec3_begin(const btVector3 &v) { return v.m_floats; }
 static inline const btScalar *vec3_end(const btVector3 &v) { return v.m_floats+3; }
 static std::string vec3_str(const btVector3 &v)
@@ -21,6 +16,12 @@ static std::string vec3_str(const btVector3 &v)
 }
 
 
+static inline btQuaternion *quat_init_matrix3(const btMatrix3x3 &m)
+{
+  btQuaternion *q = new btQuaternion();
+  m.getRotation(*q);
+  return q;
+}
 static inline btScalar quat_x(const btQuaternion &q) { return q.x(); }
 static inline btScalar quat_y(const btQuaternion &q) { return q.y(); }
 static inline btScalar quat_z(const btQuaternion &q) { return q.z(); }
@@ -94,6 +95,31 @@ static std::string matrix3_str(const btMatrix3x3 &m)
                  m[2][0], m[2][1], m[2][2]
                 );
 }
+
+// inspired by py::converter::implicit
+struct matrix3_to_quat_converter
+{
+  static void* convertible(PyObject* obj)
+  {
+    return py::converter::implicit_rvalue_convertible_from_python(obj, py::converter::registered<btMatrix3x3>::converters)
+        ? obj : 0;
+  }
+
+  static void construct(PyObject* obj, py::converter::rvalue_from_python_stage1_data* data)
+  {
+    void* storage = ((py::converter::rvalue_from_python_storage<btQuaternion>*)data)->storage.bytes;
+
+    py::arg_from_python<btMatrix3x3> get_source(obj);
+    bool convertible = get_source.convertible();
+    BOOST_VERIFY(convertible);
+
+    new (storage) btQuaternion();
+    get_source().getRotation(*(btQuaternion *)storage);
+
+    // record successful construction
+    data->convertible = storage;
+  }
+};
 
 
 static inline btTransform *trans_init_vec(const btVector3 &v)
@@ -184,10 +210,13 @@ void python_export_maths()
               (py::arg("axis"), py::arg("angle")=0)))
       .def(py::init<btScalar,btScalar,btScalar>(
               (py::arg("yaw")=0, py::arg("pitch")=0, py::arg("roll")=0)))
-      .add_property("x", py::make_function(&btQuaternion::x, py::return_value_policy<py::copy_const_reference>()))
-      .add_property("y", py::make_function(&btQuaternion::y, py::return_value_policy<py::copy_const_reference>()))
-      .add_property("z", py::make_function(&btQuaternion::z, py::return_value_policy<py::copy_const_reference>()))
-      .add_property("w", py::make_function(&btQuaternion::w, py::return_value_policy<py::copy_const_reference>()))
+      .def("__init__", py::make_constructor(&quat_init_matrix3))
+      // using py::make_function() does not work because accessors are defined
+      // on btQuadWord and not directly on btQuaternion
+      .add_property("x", quat_x)
+      .add_property("y", quat_y)
+      .add_property("z", quat_z)
+      .add_property("w", quat_w)
       .def("dot", &btQuaternion::dot)
       .def("length2", &btQuaternion::length2)
       .def("length", &btQuaternion::length)
@@ -248,8 +277,17 @@ void python_export_maths()
       .def("__iter__", py::range(&matrix3_begin, &matrix3_end))
       ;
 
-  //TODO matrix3 -> quat, using matrix3.getRotation()
   py::implicitly_convertible<btQuaternion,btMatrix3x3>();
+  // implicit conversion from matrix3 to quat
+  // inspired by py::implicitly_convertible
+  py::converter::registry::push_back(
+      &matrix3_to_quat_converter::convertible
+      , &matrix3_to_quat_converter::construct
+      , py::type_id<btQuaternion>()
+#ifndef BOOST_PYTHON_NO_PY_SIGNATURES
+      , &py::converter::expected_from_python_type_direct<btMatrix3x3>::get_pytype
+#endif
+      );
 
   // explicit some function pointers to help the compiler
   const btMatrix3x3 &(btTransform::*const trans_get_basis)() const = &btTransform::getBasis;
