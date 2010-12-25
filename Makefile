@@ -73,11 +73,11 @@ PY_OBJS = $(PY_SRCS:.cpp=.o)
 
 ALL_OBJS = $(OBJS) $(PY_OBJS)
 
-default: $(TARGET)
+default: python
 
 python: $(PY_TARGET)
 
-all: default python
+all: $(TARGET) python
 
 -include $(ALL_OBJS:.o=.d)
 

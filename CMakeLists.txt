@@ -4,7 +4,7 @@ project(SimulOtter)
 
 
 ##
-##  General declaration
+##  General declarations
 ##
 
 
