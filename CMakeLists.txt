@@ -148,6 +148,9 @@ if(WIN32 AND CMAKE_COMPILER_IS_GNUCXX)
   set(EXTRA_LINK_FLAGS "-Wl,--enable-auto-import -mconsole -mwindows -static-libgcc -static-libstdc++")
 else()
   set(EXTRA_LINK_FLAGS)
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    SET_TARGET_PROPERTIES(simulotter PROPERTIES COMPILE_FLAGS -fPIC)
+  endif()
 endif()
 
 

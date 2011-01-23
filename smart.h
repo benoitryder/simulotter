@@ -3,6 +3,7 @@
 
 ///@file
 
+#include <cstring>
 
 /** @brief Smart pointer class
  *
@@ -91,13 +92,13 @@ inline void SmartPtr_release(SmartObject *p)
 
 template<class T> void bullet_ptr_add_ref(T *p)
 {
-  unsigned int ref = (unsigned int)p->getUserPointer();
+  size_t ref = (size_t)p->getUserPointer();
   ++ref;
   p->setUserPointer( (void*)ref );
 }
 template<class T> void bullet_ptr_release(T *p)
 {
-  unsigned int ref = (unsigned int)p->getUserPointer();
+  size_t ref = (size_t)p->getUserPointer();
   if( --ref == 0 )
     delete p;
   else

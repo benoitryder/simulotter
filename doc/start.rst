@@ -50,6 +50,10 @@ On Windows, using MinGW/MSYS, you should provide the MinGW base directory::
 
   cmake -G "MSYS Makefiles" -DCMAKE_INSTALL_PREFIX=/mingw -DINSTALL_LIBS=ON -DBUILD_EXTRAS=OFF -DBUILD_DEMOS=OFF -DUSE_GLUT=OFF
 
+When compiling with *g++* for 64-bit architecture you may have to add::
+
+  -DCMAKE_CXX_FLAGS="-fPIC"
+
 Then, run the usual ``make && make install``.
 
 
