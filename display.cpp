@@ -233,28 +233,27 @@ void Display::run()
 
   unsigned int step_dt = (unsigned int)(1000.0*physics_->getStepDt());
   unsigned long time;
-  unsigned long time_disp, time_step;
+  unsigned long time_last_disp, time_step;
   signed long time_wait;
 
   try {
     is_running_ = true;
-    time_disp = time_step = SDL_GetTicks();
+    time_last_disp = time_step = SDL_GetTicks();
     for(;;) {
       time = SDL_GetTicks();
-      if( time >= time_step ) {
+      while( time >= time_step ) {
         if( ! this->paused ) {
           physics_->step();
         }
         time_step += (unsigned long)(step_dt * this->time_scale);
       }
-      if( time >= time_disp ) {
+      if( time - time_last_disp >= 1000.0/this->fps ) {
         this->processEvents();
         this->update();
-        time_disp = time + (1000.0/this->fps);
+        time_last_disp = time;
       }
 
-      time_wait = MIN(time_step,time_disp);
-      time_wait -= time;
+      time_wait = MIN(time_step-time, 1000.0/this->fps);
       if( time_wait > 0 )
         SDL_Delay(time_wait);
     }
