@@ -55,10 +55,10 @@ public:
   /** @name Transformation, position and rotation accessors
    */
   //@{
-  virtual const btTransform &getTrans() const = 0;
+  virtual const btTransform getTrans() const = 0;
   virtual void setTrans(const btTransform &tr) = 0;
-  const btVector3   &getPos() const { return getTrans().getOrigin(); }
-  const btMatrix3x3 &getRot() const { return getTrans().getBasis();  }
+  const btVector3   getPos() const { return getTrans().getOrigin(); }
+  const btMatrix3x3 getRot() const { return getTrans().getBasis();  }
   void setPos(const btVector3 &pos)   { setTrans(btTransform(getRot(), pos)); }
   void setRot(const btMatrix3x3 &rot) { setTrans(btTransform(rot, getPos())); }
   //@}
@@ -156,7 +156,7 @@ public:
    */
   virtual void draw(Display *d);
 
-  virtual const btTransform &getTrans() const { return getCenterOfMassTransform(); }
+  virtual const btTransform getTrans() const { return getCenterOfMassTransform(); }
   virtual void setTrans(const btTransform &tr) { setCenterOfMassTransform(tr); }
 
   /** @brief Place above (not on or in) the ground

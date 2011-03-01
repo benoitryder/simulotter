@@ -8,8 +8,6 @@ static inline void Object_setPos(Object &o, const btVector3 &v) { o.setPos(btSca
 static inline btTransform Object_getTrans(const Object &o) { return btUnscale(o.getTrans()); }
 static inline void Object_setTrans(Object &o, const btTransform &tr) { o.setTrans(btScale(tr)); }
 
-static inline btMatrix3x3 Object_getRot(const Object &o) { return o.getRot(); }
-
 static const btVector3 OGround_SIZE = btUnscale(OGround::SIZE);
 static inline btScalar OGround_getStartSize(const OGround &o) { return btUnscale(o.getStartSize()); }
 static inline void OGround_setStartSize(OGround &o, const btScalar &v) { o.setStartSize(btScale(v)); }
@@ -35,9 +33,7 @@ void python_export_object()
       .def("addToWorld", &Object::addToWorld)
       .def("removeFromWorld", &Object::removeFromWorld)
       .add_property("pos", &Object_getPos, &Object_setPos)
-      .add_property("rot", py::make_function(
-              &Object::getRot, py::return_value_policy<py::return_by_value>()),
-          &Object::setRot)
+      .add_property("rot", &Object::getRot, &Object::setRot)
       .add_property("trans", &Object_getTrans, &Object_setTrans)
       .add_property("physics", py::make_function(
               &Object::getPhysics, py::return_internal_reference<>()))

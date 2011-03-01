@@ -8,9 +8,14 @@
 
 /** @brief Ray sensor
  *
- * A sensor is not a physical object and is not attached to a given object.
+ * A sensor is not a physical object. It may be positioned in world coordinates
+ * or relatively to an object (attached to it).
+ * The getTrans() and setTrans() method are provided to satisfy Object
+ * interface but should not be needed when attaching the sensor to an object
+ * and getAttachPoint() and setAttachPoint() should be used instead.
+ *
  * This class provides methods to test a sensor hit.
- * The sensor is oriented along X axis.
+ * The sensor ray is oriented along X axis.
  */
 class SRay: public Object
 {
@@ -18,26 +23,37 @@ public:
   SRay(btScalar min, btScalar max);
   virtual ~SRay();
 
-  virtual const btTransform &getTrans() const { return trans_; }
-  virtual void setTrans(const btTransform &tr) { trans_ = tr; }
-
-  /// Draw the sensor hit zone
-  virtual void draw(Display *d);
-
   /** @brief Get hit distance
    * @retval a positive value in sensor range on success, -1.0 otherwise
    */
   btScalar hitTest() const;
 
+  /** @brief Attach the sensor to an object.
+   *
+   * The sensor is removed from its current world and added to the one of the
+   * given object. If \e obj is \e NULL, the sensor is detached from its
+   * current object but not removed from its world.
+   */
+  void attach(Object *obj);
+
+  const btTransform &getAttachPoint() const { return attach_; }
+  void setAttachPoint(const btTransform &tr) { attach_ = tr; }
+
+  virtual void removeFromWorld();
+
+  virtual const btTransform getTrans() const;
+  virtual void setTrans(const btTransform &tr);
+
+  /// Draw the sensor hit zone
+  virtual void draw(Display *d);
+
 protected:
-  btTransform trans_;
+  /// Attach point.
+  btTransform attach_;
+  /// Reference object for attached sensors.
+  SmartPtr<Object> obj_;
   /// Hit range
   btScalar range_min_, range_max_;
-
-public:
-
-  /// GP2D12 sensor
-  static const SRay gp2d12;
 };
 
 

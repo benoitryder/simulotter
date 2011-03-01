@@ -16,6 +16,61 @@ SRay::~SRay()
 }
 
 
+void SRay::attach(Object *obj)
+{
+  if( obj == NULL ) {
+    obj_ = NULL;
+  } else {
+    if( obj_ != NULL ) {
+      this->removeFromWorld();
+    }
+    this->addToWorld(obj->getPhysics());
+    obj_ = obj;
+  }
+}
+
+
+void SRay::removeFromWorld()
+{
+  obj_ = NULL;
+  Object::removeFromWorld();
+}
+
+const btTransform SRay::getTrans() const
+{
+  if( obj_ == NULL ) {
+    return attach_;
+  } else {
+    return obj_->getTrans() * attach_;
+  }
+}
+
+void SRay::setTrans(const btTransform &tr)
+{
+  if( obj_ == NULL ) {
+    attach_ = tr;
+  } else {
+    attach_ = obj_->getTrans().inverse() * tr;
+  }
+}
+
+btScalar SRay::hitTest() const
+{
+  const btTransform tr = this->getTrans();
+  btVector3 ray_from = tr * btVector3(range_min_,0,0);
+  btVector3 ray_to   = tr * btVector3(range_max_,0,0);
+  btCollisionWorld::ClosestRayResultCallback ray_cb( ray_from, ray_to );
+
+  physics_->getWorld()->rayTest( ray_from, ray_to, ray_cb );
+
+  if( ray_cb.hasHit() ) {
+    return ray_cb.m_closestHitFraction + range_min_;
+  } else {
+    return -1.0;
+  }
+}
+
+
 void SRay::draw(Display *)
 {
   glDisable(GL_LIGHTING);
@@ -26,21 +81,4 @@ void SRay::draw(Display *)
   glEnable(GL_LIGHTING);
 }
 
-
-btScalar SRay::hitTest() const
-{
-  btVector3 ray_from = trans_ * btVector3(range_min_,0,0);
-  btVector3 ray_to   = trans_ * btVector3(range_max_,0,0);
-  btCollisionWorld::ClosestRayResultCallback ray_cb( ray_from, ray_to );
-
-  physics_->getWorld()->rayTest( ray_from, ray_to, ray_cb );
-
-  if( ray_cb.hasHit() )
-    return ray_cb.m_closestHitFraction + range_min_;
-  else
-    return -1.0;
-}
-
-
-const SRay SRay::gp2d12( btScale(0.10), btScale(0.80) );
 

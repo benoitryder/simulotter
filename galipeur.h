@@ -33,7 +33,7 @@ public:
    */
   virtual void draw(Display *d);
 
-  virtual const btTransform &getTrans() const { return body_->getCenterOfMassTransform(); }
+  virtual const btTransform getTrans() const { return body_->getCenterOfMassTransform(); }
   virtual void setTrans(const btTransform &tr) { body_->setCenterOfMassTransform(tr); }
 
   /** @brief Place above (not on or in) the ground

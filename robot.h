@@ -75,7 +75,7 @@ public:
   static const float DIRECTION_CONE_H; ///< Direction cone height
 
 
-  virtual const btTransform &getTrans() const { return body_->getCenterOfMassTransform(); }
+  virtual const btTransform getTrans() const { return body_->getCenterOfMassTransform(); }
   virtual void setTrans(const btTransform &tr) { body_->setCenterOfMassTransform(tr); }
 
   /** @brief Turn and move forward asserv
