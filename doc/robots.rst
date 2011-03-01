@@ -188,11 +188,6 @@ consider that a target checkpoint or angle has been reached.
 
     Return the current zero-based checkpoint index.
 
-  .. method:: test_sensor(i)
-
-    Hit-test for the sensor with index *i*. Return the collision distance or
-    `None` is the sensor did not hit.
-
   .. method:: set_speed_xy(v, acc)
 
     Set maximum XY cruising velocity and acceleration.

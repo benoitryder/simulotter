@@ -78,8 +78,6 @@ public:
   inline bool is_waiting() const { return order_xy_done() && order_a_done(); }
   /// Return the current zero-based checkpoint index.
   inline size_t current_checkpoint() const { return ckpt_ - checkpoints_.begin(); }
-
-  btScalar test_sensor(unsigned int i) const;
   //@}
 
   /** @name Asserv configuration.
@@ -155,9 +153,6 @@ protected:
   btRigidBody *body_;
 
   Color4 color_;
-
-  /// Sharp positions
-  std::vector<btTransform> sharps_trans_;
 
   /** @name Orders and parameters.
    */

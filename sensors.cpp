@@ -16,7 +16,7 @@ SRay::~SRay()
 }
 
 
-void SRay::draw(Display *) const
+void SRay::draw(Display *)
 {
   glDisable(GL_LIGHTING);
   glBegin(GL_LINES);
@@ -27,13 +27,13 @@ void SRay::draw(Display *) const
 }
 
 
-btScalar SRay::hitTest(const Physics *ph, const btTransform &origin) const
+btScalar SRay::hitTest() const
 {
-  btVector3 ray_from = origin * btVector3(range_min_,0,0);
-  btVector3 ray_to   = origin * btVector3(range_max_,0,0);
+  btVector3 ray_from = trans_ * btVector3(range_min_,0,0);
+  btVector3 ray_to   = trans_ * btVector3(range_max_,0,0);
   btCollisionWorld::ClosestRayResultCallback ray_cb( ray_from, ray_to );
 
-  ph->getWorld()->rayTest( ray_from, ray_to, ray_cb );
+  physics_->getWorld()->rayTest( ray_from, ray_to, ray_cb );
 
   if( ray_cb.hasHit() )
     return ray_cb.m_closestHitFraction + range_min_;

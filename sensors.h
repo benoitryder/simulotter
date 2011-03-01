@@ -1,36 +1,36 @@
-#ifndef SENSOR_H
-#define SENSOR_H
+#ifndef SENSORS_H
+#define SENSORS_H
 
 ///@file
 
-#include "smart.h"
+#include "object.h"
 
 
 /** @brief Ray sensor
  *
  * A sensor is not a physical object and is not attached to a given object.
- * This class provides methods to test a sensor hit and the same instance can
- * be used for several tests with different transformations.
- *
+ * This class provides methods to test a sensor hit.
  * The sensor is oriented along X axis.
  */
-class SRay: public SmartObject
+class SRay: public Object
 {
 public:
   SRay(btScalar min, btScalar max);
   virtual ~SRay();
 
+  virtual const btTransform &getTrans() const { return trans_; }
+  virtual void setTrans(const btTransform &tr) { trans_ = tr; }
+
   /// Draw the sensor hit zone
-  virtual void draw(Display *d) const;
+  virtual void draw(Display *d);
 
   /** @brief Get hit distance
-   *
    * @retval a positive value in sensor range on success, -1.0 otherwise
-   * @todo Store Physics object on the sensor?
    */
-  btScalar hitTest(const Physics *ph, const btTransform &origin) const;
+  btScalar hitTest() const;
 
 protected:
+  btTransform trans_;
   /// Hit range
   btScalar range_min_, range_max_;
 

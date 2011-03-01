@@ -126,10 +126,10 @@ One of the main use is the scheduling of asserv steps and orders for
 Simulated objects
 -----------------
 
-Objects are physical bodies, either static (e.g. walls) or dynamic (e.g.
-:ref:`robots <robots>`, game elements).
-They are intended to be put in a :class:`Physics` world. An object can be in at
+Objects are elements put in a :class:`Physics` world. An object can be in at
 most one world at a time.
+Usually, objects are physical bodies, either static (e.g. walls) or dynamic
+(e.g. :ref:`robots <robots>`, game elements).
 
 All objects derive from the abstract class :class:`Object`.
 

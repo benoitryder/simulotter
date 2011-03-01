@@ -207,18 +207,6 @@ void Galipeur::draw(Display *d)
     d->endDisplayList();
   }
 
-  // Sharps
-  std::vector<btTransform>::iterator it;
-  for( it=sharps_trans_.begin(); it!=sharps_trans_.end(); ++it )
-  {
-    glPushMatrix();
-    drawTransform( *it );
-    glColor4fv(Color4::white()); //XXX
-    glutSolidCube(0.1); //XXX
-    SRay::gp2d12.draw(d);
-    glPopMatrix();
-  }
-
   glPopMatrix();
 }
 
@@ -332,14 +320,6 @@ void Galipeur::order_trajectory(const std::vector<btVector2> &pts)
 
   ramp_last_t_ = physics_->getTime();
   ramp_xy_.reset(getVelocity().length());
-}
-
-
-btScalar Galipeur::test_sensor(unsigned int i) const
-{
-  if( i >= sharps_trans_.size() )
-    throw(Error("invalid sensor index: %u"));
-  return SRay::gp2d12.hitTest( physics_, getTrans() * sharps_trans_[i] );
 }
 
 

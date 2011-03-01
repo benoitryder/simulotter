@@ -27,14 +27,6 @@ static void Galipeur_order_trajectory(Galipeur &g, const py::object o)
   }
   g.order_trajectory(checkpoints);
 }
-static py::object Galipeur_test_sensor(const Galipeur &g, unsigned int i)
-{
-  btScalar ret = g.test_sensor(i);
-  if( ret == -1.0 ) {
-    return py::object();
-  }
-  return py::object(ret);
-}
 
 static inline void Galipeur_set_speed_xy(Galipeur &g, btScalar v, btScalar a) { g.set_speed_xy(btScale(v), btScale(a)); }
 static inline void Galipeur_set_speed_steering(Galipeur &g, btScalar v, btScalar a) { g.set_speed_steering(btScale(v), btScale(a)); }
@@ -74,7 +66,6 @@ void python_export_galipeur()
       .def("order_a_done", &Galipeur::order_a_done)
       .def("is_waiting", &Galipeur::is_waiting)
       .def("current_checkpoint", &Galipeur::current_checkpoint)
-      .def("test_sensor", &Galipeur_test_sensor)
       // configuration
       .def("set_speed_xy", &Galipeur_set_speed_xy)
       .def("set_speed_a", &Galipeur::set_speed_a)
