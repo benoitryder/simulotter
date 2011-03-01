@@ -3,8 +3,8 @@
 #include "galipeur.h"
 
 
-static inline btVector3 Galipeur_getPos(const Galipeur &o) { return btUnscale(o.getPos()); }
-static inline void Galipeur_setPos(Galipeur &o, const py::object v)
+static btVector3 Galipeur_getPos(const Galipeur &o) { return btUnscale(o.getPos()); }
+static void Galipeur_setPos(Galipeur &o, const py::object v)
 {
   py::extract<const btVector2 &> py_vec2(v);
   if( py_vec2.check() ) {
@@ -16,8 +16,8 @@ static inline void Galipeur_setPos(Galipeur &o, const py::object v)
 
 static inline btVector2 Galipeur_get_v(const Galipeur &g) { return btUnscale(g.getVelocity()); }
 
-static inline void Galipeur_order_xy(Galipeur &g, const btVector2 &xy, bool rel) { g.order_xy(btScale(xy), rel); }
-static inline void Galipeur_order_xya(Galipeur &g, const btVector2 &xy, btScalar a, bool rel) { g.order_xya(btScale(xy), a, rel); }
+static void Galipeur_order_xy(Galipeur &g, const btVector2 &xy, bool rel) { g.order_xy(btScale(xy), rel); }
+static void Galipeur_order_xya(Galipeur &g, const btVector2 &xy, btScalar a, bool rel) { g.order_xya(btScale(xy), a, rel); }
 static void Galipeur_order_trajectory(Galipeur &g, const py::object o)
 {
   Galipeur::CheckPoints checkpoints;
@@ -28,11 +28,11 @@ static void Galipeur_order_trajectory(Galipeur &g, const py::object o)
   g.order_trajectory(checkpoints);
 }
 
-static inline void Galipeur_set_speed_xy(Galipeur &g, btScalar v, btScalar a) { g.set_speed_xy(btScale(v), btScale(a)); }
-static inline void Galipeur_set_speed_steering(Galipeur &g, btScalar v, btScalar a) { g.set_speed_steering(btScale(v), btScale(a)); }
-static inline void Galipeur_set_speed_stop(Galipeur &g, btScalar v, btScalar a) { g.set_speed_stop(btScale(v), btScale(a)); }
-static inline void Galipeur_set_threshold_stop(Galipeur &g, btScalar r, btScalar l) { g.set_threshold_stop(btScale(r), l); }
-static inline void Galipeur_set_threshold_steering(Galipeur &g, btScalar t) { g.set_threshold_steering(btScale(t)); }
+static void Galipeur_set_speed_xy(Galipeur &g, btScalar v, btScalar a) { g.set_speed_xy(btScale(v), btScale(a)); }
+static void Galipeur_set_speed_steering(Galipeur &g, btScalar v, btScalar a) { g.set_speed_steering(btScale(v), btScale(a)); }
+static void Galipeur_set_speed_stop(Galipeur &g, btScalar v, btScalar a) { g.set_speed_stop(btScale(v), btScale(a)); }
+static void Galipeur_set_threshold_stop(Galipeur &g, btScalar r, btScalar l) { g.set_threshold_stop(btScale(r), l); }
+static void Galipeur_set_threshold_steering(Galipeur &g, btScalar t) { g.set_threshold_steering(btScale(t)); }
 
 static const btScalar Galipeur_Z_MASS = btUnscale(Galipeur::Z_MASS);
 static const btScalar Galipeur_GROUND_CLEARANCE = btUnscale(Galipeur::GROUND_CLEARANCE);
