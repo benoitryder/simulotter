@@ -28,13 +28,14 @@ public:
    */
   btScalar hitTest() const;
 
+  Object *getAttachObject() const { return obj_; }
   /** @brief Attach the sensor to an object.
    *
    * The sensor is removed from its current world and added to the one of the
    * given object. If \e obj is \e NULL, the sensor is detached from its
    * current object but not removed from its world.
    */
-  void attach(Object *obj);
+  void setAttachObject(Object *obj);
 
   const btTransform &getAttachPoint() const { return attach_; }
   void setAttachPoint(const btTransform &tr) { attach_ = tr; }

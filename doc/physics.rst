@@ -231,3 +231,38 @@ Table ground --- :class:`OGround`
 
   Size of grounds, as a :class:`vec2`.
 
+
+Ray sensor --- :class:`SRay`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A ray sensor is non-physical object with hit tests capabilities.
+It may be put at a fixed position in a world or attached to an existing object.
+
+.. class:: SRay(min, max)
+
+  Return a new ray sensor with detection range ``(min,max)``.
+
+  .. attribute:: hitTest()
+
+    Return the sensor collision distance or `None` if the sensor did not hit.
+
+  .. attribute:: attach_obj
+
+    :class:`Object` the sensor is attached to or `None`.
+    Used as referential for sensor transformation.
+
+    When :attr:`!attach_object` is updated, the sensor is removed from its
+    current world and added to the one of the new object. When set to `None`,
+    the sensor is not removed from its world.
+
+  .. attribute:: attach_point
+
+    Position of the sensor relative to its attach point.
+    If the sensor is not attached to an object (:attr:`obj` is `None`), the
+    sensor is positionned using the world's referential and
+    :attr:`attach_point` is the same as :attr:`Object.trans`.
+    Otherwise, :attr:`attach_point` is the position of the sensor in the
+    attached object referential.
+
+
+

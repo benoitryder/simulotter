@@ -16,7 +16,7 @@ SRay::~SRay()
 }
 
 
-void SRay::attach(Object *obj)
+void SRay::setAttachObject(Object *obj)
 {
   if( obj == NULL ) {
     obj_ = NULL;

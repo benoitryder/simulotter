@@ -28,7 +28,7 @@ set(SIMULOTTER_PYTHON_LIBS
 
 set(python_src
   display.cpp galipeur.cpp main.cpp maths.cpp object.cpp physics.cpp robot.cpp
-  utils.cpp
+  sensors.cpp utils.cpp
   eurobot2009.cpp eurobot2010.cpp eurobot2011.cpp
   )
 add_library(py-simulotter MODULE ${python_src})

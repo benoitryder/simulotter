@@ -7,6 +7,7 @@ void python_export_display();
 void python_export_physics();
 void python_export_object();
 void python_export_robot();
+void python_export_sensors();
 void python_export_galipeur();
 void python_export_eurobot2009();
 void python_export_eurobot2010();
@@ -28,6 +29,7 @@ XBOOST_PYTHON_MODULE(SIMULOTTER_MODULE_NAME)
   python_export_physics();
   python_export_object();
   python_export_robot();
+  python_export_sensors();
   python_export_galipeur();
 
   // sub modules
