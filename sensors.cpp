@@ -5,10 +5,11 @@
 
 
 SRay::SRay(btScalar min, btScalar max):
-  range_min_(min), range_max_(max)
+  range_min_(min), range_max_(max),
+  color_(Color4::white())
 {
   if( min < 0 || max <= min )
-    throw(Error("invalid sensor range: %f - %d", min, max));
+    throw(Error("invalid sensor range: %f - %f", min, max));
 }
 
 SRay::~SRay()
@@ -73,6 +74,8 @@ btScalar SRay::hitTest() const
 
 void SRay::draw(Display *) const
 {
+  glColor4fv(color_);
+
   glDisable(GL_LIGHTING);
   glBegin(GL_LINES);
   btglVertex3(range_min_,0,0);

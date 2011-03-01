@@ -237,6 +237,7 @@ Ray sensor --- :class:`SRay`
 
 A ray sensor is non-physical object with hit tests capabilities.
 It may be put at a fixed position in a world or attached to an existing object.
+When displayed, the sensor ray is drawn.
 
 .. class:: SRay(min, max)
 
@@ -264,5 +265,7 @@ It may be put at a fixed position in a world or attached to an existing object.
     Otherwise, :attr:`attach_point` is the position of the sensor in the
     attached object referential.
 
+  .. attribute:: color
 
+    Sensor ray color. Defaults to white.
 

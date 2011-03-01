@@ -23,6 +23,7 @@ void python_export_sensors()
       .def("hitTest", &SRay_hitTest)
       .add_property("attach_obj", &SRay_get_attach_obj, &SRay_set_attach_obj)
       .add_property("attach_point", &SRay_get_attach_point, &SRay_set_attach_point)
+      .add_property("color", &SRay::getColor, &SRay::setColor)
       ;
 }
 

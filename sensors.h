@@ -48,6 +48,9 @@ public:
   /// Draw the sensor hit zone
   virtual void draw(Display *d) const;
 
+  Color4 getColor() const { return color_; }
+  void setColor(const Color4 &color) { color_ = color; }
+
 protected:
   /// Attach point.
   btTransform attach_;
@@ -55,6 +58,8 @@ protected:
   SmartPtr<Object> obj_;
   /// Hit range
   btScalar range_min_, range_max_;
+
+  Color4 color_;
 };
 
 
