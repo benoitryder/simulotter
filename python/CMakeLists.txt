@@ -1,8 +1,7 @@
 
-find_package(PythonLibs)
+find_package(PythonLibs REQUIRED)
 
-set(Boost_FIND_REQUIRED 1)
-find_package(Boost COMPONENTS python)
+find_package(Boost COMPONENTS python REQUIRED)
 
 
 include_directories(

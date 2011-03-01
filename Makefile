@@ -11,7 +11,7 @@ BULLET_LIBS = -lBulletDynamics -lBulletCollision -lLinearMath
 
 LDLIBS = 
 ifeq ($(OS),Windows_NT)
-GL_LIBS = -lfreeglut -lopengl32 -lglu32
+GL_LIBS = -lfreeglut_static -lopengl32 -lglu32
 LDLIBS += -mconsole -mwindows -static-libgcc -static-libstdc++
 # on Windows, use static libs whenever possible
 LDLIBS += -Wl,-Bstatic $(BULLET_LIBS) -lpng -lz -lm $(GL_LIBS) -Wl,-Bdynamic -lSDL -lwinmm
@@ -45,11 +45,13 @@ PY_CH_SRC = python/common.h
 
 
 ifeq ($(OS),Windows_NT)
-python_prefix = $(shell python -c 'import sys; print sys.prefix')
+#python_exec = python
+python_exec = C:/Softs/Python27-w32/python
+python_prefix = $(shell $(python_exec) -c 'import sys; print sys.prefix')
 PY_CFLAGS += -I$(python_prefix)/include -DBOOST_PYTHON_STATIC_LIB
 PY_LDFLAGS += -L$(python_prefix)/libs
-BOOST_VERSION_SUFFIX = -mgw45-mt-1_44
-PYTHON_LIB = python26
+BOOST_VERSION_SUFFIX = -mgw45-mt-1_45
+PYTHON_LIB = python27
 PY_TARGET_EXT = .pyd
 else
 PY_CFLAGS += $(shell python-config --includes)
