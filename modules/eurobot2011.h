@@ -20,7 +20,7 @@ class OGround2011: public OGround
   OGround2011();
   ~OGround2011() {}
 
-  virtual void draw(Display *d);
+  virtual void draw(Display *d) const;
 };
 
 

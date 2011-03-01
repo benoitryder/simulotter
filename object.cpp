@@ -221,7 +221,7 @@ void OSimple::setPosAbove(const btVector2 &pos)
 }
 
 
-void OSimple::draw(Display *d)
+void OSimple::draw(Display *d) const
 {
   glColor4fv(color_);
   glPushMatrix();
@@ -254,7 +254,7 @@ OGround::~OGround()
 }
 
 
-void OGround::draw(Display *d)
+void OGround::draw(Display *d) const
 {
   glPushMatrix();
 
@@ -271,7 +271,7 @@ void OGround::draw(Display *d)
   glPopMatrix();
 }
 
-void OGround::drawBase()
+void OGround::drawBase() const
 {
   glPushMatrix();
 
@@ -282,7 +282,7 @@ void OGround::drawBase()
   glPopMatrix();
 }
 
-void OGround::drawStartingAreas()
+void OGround::drawStartingAreas() const
 {
   glPushMatrix();
   btglNormal3(0.0, 0.0, 1.0);
@@ -294,6 +294,5 @@ void OGround::drawStartingAreas()
   btglRect(SIZE[0]/2, SIZE[1]/2, SIZE[0]/2-start_size_, SIZE[1]/2-start_size_);
 
   glPopMatrix();
-
 }
 

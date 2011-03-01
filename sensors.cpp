@@ -71,7 +71,7 @@ btScalar SRay::hitTest() const
 }
 
 
-void SRay::draw(Display *)
+void SRay::draw(Display *) const
 {
   glDisable(GL_LIGHTING);
   glBegin(GL_LINES);

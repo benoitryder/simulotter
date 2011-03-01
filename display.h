@@ -147,12 +147,12 @@ public:
    *
    * @return true if a new list has been created, false otherwise.
    */
-  bool callOrCreateDisplayList(void *key);
+  bool callOrCreateDisplayList(const void *key);
   /// End currently initialized display list.
   void endDisplayList();
 
 private:
-  typedef std::map<void *, GLuint> DisplayListContainer;
+  typedef std::map<const void *, GLuint> DisplayListContainer;
   DisplayListContainer display_lists_;
 
   //@}

@@ -45,7 +45,7 @@ public:
   virtual void setTrans(const btTransform &tr);
 
   /// Draw the sensor hit zone
-  virtual void draw(Display *d);
+  virtual void draw(Display *d) const;
 
 protected:
   /// Attach point.

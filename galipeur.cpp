@@ -98,7 +98,7 @@ void Galipeur::removeFromWorld()
   ph_bak->getWorld()->removeRigidBody(body_);
 }
 
-void Galipeur::draw(Display *d)
+void Galipeur::draw(Display *d) const
 {
   glColor4fv(color_);
 

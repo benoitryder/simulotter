@@ -50,7 +50,7 @@ public:
   virtual void tickCallback();
 
   /// Draw the whole object
-  virtual void draw(Display *d) = 0;
+  virtual void draw(Display *d) const = 0;
 
   /** @name Transformation, position and rotation accessors
    */
@@ -154,7 +154,7 @@ public:
    *
    * Shape drawing is stored in a display list.
    */
-  virtual void draw(Display *d);
+  virtual void draw(Display *d) const;
 
   virtual const btTransform getTrans() const { return getCenterOfMassTransform(); }
   virtual void setTrans(const btTransform &tr) { setCenterOfMassTransform(tr); }
@@ -201,7 +201,7 @@ public:
   btScalar getStartSize() const { return start_size_; }
   void setStartSize(const btScalar &size) { start_size_ = size; }
 
-  virtual void draw(Display *d);
+  virtual void draw(Display *d) const;
 
 protected:
   Color4 color_t1_;
@@ -209,9 +209,9 @@ protected:
   btScalar start_size_;
 
   /// Draw the ground base.
-  void drawBase();
+  void drawBase() const;
   /// Draw starting areas.
-  void drawStartingAreas();
+  void drawStartingAreas() const;
 
   static SmartPtr<btBoxShape> shape_;
 };

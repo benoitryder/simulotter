@@ -57,7 +57,7 @@ void RBasic::removeFromWorld()
 }
 
 
-void RBasic::draw(Display *d)
+void RBasic::draw(Display *d) const
 {
   glColor4fv(color_);
   glPushMatrix();
@@ -70,7 +70,7 @@ void RBasic::draw(Display *d)
   glPopMatrix();
 }
 
-void RBasic::drawDirection(Display *)
+void RBasic::drawDirection(Display *) const
 {
   btVector3 aabb_min, aabb_max;
   body_->getAabb(aabb_min, aabb_max);

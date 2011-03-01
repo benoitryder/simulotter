@@ -63,13 +63,13 @@ public:
    */
   void setColor(const Color4 &color) { color_ = color; }
 
-  virtual void draw(Display *d);
+  virtual void draw(Display *d) const;
 
   /** Draw a small direction cone above the robot
    *
    * Current OpenGL matrix is supposed to be on robot center.
    */
-  void drawDirection(Display *d);
+  void drawDirection(Display *d) const;
 
   static const float DIRECTION_CONE_R; ///< Direction cone radius
   static const float DIRECTION_CONE_H; ///< Direction cone height

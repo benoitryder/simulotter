@@ -53,7 +53,7 @@ namespace eurobot2009
      */
     void fill(Object *o, btScalar z);
 
-    void draw(Display *d);
+    void draw(Display *d) const;
 
     /** @brief Collision check to disable collision with stored items
      *
@@ -116,7 +116,7 @@ namespace eurobot2009
      * Assumes that the robot is not rotated (robot's Z axis aligned with
      * world's Z axis).
      */
-    virtual void draw(Display *d);
+    virtual void draw(Display *d) const;
 
     virtual void setTrans(const btTransform &tr);
 

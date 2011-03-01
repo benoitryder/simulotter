@@ -3,18 +3,18 @@
 #include "physics.h"
 
 
-static inline btVector3 Object_getPos(const Object &o) { return btUnscale(o.getPos()); }
-static inline void Object_setPos(Object &o, const btVector3 &v) { o.setPos(btScale(v)); }
-static inline btTransform Object_getTrans(const Object &o) { return btUnscale(o.getTrans()); }
-static inline void Object_setTrans(Object &o, const btTransform &tr) { o.setTrans(btScale(tr)); }
+static btVector3 Object_getPos(const Object &o) { return btUnscale(o.getPos()); }
+static void Object_setPos(Object &o, const btVector3 &v) { o.setPos(btScale(v)); }
+static btTransform Object_getTrans(const Object &o) { return btUnscale(o.getTrans()); }
+static void Object_setTrans(Object &o, const btTransform &tr) { o.setTrans(btScale(tr)); }
 
 static const btVector3 OGround_SIZE = btUnscale(OGround::SIZE);
-static inline btScalar OGround_getStartSize(const OGround &o) { return btUnscale(o.getStartSize()); }
-static inline void OGround_setStartSize(OGround &o, const btScalar &v) { o.setStartSize(btScale(v)); }
+static btScalar OGround_getStartSize(const OGround &o) { return btUnscale(o.getStartSize()); }
+static void OGround_setStartSize(OGround &o, const btScalar &v) { o.setStartSize(btScale(v)); }
 
 // SmartPtr and not const, otherwise Boost.Python cannot convert the shape.
-static inline SmartPtr<btCollisionShape> OSimple_getShape(OSimple &o) { return o.getCollisionShape(); }
-static inline void OSimple_setPos(OSimple &o, const py::object v)
+static SmartPtr<btCollisionShape> OSimple_getShape(OSimple &o) { return o.getCollisionShape(); }
+static void OSimple_setPos(OSimple &o, const py::object v)
 {
   py::extract<const btVector2 &> py_vec2(v);
   if( py_vec2.check() ) {

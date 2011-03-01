@@ -69,7 +69,7 @@ namespace eurobot2010
     setShape( shape_ );
   }
 
-  void ORaisedZone::draw(Display *d)
+  void ORaisedZone::draw(Display *d) const
   {
     glPushMatrix();
     drawTransform(getTrans());
@@ -118,7 +118,7 @@ namespace eurobot2010
     glPopMatrix();
   }
 
-  void ORaisedZone::draw_wall()
+  void ORaisedZone::draw_wall() const
   {
     glColor4fv(Color4(0x14,0x17,0x1c)); // RAL 9017
     const btVector2 vn_slope = btVector2(HEIGHT,(WALL_BOTTOM_LENGTH-WALL_TOP_LENGTH)/2).normalized();

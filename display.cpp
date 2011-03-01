@@ -458,7 +458,7 @@ void Display::sceneInit()
 void Display::sceneDestroy() {}
 
 
-bool Display::callOrCreateDisplayList(void *key)
+bool Display::callOrCreateDisplayList(const void *key)
 {
   DisplayListContainer::const_iterator it = display_lists_.find(key);
   if( it != display_lists_.end() ) {

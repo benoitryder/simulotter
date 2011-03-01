@@ -28,9 +28,9 @@ namespace eurobot2010
     static const btScalar WALL_TOP_LENGTH;
 
     ORaisedZone();
-    virtual void draw(Display *d);
+    virtual void draw(Display *d) const;
   protected:
-    void draw_wall();
+    void draw_wall() const;
   private:
     static SmartPtr<btCompoundShape> shape_;
     static btConvexHullShape body_shape_;

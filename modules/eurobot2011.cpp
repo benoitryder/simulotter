@@ -17,7 +17,7 @@ OGround2011::OGround2011():
   setStartSize(START_SIZE);
 }
 
-void OGround2011::draw(Display *d)
+void OGround2011::draw(Display *d) const
 {
   glPushMatrix();
 
