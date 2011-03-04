@@ -7,7 +7,6 @@ static const btScalar OGround2011_START_SIZE = btUnscale(OGround2011::START_SIZE
 static const btScalar OGround2011_SQUARE_SIZE = btUnscale(OGround2011::SQUARE_SIZE);
 
 
-
 void python_export_eurobot2011()
 {
   SIMULOTTER_PYTHON_SUBMODULE(_eurobot2011);
@@ -17,5 +16,8 @@ void python_export_eurobot2011()
       .def_readonly("SQUARE_SIZE", OGround2011_SQUARE_SIZE)
       ;
 
+  py::class_<Galipeur2011, py::bases<Galipeur>, SmartPtr<Galipeur2011>, boost::noncopyable>("Galipeur", py::no_init)
+      .def(py::init<btScalar>())
+      ;
 }
 
