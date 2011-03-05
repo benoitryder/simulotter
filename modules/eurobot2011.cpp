@@ -108,12 +108,14 @@ void OGround2011::draw(Display *d) const
 Galipeur2011::Galipeur2011(btScalar m): Galipeur(m)
 {
   // not a static const to avoid issues of init order of globals
-  const btVector3 arm_pos(D_SIDE, 0, btScale(0.05)+PawnArm::RADIUS+btScalar(0.02)-Z_MASS);
+  const btVector3 arm_pos(D_SIDE, 0, btScale(0.05+0.01)+PawnArm::RADIUS-Z_MASS);
   const btVector3 up(0,0,1);
-  const btScalar angles[sizeof(arms_)/sizeof(*arms_)] = { -M_PI/3, +M_PI/3 };
+  const btScalar angles[GALIPEUR2011_ARM_NB] = { -M_PI/3, +M_PI/3 };
   unsigned int i;
-  for( i=0; i<sizeof(arms_)/sizeof(*arms_); i++ ) {
-    btTransform tr( btQuaternion(up, -angles[i]), arm_pos.rotate(up, M_PI_2-angles[i]) );
+  for( i=0; i<GALIPEUR2011_ARM_NB; i++ ) {
+    btMatrix3x3 m;
+    m.setEulerZYX( M_PI_2, 0, -angles[i] );
+    btTransform tr( m, arm_pos.rotate(up, M_PI_2-angles[i]) );
     arms_[i] = new PawnArm(this, tr);
   }
 }
@@ -128,7 +130,7 @@ void Galipeur2011::addToWorld(Physics *physics)
 {
   btDynamicsWorld *world = physics->getWorld();
   unsigned int i;
-  for( i=0; i<sizeof(arms_)/sizeof(*arms_); i++ ) {
+  for( i=0; i<GALIPEUR2011_ARM_NB; i++ ) {
     world->addRigidBody(arms_[i]);
     world->addConstraint(arms_[i]->robot_link_, true);
   }
@@ -140,18 +142,19 @@ void Galipeur2011::removeFromWorld()
   btDynamicsWorld *world = physics_->getWorld();
   Galipeur::removeFromWorld();
   unsigned int i;
-  for( i=0; i<sizeof(arms_)/sizeof(*arms_); i++ ) {
+  for( i=0; i<GALIPEUR2011_ARM_NB; i++ ) {
     world->removeConstraint(arms_[i]->robot_link_);
     world->removeRigidBody(arms_[i]);
   }
 }
+
 
 void Galipeur2011::draw(Display *d) const
 {
   Galipeur::draw(d);
 
   unsigned int i;
-  for( i=0; i<sizeof(arms_)/sizeof(*arms_); i++ ) {
+  for( i=0; i<GALIPEUR2011_ARM_NB; i++ ) {
     arms_[i]->draw(d);
   }
 }
@@ -160,7 +163,7 @@ void Galipeur2011::setTrans(const btTransform &tr)
 {
   Galipeur::setTrans(tr);
   unsigned int i;
-  for( i=0; i<sizeof(arms_)/sizeof(*arms_); i++ ) {
+  for( i=0; i<GALIPEUR2011_ARM_NB; i++ ) {
     arms_[i]->resetTrans();
   }
 }
@@ -185,8 +188,8 @@ Galipeur2011::PawnArm::PawnArm(Galipeur2011 *robot, const btTransform &tr):
   robot_link_ = new btSliderConstraint(*robot_->body_, *this, robot_tr_, tr2, true);
   robot_link_->setLowerLinLimit(0);
   robot_link_->setUpperLinLimit(0);
-  robot_link_->setLowerAngLimit(0);
-  robot_link_->setUpperAngLimit(M_PI_2);
+  robot_link_->setLowerAngLimit(-M_PI_2);
+  robot_link_->setUpperAngLimit(0);
   robot_link_->setPoweredAngMotor(true);
   robot_link_->setTargetAngMotorVelocity(0);
   robot_link_->setMaxAngMotorForce(100); // don't limit acceleration
@@ -198,6 +201,18 @@ Galipeur2011::PawnArm::~PawnArm()
 {
   delete robot_link_;
 }
+
+
+void Galipeur2011::PawnArm::raise()
+{
+  robot_link_->setTargetAngMotorVelocity( -robot_->arm_av_ );
+}
+
+void Galipeur2011::PawnArm::lower()
+{
+  robot_link_->setTargetAngMotorVelocity( +robot_->arm_av_ );
+}
+
 
 void Galipeur2011::PawnArm::draw(Display *d) const
 {

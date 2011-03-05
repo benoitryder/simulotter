@@ -8,7 +8,6 @@
 #include "object.h"
 #include "galipeur.h"
 
-
 namespace eurobot2011
 {
 
@@ -25,6 +24,8 @@ class OGround2011: public OGround
 };
 
 
+#define GALIPEUR2011_ARM_NB  2
+
 /** @brief Rob'Oter robot.
  *
  * Galipeur with mobile arms to catch pawns.
@@ -32,6 +33,8 @@ class OGround2011: public OGround
 class Galipeur2011: public Galipeur
 {
  public:
+  static const unsigned int ARM_NB;
+
   Galipeur2011(btScalar m);
   virtual ~Galipeur2011();
 
@@ -42,6 +45,11 @@ class Galipeur2011: public Galipeur
 
   virtual void setTrans(const btTransform &tr);
 
+  /** @name Asserv configuration */
+  //@{
+  void set_arm_av(btScalar av) { arm_av_ = av; }
+  //@}
+
   friend class PawnArm;
   class PawnArm: public btRigidBody
   {
@@ -50,6 +58,11 @@ class Galipeur2011: public Galipeur
     static const btScalar RADIUS;
     static const btScalar LENGTH;
     static const btScalar MASS;
+
+    /// Raise the arm.
+    void raise();
+    /// Lower the arm.
+    void lower();
 
     void draw(Display *d) const;
 
@@ -66,8 +79,11 @@ class Galipeur2011: public Galipeur
     btSliderConstraint *robot_link_;
   };
 
+  PawnArm *const *getArms() const { return arms_; }
+
  private:
-  PawnArm *arms_[2];
+  PawnArm *arms_[GALIPEUR2011_ARM_NB];
+  btScalar arm_av_;  ///< Arm angle velocity
 };
 
 }
