@@ -27,7 +27,10 @@ btBoxShape Galipeur::wheel_shape_( btVector3(H_WHEEL/2,R_WHEEL,R_WHEEL) );
 
 
 Galipeur::Galipeur(btScalar m):
-    color_(Color4(0.3))
+    color_(Color4(0.3)),
+    v_steering_(0), va_steering_(0), threshold_steering_(0),
+    v_stop_(0), va_stop_(0), threshold_stop_(0),
+    target_a_(0), ramp_last_t_(0), threshold_a_(0)
 {
   // First instance: initialize shape
   if( shape_ == NULL )
