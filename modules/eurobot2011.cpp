@@ -105,6 +105,120 @@ void OGround2011::draw(Display *d) const
 }
 
 
+const btScalar Magnet::RADIUS = btScale(0.03);
+btSphereShape Magnet::shape_(RADIUS);
+// User defined constraint type for magnet joints.
+#define EUROBOT2011_MAGNET_CONSTRAINT_TYPE  (0x20110001)
+
+
+Magnet::Magnet(): btRigidBody(btRigidBodyConstructionInfo(0,NULL,&shape_)),
+    physics_(NULL)
+{
+  // small mass to make it a kinetic object
+  btVector3 inertia;
+  shape_.calculateLocalInertia(0.01, inertia);
+  setupRigidBody( btRigidBodyConstructionInfo(0.01,NULL,&shape_,inertia) );
+
+  this->setCollisionFlags( this->getCollisionFlags() | CF_NO_CONTACT_RESPONSE );
+}
+
+Magnet::~Magnet()
+{
+  this->disable(); // release objects
+}
+
+void Magnet::enable(Physics *ph)
+{
+  if( physics_ != NULL ) {
+    throw(Error("magnet is already enabled"));
+  }
+  physics_ = ph;
+}
+
+void Magnet::disable()
+{
+  if( physics_ == NULL ) {
+    throw(Error("magnet is not enabled"));
+  }
+  // release objects
+  for(int i=this->getNumConstraintRefs()-1; i>=0; i--) {
+    btTypedConstraint *constraint = this->getConstraintRef(i);
+    if( constraint->getUserConstraintType() == EUROBOT2011_MAGNET_CONSTRAINT_TYPE ) {
+      physics_->getWorld()->removeConstraint(constraint);
+      delete constraint;
+    }
+  }
+  physics_ = NULL;
+}
+
+bool Magnet::checkCollideWithOverride(btCollisionObject *co)
+{
+  if( physics_ == NULL ) {
+    return false;
+  }
+
+  //XXX use collision flags or something to avoid dynamic_cast
+  //XXX This callback is used to detect magnets close from each other, not to
+  // known whether an object should collide. They may be a more appropriated
+  // way to do this.
+  Magnet *o = dynamic_cast<Magnet*>(co);
+  if( ! o || o->physics_ == NULL ) {
+    return false;
+  }
+  // check if object is already constrained
+  for(int i=0; i < getNumConstraintRefs(); i++) {
+    btTypedConstraint *constraint = getConstraintRef(i);
+    if( o == &constraint->getRigidBodyA() || o == &constraint->getRigidBodyB() ) {
+      return false;
+    }
+  }
+
+  // new constraint
+  btGeneric6DofConstraint *constraint = new btGeneric6DofConstraint(
+      *this, *o, btTransform::getIdentity(), btTransform::getIdentity(), true);
+  constraint->setUserConstraintType(EUROBOT2011_MAGNET_CONSTRAINT_TYPE);
+  for(int i=0; i<6; i++) {
+    constraint->setLimit(i, 0, 0);
+  }
+  physics_->getWorld()->addConstraint(constraint, true);
+
+  return false;
+}
+
+
+MagnetPawn::MagnetPawn(btCollisionShape *sh, btScalar mass):
+    OSimple(sh, mass), link_(NULL)
+{
+}
+
+MagnetPawn::~MagnetPawn() {}
+
+void MagnetPawn::addToWorld(Physics *physics)
+{
+  OSimple::addToWorld(physics);
+  physics_->getWorld()->addRigidBody(&magnet_);
+  link_ = new btGeneric6DofConstraint(*this, magnet_, btTransform::getIdentity(), btTransform::getIdentity(), true);
+  magnet_.setCenterOfMassTransform( this->getCenterOfMassTransform() );
+  physics_->getWorld()->addConstraint(link_, true);
+  magnet_.enable(physics_);
+}
+
+void MagnetPawn::removeFromWorld()
+{
+  magnet_.disable();
+  physics_->getWorld()->removeRigidBody(&magnet_);
+  physics_->getWorld()->removeConstraint(link_);
+  link_ = NULL;
+  OSimple::removeFromWorld();
+}
+
+void MagnetPawn::setTrans(const btTransform &tr)
+{
+  OSimple::setTrans(tr);
+  magnet_.setCenterOfMassTransform(tr);
+}
+
+
 Galipeur2011::Galipeur2011(btScalar m): Galipeur(m)
 {
   // not a static const to avoid issues of init order of globals

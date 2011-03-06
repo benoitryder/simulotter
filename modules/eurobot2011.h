@@ -24,6 +24,48 @@ class OGround2011: public OGround
 };
 
 
+/** @brief Pawn magnet.
+ *
+ * Physics provided to enable() is only used to store the physical world of
+ * constraints in order to create or release them.
+ * Enabling or disabling the magnet does not add or remove it from the world.
+ */
+class Magnet: public btRigidBody
+{
+ public:
+  static const btScalar RADIUS;
+
+  Magnet();
+  ~Magnet();
+  /// Enable object grabbing.
+  void enable(Physics *ph);
+  /// Release all objects, disable object grabbing.
+  void disable();
+
+  virtual bool checkCollideWithOverride(btCollisionObject *co);
+ protected:
+  static btSphereShape shape_;
+  Physics *physics_; ///< Physical world, \e NULL if disabled.
+};
+
+
+/** @brief A pawn with magnet.
+ * @note The actual class is defined in Python.
+ */
+class MagnetPawn: public OSimple
+{
+ public:
+  MagnetPawn(btCollisionShape *sh, btScalar mass=0);
+  virtual ~MagnetPawn();
+  virtual void addToWorld(Physics *physics);
+  virtual void removeFromWorld();
+  virtual void setTrans(const btTransform &tr);
+ private:
+  Magnet magnet_;
+  btGeneric6DofConstraint *link_;
+};
+
+
 #define GALIPEUR2011_ARM_NB  2
 
 /** @brief Rob'Oter robot.
@@ -33,8 +75,6 @@ class OGround2011: public OGround
 class Galipeur2011: public Galipeur
 {
  public:
-  static const unsigned int ARM_NB;
-
   Galipeur2011(btScalar m);
   virtual ~Galipeur2011();
 

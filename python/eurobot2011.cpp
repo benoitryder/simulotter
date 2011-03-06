@@ -31,6 +31,9 @@ void python_export_eurobot2011()
       .def_readonly("SQUARE_SIZE", OGround2011_SQUARE_SIZE)
       ;
 
+  py::class_<MagnetPawn, py::bases<OSimple>, SmartPtr<MagnetPawn>, boost::noncopyable>("_MagnetPawn", py::init<btCollisionShape *, btScalar>())
+      ;
+
   py::class_<Galipeur2011, py::bases<Galipeur>, SmartPtr<Galipeur2011>, boost::noncopyable>("Galipeur", py::no_init)
       .def(py::init<btScalar>())
       .add_property("arms", py::make_function(

@@ -4,6 +4,7 @@ Eurobot 2011: Chess'Up!
 """
 
 from _simulotter._eurobot2011 import *
+from _simulotter._eurobot2011 import _MagnetPawn
 import _simulotter as _so
 import eurobot as _eb
 import math as _math
@@ -27,12 +28,12 @@ DISPENSING_DY = 0.280
 RANDOM_POS = tuple( (i,j) for i in range(5) for j in range(5) if i != j )
 
 
-class OPawn(_so.OSimple):
+class OPawn(_MagnetPawn):
   _shape = _so.ShCylinderZ(_vec3(0.2, 0.2, 0.05)/2)
   _mass = 0.3  # 200g to 500g
 
   def __init__(self):
-    _so.OSimple.__init__(self, self._shape, self._mass)
+    _MagnetPawn.__init__(self, self._shape, self._mass)
     self.color = _eb.RAL[1023]
 
 
