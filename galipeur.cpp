@@ -92,6 +92,8 @@ void Galipeur::addToWorld(Physics *physics)
 {
   physics->getWorld()->addRigidBody(body_);
   Robot::addToWorld(physics);
+  target_a_ = getAngle(); // init target angle
+  //XXX find a better place to do this
 }
 
 void Galipeur::removeFromWorld()
