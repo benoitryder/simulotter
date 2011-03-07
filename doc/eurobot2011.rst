@@ -21,6 +21,7 @@ Eurobot 2011 --- *Chess up!*
 .. class:: OPawn()
 
   A pawn. Inherit from :class:`OSimple`.
+  Pawns are magneti at their center.
 
 .. class:: OKing()
 
@@ -29,6 +30,49 @@ Eurobot 2011 --- *Chess up!*
 .. class:: OQueen()
 
   A queen. Inherit from :class:`OPawn`.
+
+
+.. class:: Galipeur(mass)
+  
+  Galipeur adapted to Eurobot 2011 rules, with magnetic arms to grab pawns.
+
+  .. method:: set_arm_av(av)
+
+    Set angle velocity of arms. If value is to small arms will not be able to
+    raise while grabbing a pawn. A value of ``2*math.pi`` should be fine.
+
+  .. attribute:: arms
+
+    Pair of arms, as a tuple of `Galipeur.PawnArm` instances.
+
+  .. class:: PawnArm
+
+    This class cannot be instantiated from Python.
+
+    A Galipeur's magnetic arm, to move pawns. The arm is
+    initially raised with magnet enabled.
+
+    .. method:: up()
+
+      Raise the arm.
+
+    .. method:: down()
+
+      Lower the arm.
+
+    .. method:: grab()
+
+      Enable  the magnet, allowing pawn grabbing.
+
+    .. method:: release()
+
+      Disable the magnet, releasing grabbed pawns.
+
+.. data:: Galipeur.ARM_RADIUS
+          Galipeur.ARM_LENGTH
+
+  Radius and length of Galipeur arms.
+  Length does not include size of caps at both ends.
 
 
 .. class:: Match()

@@ -62,7 +62,7 @@ Eurobot 2009 --- *Temples of Atlantis*
 
 .. class:: Galipeur([mass])
 
-  Galipeur adapted to Eurbot 2009 rules, with a so-called *pàchev*.
+  Galipeur adapted to Eurobot 2009 rules, with a so-called *pàchev*.
 
   .. attribute:: pachev_pos
 
