@@ -37,6 +37,8 @@ class Magnet: public btRigidBody
 
   Magnet();
   ~Magnet();
+  /// Return \e true object grabbing is enabled.
+  bool enabled() const { return physics_ != NULL; }
   /// Enable object grabbing.
   void enable(Physics *ph);
   /// Release all objects, disable object grabbing.
@@ -103,6 +105,10 @@ class Galipeur2011: public Galipeur
     void raise();
     /// Lower the arm.
     void lower();
+    /// Enable magnet.
+    void grab();
+    /// Disable magnet.
+    void release();
 
     void draw(Display *d) const;
 
@@ -112,11 +118,16 @@ class Galipeur2011: public Galipeur
     /// Reset arm's transform according to robot's transform
     void resetTrans();
 
+    void addToWorld();
+    void removeFromWorld();
+
    private:
     static btCapsuleShape shape_;
     Galipeur2011 *robot_;
     btTransform robot_tr_; ///< Transformation relative to the robot.
     btSliderConstraint *robot_link_;
+    Magnet magnet_;
+    btGeneric6DofConstraint *magnet_link_;
   };
 
   PawnArm *const *getArms() const { return arms_; }

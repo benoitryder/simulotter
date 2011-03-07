@@ -124,12 +124,14 @@ Magnet::Magnet(): btRigidBody(btRigidBodyConstructionInfo(0,NULL,&shape_)),
 
 Magnet::~Magnet()
 {
-  this->disable(); // release objects
+  if( enabled() ) {
+    this->disable(); // release objects
+  }
 }
 
 void Magnet::enable(Physics *ph)
 {
-  if( physics_ != NULL ) {
+  if( enabled() ) {
     throw(Error("magnet is already enabled"));
   }
   physics_ = ph;
@@ -137,7 +139,7 @@ void Magnet::enable(Physics *ph)
 
 void Magnet::disable()
 {
-  if( physics_ == NULL ) {
+  if( !enabled() ) {
     throw(Error("magnet is not enabled"));
   }
   // release objects
@@ -153,7 +155,7 @@ void Magnet::disable()
 
 bool Magnet::checkCollideWithOverride(btCollisionObject *co)
 {
-  if( physics_ == NULL ) {
+  if( !enabled() ) {
     return false;
   }
 
@@ -162,7 +164,7 @@ bool Magnet::checkCollideWithOverride(btCollisionObject *co)
   // known whether an object should collide. They may be a more appropriated
   // way to do this.
   Magnet *o = dynamic_cast<Magnet*>(co);
-  if( ! o || o->physics_ == NULL ) {
+  if( ! o || !o->enabled() ) {
     return false;
   }
   // check if object is already constrained
@@ -242,24 +244,20 @@ Galipeur2011::~Galipeur2011()
 
 void Galipeur2011::addToWorld(Physics *physics)
 {
-  btDynamicsWorld *world = physics->getWorld();
+  Galipeur::addToWorld(physics);
   unsigned int i;
   for( i=0; i<GALIPEUR2011_ARM_NB; i++ ) {
-    world->addRigidBody(arms_[i]);
-    world->addConstraint(arms_[i]->robot_link_, true);
+    arms_[i]->addToWorld();
   }
-  Galipeur::addToWorld(physics);
 }
 
 void Galipeur2011::removeFromWorld()
 {
-  btDynamicsWorld *world = physics_->getWorld();
-  Galipeur::removeFromWorld();
   unsigned int i;
   for( i=0; i<GALIPEUR2011_ARM_NB; i++ ) {
-    world->removeConstraint(arms_[i]->robot_link_);
-    world->removeRigidBody(arms_[i]);
+    arms_[i]->removeFromWorld();
   }
+  Galipeur::removeFromWorld();
 }
 
 
@@ -308,12 +306,17 @@ Galipeur2011::PawnArm::PawnArm(Galipeur2011 *robot, const btTransform &tr):
   robot_link_->setTargetAngMotorVelocity(0);
   robot_link_->setMaxAngMotorForce(100); // don't limit acceleration
 
+  tr2 = btTransform::getIdentity();
+  tr2.setOrigin( btVector3(0, LENGTH/2, 0) );
+  magnet_link_ = new btGeneric6DofConstraint(*this, magnet_, tr2, btTransform::getIdentity(), true);
+
   this->resetTrans();
 }
 
 Galipeur2011::PawnArm::~PawnArm()
 {
   delete robot_link_;
+  delete magnet_link_;
 }
 
 
@@ -325,6 +328,20 @@ void Galipeur2011::PawnArm::raise()
 void Galipeur2011::PawnArm::lower()
 {
   robot_link_->setTargetAngMotorVelocity( +robot_->arm_av_ );
+}
+
+void Galipeur2011::PawnArm::grab()
+{
+  if( !magnet_.enabled() ) {
+    magnet_.enable( robot_->physics_ );
+  }
+}
+
+void Galipeur2011::PawnArm::release()
+{
+  if( magnet_.enabled() ) {
+    magnet_.disable();
+  }
 }
 
 
@@ -344,6 +361,30 @@ void Galipeur2011::PawnArm::resetTrans()
   btTransform tr = robot_->body_->getCenterOfMassTransform() * robot_tr_;
   tr.getOrigin() += btVector3(0, LENGTH/2, 0);
   this->setCenterOfMassTransform(tr);
+  tr.getOrigin() -= btVector3(0, LENGTH, 0);
+  magnet_.setCenterOfMassTransform(tr);
+}
+
+void Galipeur2011::PawnArm::addToWorld()
+{
+  btDynamicsWorld *world = robot_->physics_->getWorld();
+  world->addRigidBody(this);
+  world->addRigidBody(&magnet_);
+  world->addConstraint(robot_link_, true);
+  world->addConstraint(magnet_link_, true);
+  magnet_.enable(robot_->physics_);
+}
+
+void Galipeur2011::PawnArm::removeFromWorld()
+{
+  btDynamicsWorld *world = robot_->physics_->getWorld();
+  if( magnet_.enabled() ) {
+    magnet_.disable();
+  }
+  world->removeConstraint(magnet_link_);
+  world->removeConstraint(robot_link_);
+  world->removeRigidBody(&magnet_);
+  world->removeRigidBody(this);
 }
 
 
