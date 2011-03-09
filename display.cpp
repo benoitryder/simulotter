@@ -524,9 +524,25 @@ void Display::handlerPause(Display *d, const SDL_Event *)
 void Display::handlerCamMouse(Display *d, const SDL_Event *event)
 {
   const float move = d->camera_mouse_coef * d->camera_step_angle;
-  btMatrix3x3 m;
-  m.setEulerYPR(0, event->motion.xrel * move, event->motion.yrel * move);
-  d->camera.trans.setBasis( m * d->camera.trans.getBasis() );
+  btMatrix3x3 m = d->camera.trans.getBasis();
+  // get Euler angles around XYZ
+  btScalar ax = btAtan2( -m[1].z(), m[2].z() );
+  //btScalar ay = btAsin( m[0].z() );  // not used
+  btScalar az = btAtan2( -m[0].y(), m[0].x() );
+  // add up mouse move
+  ax += event->motion.yrel * move;
+  az += event->motion.xrel * move;
+  // force Y angle to 0
+  btScalar cx = btCos(ax);
+  btScalar sx = btSin(ax);
+  btScalar cz = btCos(az);
+  btScalar sz = btSin(az);
+  m = btMatrix3x3(
+      cz, -sz, 0,
+      cx*sz, cx*cz, -sx,
+      sx*sz, cz*sx, cx
+      );
+  d->camera.trans.setBasis(m);
 }
 
 void Display::handlerCamAhead(Display *d, const SDL_Event *)
