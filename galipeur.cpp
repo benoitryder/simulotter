@@ -295,7 +295,6 @@ void Galipeur::order_a(btScalar a, bool rel)
   target_a_ = btNormalizeAngle(a);
 
   ramp_last_t_ = physics_->getTime();
-  ramp_a_.reset(getAngularVelocity());
 }
 
 void Galipeur::order_xya(btVector2 xy, btScalar a, bool rel)
@@ -324,7 +323,6 @@ void Galipeur::order_trajectory(const std::vector<btVector2> &pts)
   ckpt_ = checkpoints_.begin();
 
   ramp_last_t_ = physics_->getTime();
-  ramp_xy_.reset(getVelocity().length());
 }
 
 
