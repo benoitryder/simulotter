@@ -306,7 +306,7 @@ The following default handlers are defined. They can be overridden using :meth:`
 - *space*: pause the simulation
 
 .. note::
-  Actually, defaults camera moves are mapped to ZQSDAE according to the French
+  Actually, default camera moves are mapped to ZQSDAE according to the French
   AZERTY keyboard. This will have no impact on Windows since keys are detected
   according to the QWERTY US keyboard.
 
