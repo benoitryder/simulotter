@@ -52,6 +52,10 @@ Eurobot 2011 --- *Chess up!*
     A Galipeur's magnetic arm, to move pawns. The arm is
     initially raised with magnet enabled.
 
+    .. method:: angle()
+
+      Get arm angle. Value is between 0 (down) and π/2 (up).
+
     .. method:: up()
 
       Raise the arm.

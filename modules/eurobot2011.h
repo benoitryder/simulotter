@@ -101,6 +101,8 @@ class Galipeur2011: public Galipeur
     static const btScalar LENGTH;
     static const btScalar MASS;
 
+    /// Get angle position (0 is lower, Pi/2 is raised).
+    btScalar angle() const { return robot_link_->getAngularPos(); }
     /// Raise the arm.
     void raise();
     /// Lower the arm.

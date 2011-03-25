@@ -230,7 +230,7 @@ Galipeur2011::Galipeur2011(btScalar m): Galipeur(m)
   unsigned int i;
   for( i=0; i<GALIPEUR2011_ARM_NB; i++ ) {
     btMatrix3x3 m;
-    m.setEulerZYX( M_PI_2, 0, -angles[i] );
+    m.setEulerZYX( 0, 0, -angles[i] );
     btTransform tr( m, arm_pos.rotate(up, M_PI_2-angles[i]) );
     arms_[i] = new PawnArm(this, tr);
   }
@@ -300,8 +300,8 @@ Galipeur2011::PawnArm::PawnArm(Galipeur2011 *robot, const btTransform &tr):
   robot_link_ = new btSliderConstraint(*robot_->body_, *this, robot_tr_, tr2, true);
   robot_link_->setLowerLinLimit(0);
   robot_link_->setUpperLinLimit(0);
-  robot_link_->setLowerAngLimit(-M_PI_2);
-  robot_link_->setUpperAngLimit(0);
+  robot_link_->setLowerAngLimit(0);
+  robot_link_->setUpperAngLimit(M_PI_2);
   robot_link_->setPoweredAngMotor(true);
   robot_link_->setTargetAngMotorVelocity(0);
   robot_link_->setMaxAngMotorForce(100); // don't limit acceleration
@@ -358,7 +358,9 @@ void Galipeur2011::PawnArm::draw(Display *d) const
 
 void Galipeur2011::PawnArm::resetTrans()
 {
-  btTransform tr = robot_->body_->getCenterOfMassTransform() * robot_tr_;
+  // default position: raised
+  const btTransform raised( btQuaternion(btVector3(1,0,0), M_PI_2), btVector3(0,0,0) );
+  btTransform tr = robot_->body_->getCenterOfMassTransform() * robot_tr_ * raised;
   tr.getOrigin() += btVector3(0, LENGTH/2, 0);
   this->setCenterOfMassTransform(tr);
   tr.getOrigin() -= btVector3(0, LENGTH, 0);

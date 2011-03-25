@@ -48,6 +48,7 @@ void python_export_eurobot2011()
       ;
 
   py::class_<Galipeur2011::PawnArm, Galipeur2011::PawnArm*, boost::noncopyable>("PawnArm", py::no_init)
+      .add_property("angle", &Galipeur2011::PawnArm::angle)
       .def("up", &Galipeur2011::PawnArm::raise) // cannot use 'raise', it's a keyword
       .def("down", &Galipeur2011::PawnArm::lower)
       .def("grab", &Galipeur2011::PawnArm::grab)

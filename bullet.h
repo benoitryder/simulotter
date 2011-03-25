@@ -8,8 +8,8 @@
 #include <btBulletDynamicsCommon.h>
 
 // check bullet version
-#if BT_BULLET_VERSION < 275
-#error "Bullet >= 2.75 is required"
+#if BT_BULLET_VERSION < 278
+#error "Bullet >= 2.78 is required"
 #endif
 
 
