@@ -77,6 +77,8 @@ btScalar SRay::hitTest() const
 
 void SRay::draw(Display *) const
 {
+  glPushMatrix();
+  drawTransform(this->getTrans());
   glColor4fv(color_);
 
   glDisable(GL_LIGHTING);
@@ -85,6 +87,8 @@ void SRay::draw(Display *) const
   btglVertex3(range_max_,0,0);
   glEnd();
   glEnable(GL_LIGHTING);
+
+  glPopMatrix();
 }
 
 

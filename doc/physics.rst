@@ -235,7 +235,7 @@ Table ground --- :class:`OGround`
 Ray sensor --- :class:`SRay`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A ray sensor is non-physical object with hit tests capabilities.
+A ray sensor is non-physical :class:`Object` with hit tests capabilities.
 It may be put at a fixed position in a world or attached to an existing object.
 When displayed, the sensor ray is drawn.
 
