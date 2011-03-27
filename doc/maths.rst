@@ -60,9 +60,9 @@ Vectors --- :class:`vec2`, :class:`vec3`
     Normalize the vector, such as *x² + y² = 1* (for :class:`vec2`) or
     *x² + y² + z² = 1* (for :class:`vec3`).
 
-  .. method:: rotate(angle)
+  .. method:: rotate([axis,] angle)
 
-    Rotate the vector.
+    Rotate the vector. *axis* must be provided (only) for :class:`vec3`.
 
   .. method:: angle(vec)
 

@@ -109,6 +109,7 @@ void Object::drawShape(const btCollisionShape *shape)
 
 void Object::addToWorld(Physics *physics)
 {
+  assert( physics != NULL );
   if( physics_ != NULL ) {
     throw(Error("object is already in a world"));
   }

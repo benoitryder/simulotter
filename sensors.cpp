@@ -22,6 +22,9 @@ void SRay::setAttachObject(Object *obj)
   if( obj == NULL ) {
     obj_ = NULL;
   } else {
+    if( obj->getPhysics() == NULL ) {
+      throw(Error("attached object is not in a world"));
+    }
     if( obj_ != NULL ) {
       this->removeFromWorld();
     }
