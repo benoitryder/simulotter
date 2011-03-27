@@ -29,7 +29,7 @@ RANDOM_POS = tuple( (i,j) for i in range(5) for j in range(5) if i != j )
 
 
 class OPawn(_MagnetPawn):
-  _shape = _so.ShCylinderZ(_vec3(0.2, 0.2, 0.05)/2)
+  _shape = _so.ShCylinderZ(_vec3(_MagnetPawn.RADIUS, _MagnetPawn.RADIUS, _MagnetPawn.HEIGHT/2))
   _mass = 0.3  # 200g to 500g
 
   def __init__(self):
@@ -41,8 +41,8 @@ class OKing(OPawn):
   _sh_cross_bar = _so.ShBox(_vec3(0.06,0.02,0.02))
   _shape = _so.ShCompound((
       (OPawn._shape, _so.trans()),
-      (_sh_cross_bar, _so.trans(_vec3(z=0.06+0.05/2))),
-      (_sh_cross_bar, _so.trans(_so.matrix3(pitch=_math.pi/2), _vec3(z=0.06+0.05/2))),
+      (_sh_cross_bar, _so.trans(_vec3(z=0.06+_MagnetPawn.HEIGHT/2))),
+      (_sh_cross_bar, _so.trans(_so.matrix3(pitch=_math.pi/2), _vec3(z=0.06+_MagnetPawn.HEIGHT/2))),
       ))
   _mass = 0.5  # 300g to 700g
 

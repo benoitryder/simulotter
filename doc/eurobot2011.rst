@@ -21,7 +21,7 @@ Eurobot 2011 --- *Chess up!*
 .. class:: OPawn()
 
   A pawn. Inherit from :class:`OSimple`.
-  Pawns are magneti at their center.
+  Pawns are magnetized on their two faces.
 
 .. class:: OKing()
 
@@ -30,6 +30,11 @@ Eurobot 2011 --- *Chess up!*
 .. class:: OQueen()
 
   A queen. Inherit from :class:`OPawn`.
+
+.. data:: OPawn.RADIUS
+          OPawn.HEIGHT
+
+  Radius and height of a simple pawn (without figure).
 
 
 .. class:: Galipeur(mass)
@@ -52,9 +57,9 @@ Eurobot 2011 --- *Chess up!*
     A Galipeur's magnetic arm, to move pawns. The arm is
     initially raised with magnet enabled.
 
-    .. method:: angle()
+    .. method:: angle
 
-      Get arm angle. Value is between 0 (down) and π/2 (up).
+      Arm angle, between 0 (down) and π/2 (up).
 
     .. method:: up()
 

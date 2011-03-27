@@ -105,7 +105,7 @@ void OGround2011::draw(Display *d) const
 }
 
 
-const btScalar Magnet::RADIUS = btScale(0.03);
+const btScalar Magnet::RADIUS = btScale(0.02); //note: must be < MagnetPawn::HEIGHT/2
 btSphereShape Magnet::shape_(RADIUS);
 // User defined constraint type for magnet joints.
 #define EUROBOT2011_MAGNET_CONSTRAINT_TYPE  (0x20110001)
@@ -167,6 +167,12 @@ bool Magnet::checkCollideWithOverride(btCollisionObject *co)
   if( ! o || !o->enabled() ) {
     return false;
   }
+  // check if objects are close enough
+  const btScalar d = (this->getCenterOfMassTransform().getOrigin() - o->getCenterOfMassTransform().getOrigin()).length();
+  if( d > 2*RADIUS ) {
+    return false;
+  }
+
   // check if object is already constrained
   for(int i=0; i < getNumConstraintRefs(); i++) {
     btTypedConstraint *constraint = getConstraintRef(i);
@@ -179,18 +185,20 @@ bool Magnet::checkCollideWithOverride(btCollisionObject *co)
   btGeneric6DofConstraint *constraint = new btGeneric6DofConstraint(
       *this, *o, btTransform::getIdentity(), btTransform::getIdentity(), true);
   constraint->setUserConstraintType(EUROBOT2011_MAGNET_CONSTRAINT_TYPE);
-  for(int i=0; i<6; i++) {
-    constraint->setLimit(i, 0, 0);
-  }
   physics_->getWorld()->addConstraint(constraint, true);
 
   return false;
 }
 
 
+const btScalar MagnetPawn::RADIUS = btScale(0.1);
+const btScalar MagnetPawn::HEIGHT = btScale(0.05);
+
 MagnetPawn::MagnetPawn(btCollisionShape *sh, btScalar mass):
-    OSimple(sh, mass), link_(NULL)
+    OSimple(sh, mass)
 {
+  magnet_links_[0] = NULL;
+  magnet_links_[1] = NULL;
 }
 
 MagnetPawn::~MagnetPawn() {}
@@ -198,33 +206,42 @@ MagnetPawn::~MagnetPawn() {}
 void MagnetPawn::addToWorld(Physics *physics)
 {
   OSimple::addToWorld(physics);
-  physics_->getWorld()->addRigidBody(&magnet_);
-  link_ = new btGeneric6DofConstraint(*this, magnet_, btTransform::getIdentity(), btTransform::getIdentity(), true);
-  magnet_.setCenterOfMassTransform( this->getCenterOfMassTransform() );
-  physics_->getWorld()->addConstraint(link_, true);
-  magnet_.enable(physics_);
+  for(int i=0; i<2; i++) {
+    physics_->getWorld()->addRigidBody(&magnets_[i]);
+    btTransform tr = btTransform::getIdentity();
+    tr.getOrigin().setZ( (i==0 ? +1 : -1) * HEIGHT/2 );
+    magnet_links_[i] = new btGeneric6DofConstraint(*this, magnets_[i], tr, btTransform::getIdentity(), true);
+    magnets_[i].setCenterOfMassTransform( this->getCenterOfMassTransform() );
+    physics_->getWorld()->addConstraint(magnet_links_[i], true);
+    magnets_[i].enable(physics_);
+  }
 }
 
 void MagnetPawn::removeFromWorld()
 {
-  magnet_.disable();
-  physics_->getWorld()->removeRigidBody(&magnet_);
-  physics_->getWorld()->removeConstraint(link_);
-  link_ = NULL;
+  for(int i=0; i<2; i++) {
+    magnets_[i].disable();
+    physics_->getWorld()->removeRigidBody(&magnets_[i]);
+    physics_->getWorld()->removeConstraint(magnet_links_[i]);
+    magnet_links_[i] = NULL;
+  }
   OSimple::removeFromWorld();
 }
 
 void MagnetPawn::setTrans(const btTransform &tr)
 {
   OSimple::setTrans(tr);
-  magnet_.setCenterOfMassTransform(tr);
+  for(int i=0; i<2; i++) {
+    assert( magnet_links_[i] != NULL );
+    magnets_[i].setCenterOfMassTransform(magnet_links_[i]->getFrameOffsetA() * tr);
+  }
 }
 
 
 Galipeur2011::Galipeur2011(btScalar m): Galipeur(m)
 {
   // not a static const to avoid issues of init order of globals
-  const btVector3 arm_pos(D_SIDE, 0, btScale(0.05+0.01)+PawnArm::RADIUS-Z_MASS);
+  const btVector3 arm_pos(D_SIDE, 0, MagnetPawn::HEIGHT+btScale(0.01)+PawnArm::RADIUS-Z_MASS);
   const btVector3 up(0,0,1);
   const btScalar angles[GALIPEUR2011_ARM_NB] = { -M_PI/3, +M_PI/3 };
   unsigned int i;
@@ -307,7 +324,7 @@ Galipeur2011::PawnArm::PawnArm(Galipeur2011 *robot, const btTransform &tr):
   robot_link_->setMaxAngMotorForce(100); // don't limit acceleration
 
   tr2 = btTransform::getIdentity();
-  tr2.setOrigin( btVector3(0, LENGTH/2, 0) );
+  tr2.setOrigin( btVector3(0, LENGTH/2, -RADIUS) );
   magnet_link_ = new btGeneric6DofConstraint(*this, magnet_, tr2, btTransform::getIdentity(), true);
 
   this->resetTrans();

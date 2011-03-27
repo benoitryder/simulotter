@@ -6,6 +6,9 @@ using namespace eurobot2011;
 static const btScalar OGround2011_START_SIZE = btUnscale(OGround2011::START_SIZE);
 static const btScalar OGround2011_SQUARE_SIZE = btUnscale(OGround2011::SQUARE_SIZE);
 
+static const btScalar MagnetPawn_RADIUS = btUnscale(MagnetPawn::RADIUS);
+static const btScalar MagnetPawn_HEIGHT = btUnscale(MagnetPawn::HEIGHT);
+
 static const btScalar Galipeur2011_ARM_RADIUS = btUnscale(Galipeur2011::PawnArm::RADIUS);
 static const btScalar Galipeur2011_ARM_LENGTH = btUnscale(Galipeur2011::PawnArm::LENGTH);
 
@@ -32,6 +35,9 @@ void python_export_eurobot2011()
       ;
 
   py::class_<MagnetPawn, py::bases<OSimple>, SmartPtr<MagnetPawn>, boost::noncopyable>("_MagnetPawn", py::init<btCollisionShape *, btScalar>())
+      // statics
+      .def_readonly("RADIUS", MagnetPawn_RADIUS)
+      .def_readonly("HEIGHT", MagnetPawn_HEIGHT)
       ;
 
   py::class_<Galipeur2011, py::bases<Galipeur>, SmartPtr<Galipeur2011>, boost::noncopyable>("Galipeur", py::no_init)

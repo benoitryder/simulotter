@@ -51,20 +51,26 @@ class Magnet: public btRigidBody
 };
 
 
-/** @brief A pawn with magnet.
+/** @brief A pawn with magnets.
+ *
+ * Each pawn has two magnets, one on each face.
+ *
  * @note The actual class is defined in Python.
  */
 class MagnetPawn: public OSimple
 {
  public:
+  static const btScalar RADIUS;
+  static const btScalar HEIGHT;
+
   MagnetPawn(btCollisionShape *sh, btScalar mass=0);
   virtual ~MagnetPawn();
   virtual void addToWorld(Physics *physics);
   virtual void removeFromWorld();
   virtual void setTrans(const btTransform &tr);
  private:
-  Magnet magnet_;
-  btGeneric6DofConstraint *link_;
+  Magnet magnets_[2];
+  btGeneric6DofConstraint *magnet_links_[2];
 };
 
 
