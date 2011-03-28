@@ -20,9 +20,8 @@ Display::Display():
     time_scale(1.0), fps(60.0),
     paused(false),
     bg_color(Color4(0.8)),
-    camera_step_angle(0.1),
     camera_step_linear(btScale(0.1)),
-    camera_mouse_coef(0.1),
+    camera_mouse_coef(0.01),
     screen_x_(800), screen_y_(600),
     fullscreen_(false),
     is_running_(false)
@@ -33,61 +32,7 @@ Display::Display():
   screen_ = NULL;
 
   handlerCamReset(this, NULL);
-
-  // Default handlers
-
-  SDL_Event event;
-  
-  // Window events
-  event.type = SDL_QUIT;
-  setHandler(event, handlerQuit);
-  event.type = SDL_VIDEORESIZE;
-  setHandler(event, handlerResize);
-
-  // Mouse motion
-  event.type = SDL_MOUSEMOTION;
-  event.motion.state = SDL_BUTTON(1);
-  setHandler(event, handlerCamMouse);
-
-  // Keyboard
-
-  event.key.keysym.sym = SDLK_ESCAPE;
-  event.type = SDL_KEYDOWN;
-  setHandler(event, handlerQuit);
-
-  event.key.keysym.sym = SDLK_SPACE;
-  event.type = SDL_KEYUP;
-  setHandler(event, handlerPause);
-
-  // Camera moves
-  // TODO correct AZERTY/QWERTY handling
-  event.type = SDL_KEYDOWN;
-#ifdef _WIN32
-  event.key.keysym.sym = SDLK_w;
-#else
-  event.key.keysym.sym = SDLK_z;
-#endif
-  setHandler(event, handlerCamAhead);
-  event.key.keysym.sym = SDLK_s;
-  setHandler(event, handlerCamBack);
-#ifdef _WIN32
-  event.key.keysym.sym = SDLK_a;
-#else
-  event.key.keysym.sym = SDLK_q;
-#endif
-  setHandler(event, handlerCamLeft);
-  event.key.keysym.sym = SDLK_d;
-  setHandler(event, handlerCamRight);
-#ifdef _WIN32
-  event.key.keysym.sym = SDLK_q;
-#else
-  event.key.keysym.sym = SDLK_a;
-#endif
-  setHandler(event, handlerCamUp);
-  event.key.keysym.sym = SDLK_e;
-  setHandler(event, handlerCamDown);
-  event.key.keysym.sym = SDLK_r;
-  setHandler(event, handlerCamReset);
+  setDefaultHandlers();
 }
 
 Display::~Display()
@@ -211,6 +156,25 @@ Display::Camera::Camera():
     trans(btTransform::getIdentity()),
     fov(45.0), z_near(btScale(0.1)), z_far(btScale(300.0))
 {
+}
+
+void Display::Camera::mouseMove(btScalar x, btScalar y)
+{
+  const btMatrix3x3 &m = trans.getBasis();
+  // add Euler angles around XYZ to mouse moves
+  const btScalar ax = y + btAtan2( -m[1].z(), m[2].z() );
+  //btScalar ay = btAsin( m[0].z() );  // not used
+  const btScalar az = x + btAtan2( -m[0].y(), m[0].x() );
+  // force Y angle to 0
+  const btScalar cx = btCos(ax);
+  const btScalar sx = btSin(ax);
+  const btScalar cz = btCos(az);
+  const btScalar sz = btSin(az);
+  trans.setBasis(btMatrix3x3(
+          cz, -sz, 0,
+          cx*sz, cx*cz, -sx,
+          sx*sz, cz*sx, cx
+          ));
 }
 
 
@@ -505,6 +469,62 @@ void Display::setHandler(const SDL_Event &ev, Display::EventCallback cb)
   }
 }
 
+void Display::setDefaultHandlers()
+{
+  SDL_Event event;
+  
+  // Window events
+  event.type = SDL_QUIT;
+  setHandler(event, handlerQuit);
+  event.type = SDL_VIDEORESIZE;
+  setHandler(event, handlerResize);
+
+  // Mouse motion
+  event.type = SDL_MOUSEMOTION;
+  event.motion.state = SDL_BUTTON(1);
+  setHandler(event, handlerCamMouse);
+
+  // Keyboard
+
+  event.key.keysym.sym = SDLK_ESCAPE;
+  event.type = SDL_KEYDOWN;
+  setHandler(event, handlerQuit);
+
+  event.key.keysym.sym = SDLK_SPACE;
+  event.type = SDL_KEYUP;
+  setHandler(event, handlerPause);
+
+  // Camera moves
+  // TODO correct AZERTY/QWERTY handling
+  event.type = SDL_KEYDOWN;
+#ifdef _WIN32
+  event.key.keysym.sym = SDLK_w;
+#else
+  event.key.keysym.sym = SDLK_z;
+#endif
+  setHandler(event, handlerCamAhead);
+  event.key.keysym.sym = SDLK_s;
+  setHandler(event, handlerCamBack);
+#ifdef _WIN32
+  event.key.keysym.sym = SDLK_a;
+#else
+  event.key.keysym.sym = SDLK_q;
+#endif
+  setHandler(event, handlerCamLeft);
+  event.key.keysym.sym = SDLK_d;
+  setHandler(event, handlerCamRight);
+#ifdef _WIN32
+  event.key.keysym.sym = SDLK_q;
+#else
+  event.key.keysym.sym = SDLK_a;
+#endif
+  setHandler(event, handlerCamUp);
+  event.key.keysym.sym = SDLK_e;
+  setHandler(event, handlerCamDown);
+  event.key.keysym.sym = SDLK_r;
+  setHandler(event, handlerCamReset);
+}
+
 
 void Display::handlerQuit(Display *d, const SDL_Event *)
 {
@@ -523,26 +543,10 @@ void Display::handlerPause(Display *d, const SDL_Event *)
 
 void Display::handlerCamMouse(Display *d, const SDL_Event *event)
 {
-  const float move = d->camera_mouse_coef * d->camera_step_angle;
-  btMatrix3x3 m = d->camera.trans.getBasis();
-  // get Euler angles around XYZ
-  btScalar ax = btAtan2( -m[1].z(), m[2].z() );
-  //btScalar ay = btAsin( m[0].z() );  // not used
-  btScalar az = btAtan2( -m[0].y(), m[0].x() );
-  // add up mouse move
-  ax += event->motion.yrel * move;
-  az += event->motion.xrel * move;
-  // force Y angle to 0
-  btScalar cx = btCos(ax);
-  btScalar sx = btSin(ax);
-  btScalar cz = btCos(az);
-  btScalar sz = btSin(az);
-  m = btMatrix3x3(
-      cz, -sz, 0,
-      cx*sz, cx*cz, -sx,
-      sx*sz, cz*sx, cx
+  d->camera.mouseMove(
+      event->motion.xrel*d->camera_mouse_coef,
+      event->motion.yrel*d->camera_mouse_coef
       );
-  d->camera.trans.setBasis(m);
 }
 
 void Display::handlerCamAhead(Display *d, const SDL_Event *)

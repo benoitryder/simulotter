@@ -73,8 +73,6 @@ public:
 
   Color4 bg_color;
 
-  /// Step for camera angle moves
-  float camera_step_angle;
   /// Step for camera linear moves
   float camera_step_linear;
   /// Coefficient for mouse camera moves
@@ -184,6 +182,11 @@ private:
 
     /// Default constructor, set default values.
     Camera();
+    /** @brief Move the camera as expected for mouse moves.
+     *
+     * \e x and \y are expressed in an arbitrary unit.
+     */
+    void mouseMove(btScalar x, btScalar y);
   };
 
   /// Main display camera.
@@ -216,6 +219,9 @@ private:
 
   /// Add, replace or remove an event handler.
   void setHandler(const SDL_Event &ev, EventCallback cb);
+
+  /// Set default handlers.
+  void setDefaultHandlers();
 
  private:
   /** @brief Event comparison function class.

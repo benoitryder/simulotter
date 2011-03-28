@@ -57,6 +57,10 @@ multiple windows.
 
     See :ref:`display-event-handlers` for details.
 
+  .. method:: set_default_handlers()
+
+    Set :ref:`default handlers <display-default-handlers>`, overriding current ones.
+
   .. attribute: physics
 
     :class:`Physics` world to display. Required to start the display.
@@ -152,6 +156,13 @@ Display camera --- :class:`Display.Camera`
     Distance of near and far clipping planes.
 
     Defaults to 0.1m and 300m.
+
+  .. method:: mouse_move(x, y)
+
+    Move the camera as expected for mouse moves.
+    *x* and *y* are expressed in an arbitrary unit.
+    This method is intended to be use in an :ref:`event handler
+    <display-event-handlers>`.
 
 
 .. _display-event-handlers:
@@ -294,10 +305,13 @@ indexes are button values given above. For instance, 0 means no button and
 ``0b101`` means both left and right buttons.
 
 
+.. _display-default-handlers:
+
 Default handlers
 ~~~~~~~~~~~~~~~~
 
-The following default handlers are defined. They can be overridden using :meth:`set_handler`.
+The following default handlers are defined in
+:meth:`Display.set_default_handlers` and can be resetted using this method.
 
 - *escape*: close the display
 - *WASDQE*: move the camera origin along X/Y/Z axes

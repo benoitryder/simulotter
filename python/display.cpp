@@ -143,6 +143,7 @@ void python_export_display()
       .def("close", &Display::close)
       .def("screenshot", &Display::savePNGScreenshot)
       .def("set_handler", py::raw_function(&Display_set_handler_wrap, 3))
+      .def("set_default_handlers", &Display::setDefaultHandlers)
       // dynamic configuration
       .def_readwrite("time_scale", &Display::time_scale)
       .def_readwrite("fps", &Display::fps)
@@ -163,6 +164,7 @@ void python_export_display()
       .def_readwrite("fov", &Display::Camera::fov)
       .add_property("z_near", &Camera_get_z_near, &Camera_set_z_near)
       .add_property("z_far", &Camera_get_z_far, &Camera_set_z_far)
+      .def("mouse_move", &Display::Camera::mouseMove)
       ;
 
   py_event_cls = py::class_<SDL_Event, boost::noncopyable>("Event");
