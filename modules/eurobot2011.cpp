@@ -241,7 +241,7 @@ void MagnetPawn::setTrans(const btTransform &tr)
 Galipeur2011::Galipeur2011(btScalar m): Galipeur(m)
 {
   // not a static const to avoid issues of init order of globals
-  const btVector3 arm_pos( D_SIDE-btScalar(0.03), 0, MagnetPawn::HEIGHT*2-Z_MASS );
+  const btVector3 arm_pos( D_SIDE-btScale(0.03), 0, MagnetPawn::HEIGHT*2-Z_MASS );
   const btVector3 up(0,0,1);
   const btScalar angles[GALIPEUR2011_ARM_NB] = { -M_PI/3, +M_PI/3 };
   unsigned int i;
@@ -297,12 +297,20 @@ void Galipeur2011::setTrans(const btTransform &tr)
   }
 }
 
+void Galipeur2011::asserv()
+{
+  Galipeur::asserv();
+  for(int i=0; i<2; i++) {
+    arms_[i]->asserv();
+  }
+}
+
 
 const btScalar Galipeur2011::PawnArm::RADIUS = btScale(0.02);
-const btScalar Galipeur2011::PawnArm::LENGTH = btScale(0.12);
+const btScalar Galipeur2011::PawnArm::LENGTH = btScale(0.14);
 const btScalar Galipeur2011::PawnArm::MASS = 0.1;
-const btScalar Galipeur2011::PawnArm::ANGLE_MIN = M_PI*0.05;
-const btScalar Galipeur2011::PawnArm::ANGLE_MAX = M_PI_2+M_PI/12;
+const btScalar Galipeur2011::PawnArm::ANGLE_MIN = M_PI*0.1;
+const btScalar Galipeur2011::PawnArm::ANGLE_MAX = M_PI_2+M_PI*0.08;
 
 btCapsuleShape Galipeur2011::PawnArm::shape_( RADIUS, LENGTH );
 
@@ -319,8 +327,8 @@ Galipeur2011::PawnArm::PawnArm(Galipeur2011 *robot, const btTransform &tr):
   robot_link_ = new btSliderConstraint(*robot_->body_, *this, robot_tr_, tr2, true);
   robot_link_->setLowerLinLimit(0);
   robot_link_->setUpperLinLimit(0);
-  robot_link_->setLowerAngLimit(M_PI_2-ANGLE_MAX);
-  robot_link_->setUpperAngLimit(M_PI_2-ANGLE_MIN);
+  robot_link_->setLowerAngLimit(M_PI_2-ANGLE_MIN);
+  robot_link_->setUpperAngLimit(M_PI_2-ANGLE_MIN); // init: raised position
   robot_link_->setPoweredAngMotor(true);
   robot_link_->setTargetAngMotorVelocity(0);
   robot_link_->setMaxAngMotorForce(100); // don't limit acceleration
@@ -341,11 +349,15 @@ Galipeur2011::PawnArm::~PawnArm()
 
 void Galipeur2011::PawnArm::raise()
 {
+  robot_link_->setLowerAngLimit(M_PI_2-ANGLE_MAX);
+  robot_link_->setUpperAngLimit(M_PI_2-ANGLE_MIN);
   robot_link_->setTargetAngMotorVelocity( -robot_->arm_av_ );
 }
 
 void Galipeur2011::PawnArm::lower()
 {
+  robot_link_->setLowerAngLimit(M_PI_2-ANGLE_MAX);
+  robot_link_->setUpperAngLimit(M_PI_2-ANGLE_MIN);
   robot_link_->setTargetAngMotorVelocity( +robot_->arm_av_ );
 }
 
@@ -360,6 +372,25 @@ void Galipeur2011::PawnArm::release()
 {
   if( magnet_.enabled() ) {
     magnet_.disable();
+  }
+}
+
+void Galipeur2011::PawnArm::asserv()
+{
+  const btScalar threshold = 0.01;
+  const btScalar av = robot_link_->getTargetAngMotorVelocity();
+  if( av < 0 ) {
+    if( btFabs(M_PI_2-ANGLE_MIN - this->angle()) < threshold ) {
+      robot_link_->setLowerAngLimit(M_PI_2-ANGLE_MIN);
+      robot_link_->setUpperAngLimit(M_PI_2-ANGLE_MIN);
+      robot_link_->setTargetAngMotorVelocity(0);
+    }
+  } else if( av > 0 ) {
+    if( btFabs(M_PI_2-ANGLE_MAX - this->angle()) < threshold ) {
+      robot_link_->setLowerAngLimit(M_PI_2-ANGLE_MAX);
+      robot_link_->setUpperAngLimit(M_PI_2-ANGLE_MAX);
+      robot_link_->setTargetAngMotorVelocity(0);
+    }
   }
 }
 

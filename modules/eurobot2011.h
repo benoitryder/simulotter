@@ -88,15 +88,12 @@ class Galipeur2011: public Galipeur
 
   virtual void addToWorld(Physics *physics);
   virtual void removeFromWorld();
-
   virtual void draw(Display *d) const;
-
   virtual void setTrans(const btTransform &tr);
+  /// Handle arm moves.
+  virtual void asserv();
 
-  /** @name Asserv configuration */
-  //@{
   void set_arm_av(btScalar av) { arm_av_ = av; }
-  //@}
 
   friend class PawnArm;
   class PawnArm: public btRigidBody
@@ -119,6 +116,7 @@ class Galipeur2011: public Galipeur
     void grab();
     /// Disable magnet.
     void release();
+    void asserv();
 
     void draw(Display *d) const;
 
