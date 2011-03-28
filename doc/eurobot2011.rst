@@ -57,9 +57,9 @@ Eurobot 2011 --- *Chess up!*
     A Galipeur's magnetic arm, to move pawns. The arm is
     initially raised with magnet enabled.
 
-    .. method:: angle
+    .. attribute:: angle
 
-      Arm angle, between 0 (down) and π/2 (up).
+      Arm angle.
 
     .. method:: up()
 
@@ -82,6 +82,11 @@ Eurobot 2011 --- *Chess up!*
 
   Radius and length of Galipeur arms.
   Length does not include size of caps at both ends.
+
+.. data:: Galipeur.ARM_ANGLE_MIN
+          Galipeur.ARM_ANGLE_MAX
+
+  Bound values for :attr:`Galipeur.PawnArm.angle`.
 
 
 .. class:: Match()

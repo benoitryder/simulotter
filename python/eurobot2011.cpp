@@ -51,6 +51,8 @@ void python_export_eurobot2011()
       // statics
       .def_readonly("ARM_RADIUS", Galipeur2011_ARM_RADIUS)
       .def_readonly("ARM_LENGTH", Galipeur2011_ARM_LENGTH)
+      .def_readonly("ARM_ANGLE_MIN", &Galipeur2011::PawnArm::ANGLE_MIN)
+      .def_readonly("ARM_ANGLE_MAX", &Galipeur2011::PawnArm::ANGLE_MAX)
       ;
 
   py::class_<Galipeur2011::PawnArm, Galipeur2011::PawnArm*, boost::noncopyable>("PawnArm", py::no_init)
