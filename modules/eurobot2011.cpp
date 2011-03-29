@@ -310,7 +310,7 @@ const btScalar Galipeur2011::PawnArm::RADIUS = btScale(0.02);
 const btScalar Galipeur2011::PawnArm::LENGTH = btScale(0.14);
 const btScalar Galipeur2011::PawnArm::MASS = 0.1;
 const btScalar Galipeur2011::PawnArm::ANGLE_MIN = M_PI*0.1;
-const btScalar Galipeur2011::PawnArm::ANGLE_MAX = M_PI_2+M_PI*0.08;
+const btScalar Galipeur2011::PawnArm::ANGLE_MAX = M_PI_2+M_PI*0.07;
 
 btCapsuleShape Galipeur2011::PawnArm::shape_( RADIUS, LENGTH );
 
