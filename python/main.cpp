@@ -12,6 +12,7 @@ void python_export_galipeur();
 void python_export_eurobot2009();
 void python_export_eurobot2010();
 void python_export_eurobot2011();
+void python_export_eurobot2012();
 
 
 // indirection to allow module name defined by a macro
@@ -36,6 +37,7 @@ XBOOST_PYTHON_MODULE(SIMULOTTER_MODULE_NAME)
   python_export_eurobot2009();
   python_export_eurobot2010();
   python_export_eurobot2011();
+  python_export_eurobot2012();
 }
 
 

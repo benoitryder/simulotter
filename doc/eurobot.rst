@@ -9,6 +9,7 @@ Modules are available for the following Eurobot rules:
   eurobot2009
   eurobot2010
   eurobot2011
+  eurobot2012
 
 
 .. module:: eurobot

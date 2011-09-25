@@ -142,6 +142,7 @@ add_definitions(
 add_library(simulotter STATIC
   physics.cpp display.cpp object.cpp sensors.cpp robot.cpp galipeur.cpp log.cpp
   modules/eurobot2009.cpp modules/eurobot2010.cpp modules/eurobot2011.cpp
+  modules/eurobot2012.cpp
   )
 
 if(WIN32 AND CMAKE_COMPILER_IS_GNUCXX)

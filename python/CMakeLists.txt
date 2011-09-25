@@ -30,6 +30,7 @@ set(python_src
   display.cpp galipeur.cpp main.cpp maths.cpp object.cpp physics.cpp robot.cpp
   sensors.cpp utils.cpp
   eurobot2009.cpp eurobot2010.cpp eurobot2011.cpp
+  eurobot2012.cpp
   )
 add_library(py-simulotter MODULE ${python_src})
 
