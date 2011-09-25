@@ -36,7 +36,7 @@ class Match(_eb.Match):
   Attributes:
     ground -- OGround instance
 
-  Field configuration
+  Field configuration:
     col: 0 to 9
     disp: 0 or 1
 
@@ -61,7 +61,7 @@ class Match(_eb.Match):
 
     ph = self.physics
 
-    # Ground and raised zone
+    # Ground
     ground = OGround()
     ground.addToWorld(ph)
     self.ground = ground

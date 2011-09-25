@@ -64,7 +64,7 @@ class Match(_eb.Match):
     queens -- pair of queens
     ground -- OGround instance
 
-  Field configuration
+  Field configuration:
     kingqueen: 0 to 19
     line1: 0 to 19
     line2: 0 to 19
@@ -95,7 +95,7 @@ class Match(_eb.Match):
 
     ph = self.physics
 
-    # Ground and raised zone
+    # Ground
     ground = OGround()
     ground.addToWorld(ph)
     self.ground = ground
