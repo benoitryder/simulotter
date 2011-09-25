@@ -36,8 +36,44 @@ void OGround2012::draw(Display *d) const
       throw(Error("quadric creation failed"));
     }
 
+    const Color4 color_black(0x03,0x05,0x0a); // RAL 9005
+    const Color4 color_boat(0x6e,0x3b,0x3a); // RAL 8002
     const Color4 color_sand(0xfc,0xbd,0x1f); // RAL 1023
     const Color4 color_jungle(0x4f,0xa8,0x33); // RAL 6018
+
+    // black lines
+    glColor4fv(color_black);
+    {
+      const btScalar x0 = size_.x()/2 - btScale(0.5+0.15);
+      const btScalar y0 = size_.y()/2 - btScale(0.5-0.05);
+      const btScalar x1 = size_.x()/2 - btScale(0.5);
+      const btScalar y1 = -size_.y()/2;
+      const btScalar width = btScale(0.02);
+      btglRect(x0, y0, x0+width, y1);
+      btglRect(x0, y0, x1, y0-width);
+      btglRect(-x0, y0, -x0-width, y1);
+      btglRect(-x0, y0, -x1, y0-width);
+    }
+
+    // boats
+    glColor4fv(color_boat);
+    glBegin(GL_QUADS);
+    {
+      const btScalar x0 = size_.x()/2;
+      const btScalar y0 = -size_.y()/2;
+      const btScalar x1 = x0-btScale(0.325);
+      const btScalar x2 = x0-btScale(0.4);
+      const btScalar y1 = size_.y()/2-btScale(0.5+0.018);
+      btglVertex3(x0, y0, 0);
+      btglVertex3(x1, y0, 0);
+      btglVertex3(x2, y1, 0);
+      btglVertex3(x0, y1, 0);
+      btglVertex3(-x0, y0, 0);
+      btglVertex3(-x1, y0, 0);
+      btglVertex3(-x2, y1, 0);
+      btglVertex3(-x0, y1, 0);
+    }
+    glEnd();
 
     // peanut island: draw sand first, then water and jungle above it
     // sand: two disks and two arcs to fill the middle part
