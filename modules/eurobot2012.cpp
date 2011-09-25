@@ -39,8 +39,28 @@ void OGround2012::draw(Display *d) const
     const Color4 color_sand(0xfc,0xbd,0x1f); // RAL 1023
     const Color4 color_jungle(0x4f,0xa8,0x33); // RAL 6018
 
+    // peanut island: draw sand first, then water and jungle above it
+    // sand: two disks and two arcs to fill the middle part
+    glColor4fv(color_sand);
+    btglTranslate(-btScale(0.8/2), 0, 0);
+    gluDisk(quadric, 0, btScale(0.3), 2*Display::draw_div, 2*Display::draw_div);
+    btglTranslate(2*btScale(0.8/2), 0, 0);
+    gluDisk(quadric, 0, btScale(0.3), 2*Display::draw_div, 2*Display::draw_div);
+    //TODO Y offset for the inner curve is not known
+    const btScalar curve_y = btScale(0.745);
+    btglTranslate(-btScale(0.8/2), -curve_y, 0);
+    gluPartialDisk(quadric, btScale(0.55), btScale(0.9), Display::draw_div, Display::draw_div, -30, 60);
+    btglTranslate(0, 2*curve_y, 0);
+    gluPartialDisk(quadric, btScale(0.55), btScale(0.9), Display::draw_div, Display::draw_div, 150, 60);
+    // jungle
+    glColor4fv(color_jungle);
+    btglTranslate(-btScale(0.8/2), -curve_y, Display::draw_epsilon);
+    gluDisk(quadric, 0, btScale(0.2), 2*Display::draw_div, 2*Display::draw_div);
+    btglTranslate(2*btScale(0.8/2), 0, 0);
+    gluDisk(quadric, 0, btScale(0.2), 2*Display::draw_div, 2*Display::draw_div);
+
     // map island
-    btglTranslate(0, 0.5*size_.y(), 0);
+    btglTranslate(-btScale(0.8/2), size_.y()/2, -Display::draw_epsilon); // also restore Z offset
     glColor4fv(color_jungle);
     gluPartialDisk(quadric, 0, btScale(0.6/2), Display::draw_div, Display::draw_div, 90, 180);
     glColor4fv(color_sand);
