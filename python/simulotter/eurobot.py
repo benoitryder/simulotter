@@ -7,25 +7,8 @@ Common Eurobot definitions.
 
 from _simulotter import vec2 as _vec2, vec3 as _vec3, OGround as _OGround
 
-TABLE_SIZE = _vec2(_OGround.SIZE)
-
 WALL_WIDTH = 0.022
 WALL_HEIGHT = 0.070
-
-def beacon_pos(team, y):
-  """Return beacon coordinates.
-  team is 0 or 1, y is the beacon position (-1, 0 or 1)
-  """
-  if team not in (0, 1):
-    raise ValueError("invalid team")
-  if y not in (-1, 0, 1):
-    raise ValueError("invalid beacon position")
-  x = team == 1 and -1 or 1
-  return _vec3(
-      (y==0 and x or -x) * TABLE_SIZE.x/2 + WALL_WIDTH,
-      y * TABLE_SIZE.y/2 + WALL_WIDTH,
-      0.350
-      )
 
 
 # predefined colors

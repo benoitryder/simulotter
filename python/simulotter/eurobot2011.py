@@ -10,11 +10,9 @@ import eurobot as _eb
 import math as _math
 
 from _simulotter import vec2 as _vec2, vec3 as _vec3
-from eurobot import TABLE_SIZE, WALL_WIDTH, WALL_HEIGHT
+from eurobot import WALL_WIDTH, WALL_HEIGHT
 
-def beacon_pos(team, y):
-  return _eb.beacon_pos(1-team, y)  # swap team
-
+TABLE_SIZE = OGround.SIZE
 TEAM_COLORS = (_eb.RAL[3020], _eb.RAL[5017])
 
 SQUARE_SIZE = OGround.SQUARE_SIZE

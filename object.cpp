@@ -237,14 +237,13 @@ void OSimple::draw(Display *d) const
 }
 
 
-const btVector3 OGround::SIZE = btScale(btVector3(3.0, 2.1, 0.1));
-SmartPtr<btBoxShape> OGround::shape_( new btBoxShape(SIZE/2) );
-
-OGround::OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2):
-    start_size_(btScale(0.5))
+OGround::OGround(const btVector2 &size, const Color4 &color, const Color4 &color_t1, const Color4 &color_t2):
+    size_(btVector3(size.x(), size.y(), btScale(0.1))),
+    start_size_(btScale(0.5)),
+    shape_(new btBoxShape(size_/2))
 {
   setShape(shape_);
-  setPos( btVector3(0, 0, -SIZE[2]/2) );
+  setPos( btVector3(0, 0, -size_[2]/2) );
   setColor(color);
   color_t1_ = color_t1;
   color_t2_ = color_t2;
@@ -277,7 +276,7 @@ void OGround::drawBase() const
   glPushMatrix();
 
   glColor4fv(color_);
-  btglScale(SIZE[0], SIZE[1], SIZE[2]);
+  btglScale(size_[0], size_[1], size_[2]);
   glutSolidCube(1.0);
 
   glPopMatrix();
@@ -287,12 +286,12 @@ void OGround::drawStartingAreas() const
 {
   glPushMatrix();
   btglNormal3(0.0, 0.0, 1.0);
-  btglTranslate(0, 0, SIZE[2]/2+Display::draw_epsilon);
+  btglTranslate(0, 0, size_[2]/2+Display::draw_epsilon);
 
   glColor4fv(color_t1_);
-  btglRect(-SIZE[0]/2, SIZE[1]/2, -SIZE[0]/2+start_size_, SIZE[1]/2-start_size_);
+  btglRect(-size_[0]/2, size_[1]/2, -size_[0]/2+start_size_, size_[1]/2-start_size_);
   glColor4fv(color_t2_);
-  btglRect(SIZE[0]/2, SIZE[1]/2, SIZE[0]/2-start_size_, SIZE[1]/2-start_size_);
+  btglRect(size_[0]/2, size_[1]/2, size_[0]/2-start_size_, size_[1]/2-start_size_);
 
   glPopMatrix();
 }

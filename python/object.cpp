@@ -8,7 +8,8 @@ static void Object_setPos(Object &o, const btVector3 &v) { o.setPos(btScale(v));
 static btTransform Object_getTrans(const Object &o) { return btUnscale(o.getTrans()); }
 static void Object_setTrans(Object &o, const btTransform &tr) { o.setTrans(btScale(tr)); }
 
-static const btVector3 OGround_SIZE = btUnscale(OGround::SIZE);
+static SmartPtr<OGround> OGround_init(const btVector2 &size, const Color4 &color, const Color4 &color_t1, const Color4 &color_t2) { return new OGround(btScale(size), color, color_t1, color_t2); }
+static btVector2 OGround_getSize(const OGround &o) { return btUnscale(o.getSize()); }
 static btScalar OGround_getStartSize(const OGround &o) { return btUnscale(o.getStartSize()); }
 static void OGround_setStartSize(OGround &o, const btScalar &v) { o.setStartSize(btScale(v)); }
 
@@ -50,9 +51,9 @@ void python_export_object()
       .add_property("pos", &Object_getPos, &OSimple_setPos)
       ;
 
-  py::class_<OGround, py::bases<OSimple>, SmartPtr<OGround>, boost::noncopyable>(
-      "OGround", py::init<Color4, Color4, Color4>())
-      .def_readonly("SIZE", OGround_SIZE)
+  py::class_<OGround, py::bases<OSimple>, SmartPtr<OGround>, boost::noncopyable>("OGround", py::no_init)
+      .def("__init__", py::make_constructor(&OGround_init))
+      .add_property("size", &OGround_getSize)
       .add_property("start_size", &OGround_getStartSize, &OGround_setStartSize)
       ;
 }

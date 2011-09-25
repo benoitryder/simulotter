@@ -17,19 +17,10 @@ The :mod:`eurobot` module provides default definitions for eurobot rules. They
 are redefined by the `eurobot20XX` modules if needed.
 
 
-.. data:: TABLE_SIZE
-
-  Table size, as a :class:`vec2`.
-
 .. data:: WALL_WIDTH
           WALL_HEIGHT
 
   Wall width and height.
-
-.. function:: beacon_pos(team, y)
-
-  Return a beacon position as a :class:`vec3`.
-  *team* is 0 or 1, *y* the beacon Y position (-1, 0 or 1).
 
 .. data:: RAL
 
@@ -55,6 +46,10 @@ are redefined by the `eurobot20XX` modules if needed.
     If *fconf* is `None`, a random configuration is used.
 
 The following additional elements are defined by `eurobot20XX` modules:
+
+.. data:: eurobot20XX.TABLE_SIZE
+
+  Table size, as a :class:`vec2`.
 
 .. data:: eurobot20XX.TEAM_COLORS
 

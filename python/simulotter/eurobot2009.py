@@ -8,9 +8,9 @@ import _simulotter as _so
 import eurobot as _eb
 
 from _simulotter import vec2 as _vec2, vec3 as _vec3
-from eurobot import TABLE_SIZE, WALL_WIDTH, WALL_HEIGHT, beacon_pos
+from eurobot import WALL_WIDTH, WALL_HEIGHT
 
-
+TABLE_SIZE = _vec2(3.0, 2.1)
 TEAM_COLORS = (_eb.RAL[6018], _eb.RAL[3020])
 
 # field contants
@@ -26,7 +26,7 @@ COL_POS = (
 
 class OGround(_so.OGround):
   def __init__(self):
-    _so.OGround.__init__(self, _eb.RAL[5015], *TEAM_COLORS)
+    _so.OGround.__init__(self, TABLE_SIZE, _eb.RAL[5015], *TEAM_COLORS)
 
 
 class Match(_eb.Match):

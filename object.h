@@ -186,18 +186,17 @@ protected:
 class OGround: public OSimple
 {
 public:
-  /// Ground size.
-  static const btVector3 SIZE;
-
   /** @brief Constructor
    *
+   * @param size      table size
    * @param color     table color
    * @param color_t1  first team color
    * @param color_t2  second team color
    */
-  OGround(const Color4 &color, const Color4 &color_t1, const Color4 &color_t2);
+  OGround(const btVector2 &size, const Color4 &color, const Color4 &color_t1, const Color4 &color_t2);
   ~OGround();
 
+  btVector2 getSize() const { return btVector2(size_); }
   btScalar getStartSize() const { return start_size_; }
   void setStartSize(const btScalar &size) { start_size_ = size; }
 
@@ -206,6 +205,7 @@ public:
 protected:
   Color4 color_t1_;
   Color4 color_t2_;
+  btVector3 size_;
   btScalar start_size_;
 
   /// Draw the ground base.
@@ -213,7 +213,8 @@ protected:
   /// Draw starting areas.
   void drawStartingAreas() const;
 
-  static SmartPtr<btBoxShape> shape_;
+private:
+  SmartPtr<btBoxShape> shape_;
 };
 
 

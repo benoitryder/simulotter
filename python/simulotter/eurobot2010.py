@@ -9,10 +9,10 @@ import eurobot as _eb
 import math as _math
 
 from _simulotter import vec2 as _vec2, vec3 as _vec3
-from eurobot import TABLE_SIZE, WALL_WIDTH, WALL_HEIGHT, beacon_pos
+from eurobot import WALL_WIDTH, WALL_HEIGHT
 
 
-# team colors
+TABLE_SIZE = _vec2(3.0, 2.1)
 TEAM_COLORS = (_eb.RAL[5005], _eb.RAL[1023])
 
 # field contants
@@ -65,7 +65,7 @@ FAKES_FPOS_CENTER = tuple( frozenset(_vec2(*x) for x in l) for l in FAKES_FPOS_C
 
 class OGround(_so.OGround):
   def __init__(self):
-    _so.OGround.__init__(self, _eb.RAL[6018], *TEAM_COLORS)
+    _so.OGround.__init__(self, TABLE_SIZE, _eb.RAL[6018], *TEAM_COLORS)
 
 
 class OBranch(_so.OSimple):

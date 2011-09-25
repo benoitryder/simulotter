@@ -6,11 +6,13 @@
 namespace eurobot2011
 {
 
+const btVector2 OGround2011::SIZE = btScale(btVector2(3.0, 2.1));
 const btScalar OGround2011::SQUARE_SIZE = btScale(0.350);
 const btScalar OGround2011::START_SIZE = btScale(0.400);
 
 OGround2011::OGround2011():
-    OGround(Color4(0x24,0x91,0x40), // RAL 6024
+    OGround(SIZE,
+            Color4(0x24,0x91,0x40), // RAL 6024
             Color4(0xc7,0x17,0x12), // RAL 3020
             Color4(0x00,0x3b,0x80)) // RAL 5017
 {
@@ -27,7 +29,7 @@ void OGround2011::draw(Display *d) const
     drawBase();
     drawStartingAreas();
 
-    btglTranslate(0, 0, SIZE[2]/2);
+    btglTranslate(0, 0, size_[2]/2);
 
     // draw the checkerboard
     glPushMatrix();
@@ -71,7 +73,7 @@ void OGround2011::draw(Display *d) const
     glColor4fv(Color4(0x14,0x17,0x1c)); // RAL 9017
     for( i=0;; ) { // two steps (x>0 then x<0)
       // vertical side lines
-      btglRect(3*SQUARE_SIZE, SIZE[1]/2, 3*SQUARE_SIZE+btScale(0.05), -SIZE[1]/2);
+      btglRect(3*SQUARE_SIZE, size_[1]/2, 3*SQUARE_SIZE+btScale(0.05), -size_[1]/2);
       // secured zone, top
       btglRect(3*SQUARE_SIZE, -2*SQUARE_SIZE, 1*SQUARE_SIZE, -2*SQUARE_SIZE-btScale(0.02));
       // secured zone, right

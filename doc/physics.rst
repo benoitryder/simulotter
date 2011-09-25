@@ -210,10 +210,11 @@ create static and dynamic bodies with basic geometrical shapes.
 Table ground --- :class:`OGround`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. class:: OGround(ground_color, team1_color, team2_color)
+.. class:: OGround(size, ground_color, team1_color, team2_color)
 
   Ground of the game table, with square starting areas in corners, symmetric
   with respect to the y-axis.
+  *size* is the table size as a :class:`vec2`.
   *ground_color* is the main color, *team1_color* and *team2_color* are colors
   of the starting areas.
 
@@ -226,10 +227,6 @@ Table ground --- :class:`OGround`
     before the object is drawn.
 
     Defaults to 0.5.
-
-.. data:: OGround.SIZE
-
-  Size of grounds, as a :class:`vec2`.
 
 
 Ray sensor --- :class:`SRay`
