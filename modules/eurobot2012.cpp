@@ -29,6 +29,24 @@ void OGround2012::draw(Display *d) const
     drawStartingAreas();
 
     btglTranslate(0, 0, size_[2]/2);
+    btglTranslate(0, 0, Display::draw_epsilon);
+
+    GLUquadric *quadric = gluNewQuadric();
+    if( quadric == NULL ) {
+      throw(Error("quadric creation failed"));
+    }
+
+    const Color4 color_sand(0xfc,0xbd,0x1f); // RAL 1023
+    const Color4 color_jungle(0x4f,0xa8,0x33); // RAL 6018
+
+    // map island
+    btglTranslate(0, 0.5*size_.y(), 0);
+    glColor4fv(color_jungle);
+    gluPartialDisk(quadric, 0, btScale(0.6/2), Display::draw_div, Display::draw_div, 90, 180);
+    glColor4fv(color_sand);
+    gluPartialDisk(quadric, btScale(0.6/2), btScale(0.8/2), Display::draw_div, Display::draw_div, 90, 180);
+
+    gluDeleteQuadric(quadric);
 
     d->endDisplayList();
   }
