@@ -70,4 +70,54 @@ class Match(_eb.Match):
     o.pos = _vec3(-TABLE_SIZE.x-WALL_WIDTH, 0, WALL_HEIGHT)/2
     o.color = color
 
+    # Ship borders
+    W = 0.018  # border width
+
+    sh = _so.ShBox(_vec3(0.4, W, W)/2)
+    for kx in (1, -1):
+      o = _so.OSimple(sh)
+      o.addToWorld(ph)
+      o.color = _eb.RAL[8002]
+      o.pos = _vec3(kx*(TABLE_SIZE.x-0.4)/2, TABLE_SIZE.y/2-ground.start_size-W/2, W/2)
+
+    r = 0.75
+    sh = _so.ShBox(_vec3(W, r, W)/2)
+    for kx in (1, -1):
+      a = kx*_math.atan2(0.4-0.325, TABLE_SIZE.y-ground.start_size-W/2)
+      o = _so.OSimple(sh)
+      o.addToWorld(ph)
+      o.color = _eb.RAL[8002]
+      o.trans = _so.trans(
+          _so.quat(_vec3(0,0,1), a),
+          # hacky offset, for better-looking result
+          _vec3(kx*( TABLE_SIZE.x/2-(3*0.325+0.4)/4-W*_math.cos(a)/2 +0.002),
+            (-TABLE_SIZE.y+r*_math.cos(a))/2, W/2
+          ))
+
+    # Palm-tree
+    sh = _so.ShCylinderZ(_vec3(0.04, 0.04, 0.250)/2)
+    o = _so.OSimple(sh)
+    o.addToWorld(ph)
+    o.color = _eb.RAL[8002]
+    o.pos = _vec3(0, 0, 0.250/2)
+    sh = _so.ShCylinderZ(_vec3(0.150, 0.150, 0.002)/2)
+    o = _so.OSimple(sh)
+    o.addToWorld(ph)
+    o.color = _eb.RAL[6018]
+    o.pos = _vec3(0, 0, 0.250+0.002/2)
+
+    # Totems
+    sh_trunk = _so.ShBox(_vec3(0.070, 0.070, 0.163)/2)
+    sh_flat = _so.ShBox(_vec3(0.250, 0.250, 0.018)/2)
+    sh = _so.ShCompound((
+      (sh_trunk, _so.trans()),
+      (sh_flat, _so.trans(_vec3(0, 0, -0.0545-0.018))),
+      (sh_flat, _so.trans(_vec3(0, 0, 0))),
+      (sh_flat, _so.trans(_vec3(0, 0, +0.0545+0.018))),
+      ))
+    for kx in (1, -1):
+      o = _so.OSimple(sh)
+      o.addToWorld(ph)
+      o.color = _eb.RAL[8002]
+      o.pos = _vec3(kx*0.8, 0, 0.163)/2
 
