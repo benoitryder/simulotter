@@ -94,6 +94,31 @@ class Match(_eb.Match):
             (-TABLE_SIZE.y+r*_math.cos(a))/2, W/2
           ))
 
+    # Ship's hold covers
+    # static for now (cannot be opened)
+    ox = (TABLE_SIZE.x-0.340)/2 + 0.018
+    oy = -(TABLE_SIZE.y-0.610)/2 - 0.018
+    sh_barh = _so.ShBox(_vec3(0.340, 0.018, 0.018)/2)
+    sh_barv = _so.ShBox(_vec3(0.018, 0.610, 0.018)/2)
+    sh = _so.ShCompound((
+      (sh_barh, _so.trans(_vec3(0, 0.610-0.018, 0)/2)),
+      (sh_barh, _so.trans(_vec3(0, -(0.610-0.018), 0)/2)),
+      (sh_barv, _so.trans(_vec3(0.340-0.018, 0, 0)/2)),
+      (sh_barv, _so.trans(_vec3(-(0.340-0.018), 0, 0)/2)),
+      ))
+    for kx in (1, -1):
+      o = _so.OSimple(sh)
+      o.addToWorld(ph)
+      o.color = _eb.RAL[8002]
+      o.pos = _vec3(kx*ox, oy, WALL_HEIGHT+0.018/2)
+
+    sh = _so.ShBox(_vec3(0.340, 0.610, 0.001)/2)
+    for kx in (1, -1):
+      o = _so.OSimple(sh)
+      o.addToWorld(ph)
+      o.color = _so.Color.plexi
+      o.pos = _vec3(kx*ox, oy, WALL_HEIGHT+0.018+0.001/2)
+
     # Palm-tree
     sh = _so.ShCylinderZ(_vec3(0.04, 0.04, 0.250)/2)
     o = _so.OSimple(sh)
