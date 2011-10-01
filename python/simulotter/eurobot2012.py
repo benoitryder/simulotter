@@ -121,3 +121,58 @@ class Match(_eb.Match):
       o.color = _eb.RAL[8002]
       o.pos = _vec3(kx*0.8, 0, 0.163)/2
 
+    # Treasure map
+    #TODO map width is not known yet, centered on X
+    map_width = 0.400
+    sh_back = _so.ShBox(_vec3(map_width, 0.258, 0.010)/2)
+    sh_side = _so.ShBox(_vec3(0.018, 0.258, 0.018)/2)
+    # origin is the nearest point to the table
+    sh = _so.ShCompound((
+      (sh_back, _so.trans(_vec3(0, 0.258/2, 0.010/2))),
+      (sh_side, _so.trans(_vec3(-(map_width-0.018)/2, 0.258/2, 0.010+0.018/2))),
+      (sh_side, _so.trans(_vec3( (map_width-0.018)/2, 0.258/2, 0.010+0.018/2))),
+      ))
+    o = _so.OSimple(sh)
+    o.addToWorld(ph)
+    o.color = _eb.RAL[5012]
+    a = _math.radians(35)
+    o.trans = _so.trans(
+        _so.quat(_vec3(1,0,0), a),
+        _vec3(0, TABLE_SIZE.y/2, 0.315-(0.258+(0.018+0.10))*_math.sin(a))
+        )
+
+    # Bottle supports
+    w = WALL_WIDTH
+    sh_small = _so.ShBox(_vec3(0.089, w, w)/2)
+    sh_large = _so.ShBox(_vec3(0.200, w, w)/2)
+    sh = _so.ShCompound((
+      (sh_small, _so.trans(_vec3(-(0.089+w)/2, -w/2, w/2))),
+      (sh_small, _so.trans(_vec3( (0.089+w)/2, -w/2, w/2))),
+      (sh_large, _so.trans(_vec3(0, -w/2, w+w/2))),
+      (sh_large, _so.trans(_vec3(0, -w-w/2, -w/2))),
+      ))
+    for x in (TABLE_SIZE.x/2-0.640, -(TABLE_SIZE.x/2-0.640-0.477)):
+      for kx in (1, -1):
+        o = _so.OSimple(sh)
+        o.addToWorld(ph)
+        o.color = _eb.RAL[5012]
+        o.pos = _vec3(kx*x, -TABLE_SIZE.y/2, WALL_HEIGHT)
+
+    # Bottle buttons
+    # origin is the attache point on the border (y=WALL_HEIGHT)
+    # reuse sh_large and w from bottle supports
+    #TODO sh_buttonv Y size is not known
+    sh_buttonh = _so.ShBox(_vec3(w, 2*w, w)/2)
+    sh_buttonv = _so.ShBox(_vec3(w, w, 0.103)/2)
+    sh = _so.ShCompound((
+      (sh_large, _so.trans(_vec3(0, -w-w/2, w/2))),
+      (sh_buttonh, _so.trans(_vec3(0, 0, w/2))),
+      (sh_buttonv, _so.trans(_vec3(0, w+w/2, -WALL_HEIGHT+0.003+0.103/2))),
+      ))
+    for x in (TABLE_SIZE.x/2-0.640, -(TABLE_SIZE.x/2-0.640-0.477)):
+      for kx in (1, -1):
+        o = _so.OSimple(sh, 0.100)
+        o.addToWorld(ph)
+        o.color = TEAM_COLORS[ 1 if kx == 1 else 0 ]
+        o.pos = _vec3(kx*x, -TABLE_SIZE.y/2, WALL_HEIGHT)
+
