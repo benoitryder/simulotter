@@ -111,5 +111,92 @@ void OGround2012::draw(Display *d) const
 }
 
 
+const btVector3 OBullion::SIZE = btScale(btVector3(0.150, 0.070, 0.0485));
+const btScalar OBullion::MASS = 0.100;
+const btScalar OBullion::A_SLOPE = 75*M_PI/180;
+SmartPtr<btConvexHullShape> OBullion::shape_(new btConvexHullShape());
+
+OBullion::OBullion()
+{
+  // First instance: initialize shape
+  if( shape_->getNumPoints() == 0 ) {
+    const btScalar z = SIZE.z()/2;
+    const btScalar wslope = SIZE.z() * btCos(A_SLOPE);
+    const btVector2 p0 = btVector2(SIZE.x()/2, SIZE.y()/2);
+    const btVector2 p1 = btVector2(SIZE.x()/2-wslope, SIZE.y()/2-wslope);
+    shape_->addPoint( btVector3( p0.x(),  p0.y(), -z) );
+    shape_->addPoint( btVector3( p0.x(), -p0.y(), -z) );
+    shape_->addPoint( btVector3(-p0.x(), -p0.y(), -z) );
+    shape_->addPoint( btVector3(-p0.x(),  p0.y(), -z) );
+    shape_->addPoint( btVector3( p1.x(),  p1.y(),  z) );
+    shape_->addPoint( btVector3( p1.x(), -p1.y(),  z) );
+    shape_->addPoint( btVector3(-p1.x(), -p1.y(),  z) );
+    shape_->addPoint( btVector3(-p1.x(),  p1.y(),  z) );
+  }
+
+  this->setShape(shape_);
+  this->setMass(MASS);
+  this->setColor(Color4(0xfc,0xbd,0x1f)); // RAL 1023
+}
+
+
+void OBullion::draw(Display *d) const
+{
+  glColor4fv(color_);
+  glPushMatrix();
+  drawTransform(m_worldTransform);
+
+  if( d->callOrCreateDisplayList(m_collisionShape) ) {
+    // same values as in constructor
+    const btScalar z = SIZE.z()/2;
+    const btScalar wslope = SIZE.z() * btCos(A_SLOPE);
+    const btVector2 p0 = btVector2(SIZE.x()/2, SIZE.y()/2);
+    const btVector2 p1 = btVector2(SIZE.x()/2-wslope, SIZE.y()/2-wslope);
+
+    glBegin(GL_QUADS);
+    // bottom
+    btglNormal3(0.0, 0.0, -1.0);
+    btglVertex3( p0.x(),  p0.y(), -z);
+    btglVertex3( p0.x(), -p0.y(), -z);
+    btglVertex3(-p0.x(), -p0.y(), -z);
+    btglVertex3(-p0.x(),  p0.y(), -z);
+    // top
+    btglNormal3(0.0, 0.0, 1.0);
+    btglVertex3( p1.x(),  p1.y(),  z);
+    btglVertex3( p1.x(), -p1.y(),  z);
+    btglVertex3(-p1.x(), -p1.y(),  z);
+    btglVertex3(-p1.x(),  p1.y(),  z);
+    // front
+    btglNormal3(0.0, -1.0, 0.0);
+    btglVertex3(-p0.x(), -p0.y(), -z);
+    btglVertex3( p0.x(), -p0.y(), -z);
+    btglVertex3( p1.x(), -p1.y(),  z);
+    btglVertex3(-p1.x(), -p1.y(),  z);
+    // back
+    btglNormal3(0.0, 1.0, 0.0);
+    btglVertex3(-p0.x(),  p0.y(), -z);
+    btglVertex3( p0.x(),  p0.y(), -z);
+    btglVertex3( p1.x(),  p1.y(),  z);
+    btglVertex3(-p1.x(),  p1.y(),  z);
+    // left
+    btglNormal3(-1.0, 0.0, 0.0);
+    btglVertex3(-p0.x(),  p0.y(), -z);
+    btglVertex3(-p0.x(), -p0.y(), -z);
+    btglVertex3(-p1.x(), -p1.y(),  z);
+    btglVertex3(-p1.x(),  p1.y(),  z);
+    // right
+    btglNormal3(1.0, 0.0, 0.0);
+    btglVertex3( p0.x(),  p0.y(), -z);
+    btglVertex3( p0.x(), -p0.y(), -z);
+    btglVertex3( p1.x(), -p1.y(),  z);
+    btglVertex3( p1.x(),  p1.y(),  z);
+
+    glEnd();
+    d->endDisplayList();
+  }
+
+  glPopMatrix();
+}
+
 }
 

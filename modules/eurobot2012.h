@@ -22,6 +22,21 @@ class OGround2012: public OGround
   virtual void draw(Display *d) const;
 };
 
+
+class OBullion: public OSimple
+{
+ public:
+  static const btVector3 SIZE;  ///< Bounding box size
+  static const btScalar MASS;
+  static const btScalar A_SLOPE;
+
+  OBullion();
+  virtual void draw(Display *d) const;
+
+ private:
+  static SmartPtr<btConvexHullShape> shape_;
+};
+
 }
 
 
