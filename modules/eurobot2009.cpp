@@ -60,13 +60,13 @@ namespace eurobot2009
     o->setPos(pos);
   }
 
-  void ODispenser::draw(Display *) const
+  void ODispenser::drawLast(Display *) const
   {
     glColor4fv(color_);
     glPushMatrix();
     drawTransform(m_worldTransform);
     glTranslatef(0, 0, -HEIGHT/2);
-    glutWireCylinder(RADIUS, HEIGHT, Display::draw_div, 10);
+    glutSolidCylinder(RADIUS, HEIGHT, Display::draw_div, 1);
     glPopMatrix();
   }
 

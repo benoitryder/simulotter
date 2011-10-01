@@ -53,7 +53,8 @@ namespace eurobot2009
      */
     void fill(Object *o, btScalar z);
 
-    void draw(Display *d) const;
+    void draw(Display *d) const {}
+    void drawLast(Display *d) const;
 
     /** @brief Collision check to disable collision with stored items
      *

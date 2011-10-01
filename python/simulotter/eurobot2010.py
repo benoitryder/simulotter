@@ -78,7 +78,7 @@ class OBranch(_so.OSimple):
     self.shape = (self._shape)
     #actual color differs from rules
     #self.color = _so.Color.white
-    self.color = _so.Color.plexi
+    self.color = _so.Color(1.)
     self.h = h
 
   def createOrange(self):
@@ -119,7 +119,7 @@ class Bac:
   _band_back    = _so.ShBox(_vec3(SIZE.x+2*WIDTH, WIDTH, WALL_HEIGHT)/2)
   _plexi_back   = _so.ShBox(_vec3(SIZE.x+2*WIDTH, WIDTH, HEIGHT)/2)
   _plexi_front  = _so.ShBox(_vec3(SIZE.x+2*WIDTH, WIDTH, HEIGHT-0.040)/2)
-  _plexi_bottom = _so.ShBox(_vec3(SIZE.x+2*WIDTH, WIDTH+SIZE.y, WALL_HEIGHT)/2)
+  _plexi_bottom = _so.ShBox(_vec3(SIZE.x+2*WIDTH, WIDTH+SIZE.y, WIDTH)/2)
 
   sh_band = _so.ShCompound((
     (_band_side, _so.trans(_vec2(-SIZE.x-WIDTH, -SIZE.y)/2)),
