@@ -51,6 +51,11 @@ public:
 
   /// Draw the whole object
   virtual void draw(Display *d) const = 0;
+  /** @brief Draw last object parts
+   *
+   * This is used for transparent parts which have to be drawn last.
+   */
+  virtual void drawLast(Display *d) const {}
 
   /** @name Transformation, position and rotation accessors
    */
@@ -150,11 +155,16 @@ public:
    */
   void setColor(const Color4 &color) { color_ = color; }
 
-  /** @brief Draw the whole object
+  /// Draw the object, if not transparent
+  virtual void draw(Display *d) const;
+  /// Draw the object last, if transparent
+  virtual void drawLast(Display *d) const;
+  /** @brief Draw the object, whichever the color.
    *
+   * This method is called by draw() and drawLast().
    * Shape drawing is stored in a display list.
    */
-  virtual void draw(Display *d) const;
+  void drawObject(Display *d) const;
 
   virtual const btTransform getTrans() const { return getCenterOfMassTransform(); }
   virtual void setTrans(const btTransform &tr) { setCenterOfMassTransform(tr); }

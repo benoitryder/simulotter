@@ -224,6 +224,20 @@ void OSimple::setPosAbove(const btVector2 &pos)
 
 void OSimple::draw(Display *d) const
 {
+  if( color_.a() >= 0.95 ) {
+    this->drawObject(d);
+  }
+}
+
+void OSimple::drawLast(Display *d) const
+{
+  if( color_.a() < 0.95 ) {
+    this->drawObject(d);
+  }
+}
+
+void OSimple::drawObject(Display *d) const
+{
   glColor4fv(color_);
   glPushMatrix();
   drawTransform(m_worldTransform);

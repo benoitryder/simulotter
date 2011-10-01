@@ -115,11 +115,16 @@ void Display::update()
     btglTranslate(-v.x(), -v.y(), -v.z());
   }
 
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
   // Draw objects
   const std::set< SmartPtr<Object> > &objs = physics_->getObjs();
   std::set< SmartPtr<Object> >::const_iterator it_obj;
   for( it_obj = objs.begin(); it_obj != objs.end(); ++it_obj )
     (*it_obj)->draw(this);
+  for( it_obj = objs.begin(); it_obj != objs.end(); ++it_obj )
+    (*it_obj)->drawLast(this);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
