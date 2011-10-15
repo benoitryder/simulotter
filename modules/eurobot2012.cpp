@@ -132,6 +132,7 @@ OBullion::OBullion()
     shape_->addPoint( btVector3( p1.x(), -p1.y(),  z) );
     shape_->addPoint( btVector3(-p1.x(), -p1.y(),  z) );
     shape_->addPoint( btVector3(-p1.x(),  p1.y(),  z) );
+    shape_->setMargin(shape_->getMargin()/2);
   }
 
   this->setShape(shape_);
