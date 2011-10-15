@@ -72,6 +72,7 @@ class Match(_eb.Match):
 
     # Ship borders
     W = 0.018  # border width
+    deck_angle = _math.atan2(0.4-0.325, TABLE_SIZE.y-ground.start_size-W)
 
     sh = _so.ShBox(_vec3(0.4, W, W)/2)
     for kx in (1, -1):
@@ -83,7 +84,7 @@ class Match(_eb.Match):
     r = 0.75
     sh = _so.ShBox(_vec3(W, r, W)/2)
     for kx in (1, -1):
-      a = kx*_math.atan2(0.4-0.325, TABLE_SIZE.y-ground.start_size-W/2)
+      a = kx*deck_angle
       o = _so.OSimple(sh)
       o.addToWorld(ph)
       o.color = _eb.RAL[8002]
@@ -200,4 +201,25 @@ class Match(_eb.Match):
         o.addToWorld(ph)
         o.color = TEAM_COLORS[ 1 if kx == 1 else 0 ]
         o.pos = _vec3(kx*x, -TABLE_SIZE.y/2, WALL_HEIGHT)
+
+
+    # Bullions
+    bsize = OBullion.SIZE
+    l = []  # x, y, z_bottom, angle_z
+    l.append((0, -TABLE_SIZE.y/2+0.647, 0, 0))
+    for kx in (1, -1):
+      # bullion along the deck
+      v = _vec2(TABLE_SIZE.x/2-0.400-bsize.y/2, TABLE_SIZE.y/2-ground.start_size)
+      v += _vec2(0, -0.285-bsize.x/2).rotate(deck_angle)
+      l.append((kx*v.x, v.y, 0, _math.pi/2+kx*deck_angle))
+      # bullions on totems
+      l.append((kx*0.8/2,  (0.070+0.090)/2, 0.018+0.0545+0.018, 0))
+      l.append((kx*0.8/2, -(0.070+0.090)/2, 0.018+0.0545+0.018, 0))
+    for x,y,z0,a in l:
+      o = OBullion()
+      o.addToWorld(ph)
+      o.trans = _so.trans(
+          _so.quat(_vec3(0,0,1), a),
+          _vec3(x, y, z0 + bsize.z/2 + ph.margin_epsilon)
+          )
 
