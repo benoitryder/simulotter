@@ -8,6 +8,11 @@ static const btScalar OGround2012_START_SIZE = btUnscale(OGround2012::START_SIZE
 
 static const btVector3 OBullion_SIZE = btUnscale(OBullion::SIZE);
 
+static const btScalar OCoin_DISC_HEIGHT = btUnscale(OCoin::DISC_HEIGHT);
+static const btScalar OCoin_RADIUS = btUnscale(OCoin::RADIUS);
+static const btScalar OCoin_INNER_RADIUS = btUnscale(OCoin::INNER_RADIUS);
+static const btScalar OCoin_CUBE_SIZE = btUnscale(OCoin::CUBE_SIZE);
+
 
 void python_export_eurobot2012()
 {
@@ -24,5 +29,12 @@ void python_export_eurobot2012()
       .def_readonly("A_SLOPE", OBullion::A_SLOPE)
       ;
 
+  py::class_<OCoin, py::bases<OSimple>, SmartPtr<OCoin>, boost::noncopyable>("OCoin", py::init<bool>())
+      .def_readonly("DISC_HEIGHT", OCoin_DISC_HEIGHT)
+      .def_readonly("RADIUS", OCoin_RADIUS)
+      .def_readonly("INNER_RADIUS", OCoin_INNER_RADIUS)
+      .def_readonly("CUBE_SIZE", OCoin_CUBE_SIZE)
+      .def_readonly("MASS", OCoin::MASS)
+      ;
 }
 

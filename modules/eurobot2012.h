@@ -37,6 +37,27 @@ class OBullion: public OSimple
   static SmartPtr<btConvexHullShape> shape_;
 };
 
+
+class OCoin: public OSimple
+{
+ public:
+  static const btScalar DISC_HEIGHT;
+  static const btScalar RADIUS;
+  static const btScalar INNER_RADIUS;
+  static const btScalar CUBE_SIZE;
+  static const btScalar CUBE_OFFSET;
+  static const btScalar MASS;
+
+  OCoin(bool white);
+  virtual void draw(Display *d) const;
+
+ private:
+  static SmartPtr<btCompoundShape> shape_;
+  static btCylinderShapeZ shape_disc_;
+  static btBoxShape shape_cube_;
+};
+
+
 }
 
 

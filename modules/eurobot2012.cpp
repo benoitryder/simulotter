@@ -198,5 +198,63 @@ void OBullion::draw(Display *d) const
   glPopMatrix();
 }
 
+
+const btScalar OCoin::DISC_HEIGHT = btScale(0.002);
+const btScalar OCoin::RADIUS = btScale(0.120/2);
+const btScalar OCoin::INNER_RADIUS = btScale(0.015/2);
+const btScalar OCoin::CUBE_SIZE = btScale(0.018);
+const btScalar OCoin::CUBE_OFFSET = btScale(0.0315);
+const btScalar OCoin::MASS = 0.030;
+SmartPtr<btCompoundShape> OCoin::shape_;
+btCylinderShapeZ OCoin::shape_disc_(btVector3(RADIUS, RADIUS, DISC_HEIGHT/2));
+btBoxShape OCoin::shape_cube_(btVector3(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)/2);
+
+OCoin::OCoin(bool white)
+{
+  // First instance: initialize shape
+  if( shape_ == NULL ) {
+    shape_disc_.setMargin(shape_disc_.getMargin()/4);
+    btTransform tr = btTransform::getIdentity();
+    shape_ = new btCompoundShape();
+    shape_->addChildShape(tr, &shape_disc_);
+    tr.setOrigin(btVector3(CUBE_OFFSET+CUBE_SIZE/2, 0, -(CUBE_SIZE+DISC_HEIGHT)/2));
+    shape_->addChildShape(tr, &shape_cube_);
+  }
+
+  this->setShape(shape_);
+  this->setMass(MASS);
+  this->setColor(white ? Color4::white() : Color4::black());
+}
+
+void OCoin::draw(Display *d) const
+{
+  glPushMatrix();
+
+  drawTransform(m_worldTransform);
+  glColor4fv(color_);
+
+  if( d->callOrCreateDisplayList(m_collisionShape) ) {
+    // disc: outer/inner cylinders, bottom/bottom disks
+    btglTranslate(0, 0, -DISC_HEIGHT/2);
+    GLUquadric *quadric = gluNewQuadric();
+    gluCylinder(quadric, RADIUS, RADIUS, DISC_HEIGHT, Display::draw_div, 1);
+    gluQuadricOrientation(quadric, GLU_INSIDE);
+    gluCylinder(quadric, INNER_RADIUS, INNER_RADIUS, DISC_HEIGHT, Display::draw_div/2, 1);
+    gluDisk(quadric, INNER_RADIUS, RADIUS, Display::draw_div, 1);
+    gluQuadricOrientation(quadric, GLU_OUTSIDE);
+    btglTranslate(0, 0, DISC_HEIGHT);
+    gluDisk(quadric, INNER_RADIUS, RADIUS, Display::draw_div, 1);
+    gluDeleteQuadric(quadric);
+    // cube
+    btglTranslate(CUBE_OFFSET+CUBE_SIZE/2, 0, -DISC_HEIGHT-CUBE_SIZE/2);
+    glutSolidCube(CUBE_SIZE);
+
+    d->endDisplayList();
+  }
+
+  glPopMatrix();
+}
+
+
 }
 
