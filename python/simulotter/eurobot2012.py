@@ -223,3 +223,47 @@ class Match(_eb.Match):
           _vec3(x, y, z0 + bsize.z/2 + ph.margin_epsilon)
           )
 
+    # Coins
+    #XXX exact position of several coins is not known
+    l = [
+        # (x>0, y, z_bottom, angle_z)
+        (TABLE_SIZE.x/2-0.450, -TABLE_SIZE.y/2+0.300, 0, 0),
+        (0.090, -TABLE_SIZE.y/2+0.300, 0, 0)
+        ]
+    for i in range(-3,4):
+      a = i*_math.pi/4
+      ca = _math.cos(a)
+      sa = _math.sin(a)
+      l.append( (0.8/2+0.25*ca, 0.25*sa, 0, a) )
+      if i % 2 == 1:
+        l.append( (0.8/2+0.100*ca, 0.110*sa, 0.018, a) )
+        l.append( (0.8/2+0.100*ca, 0.110*sa, 0.163, a) )
+    # group coins them by pairs for random picking of black coins
+    lpairs = [(
+        (0, -TABLE_SIZE.y/2+0.300+0.090, 0, _math.pi/2),
+        (0, -TABLE_SIZE.y/2+0.300-0.090, 0, -_math.pi/2)
+        )]
+    for x,y,z0,a in l:
+      lpairs.append(((x,y,z0,a), (-x,y,z0,-a+_math.pi)))
+
+    # pick up random pairs which will be black
+    import random
+    black_pairs = random.sample(lpairs, 2)
+
+    # last pair, never black
+    lpairs.append((
+      (  TABLE_SIZE.x/2-0.5-0.5,  TABLE_SIZE.y/2-0.5, 0, 0),
+      (-(TABLE_SIZE.x/2-0.5-0.5), TABLE_SIZE.y/2-0.5, 0, _math.pi)
+      ))
+
+    # finally, created the coins
+    for p in lpairs:
+      white = p not in black_pairs
+      for x,y,z0,a in p:
+        o = OCoin(white)
+        o.addToWorld(ph)
+        o.trans = _so.trans(
+            _so.quat(_vec3(0,0,1), a),
+            _vec3(x, y, z0 + OCoin.CUBE_SIZE + ph.margin_epsilon)
+            )
+
