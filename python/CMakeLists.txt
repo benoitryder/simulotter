@@ -29,15 +29,23 @@ set(SIMULOTTER_PYTHON_LIBS
 set(python_src
   display.cpp galipeur.cpp main.cpp maths.cpp object.cpp physics.cpp robot.cpp
   sensors.cpp utils.cpp
-  eurobot2009.cpp eurobot2010.cpp eurobot2011.cpp
-  eurobot2012.cpp
   )
+foreach(m ${SIMULOTTER_ENABLED_MODULES})
+  list(APPEND python_src ${m}.cpp)
+endforeach()
 add_library(py-simulotter MODULE ${python_src})
 
 target_link_libraries(py-simulotter
   simulotter ${SIMULOTTER_LIBS}
   ${SIMULOTTER_PYTHON_LIBS}
   )
+
+
+foreach(m ${SIMULOTTER_ENABLED_MODULES})
+  set(simulotter_modules_apply "${simulotter_modules_apply}SIMULOTTER_MODULES_APPLY_EXPR(${m})\;")
+endforeach()
+set_property(SOURCE main.cpp APPEND PROPERTY COMPILE_DEFINITIONS
+  "SIMULOTTER_MODULES_APPLY=${simulotter_modules_apply}")
 
 
 set_target_properties(py-simulotter PROPERTIES
@@ -74,11 +82,12 @@ else()
 endif()
 
 
-install(DIRECTORY simulotter
-  DESTINATION "${PYTHON_INSTALL_DIR}"
-  COMPONENT python
-  FILES_MATCHING PATTERN "*.py"
-  PATTERN ".svn" EXCLUDE
+foreach(m __init__ eurobot ${SIMULOTTER_ENABLED_MODULES})
+  list(APPEND python_module_files simulotter/${m}.py)
+endforeach()
+install(FILES ${python_module_files}
+  DESTINATION ${PYTHON_INSTALL_DIR}/simulotter/
+  COMPONENT python/simulotter/
   )
 install(TARGETS py-simulotter
   DESTINATION ${PYTHON_INSTALL_DIR}/simulotter/

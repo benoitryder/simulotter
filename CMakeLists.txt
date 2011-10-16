@@ -19,6 +19,25 @@ if(MSYS)
 endif()
 
 
+##
+##  Modules
+##
+
+# Define a simulotter module
+macro(simulotter_declare_module _m)
+  string(TOUPPER ENABLE_${_m} _opt_name)
+  option(${_opt_name} "Enable module ${_m}" TRUE)
+  if(${_opt_name})
+    list(APPEND SIMULOTTER_ENABLED_MODULES ${_m})
+  endif()
+endmacro()
+
+# Declare known modules
+simulotter_declare_module(eurobot2009)
+simulotter_declare_module(eurobot2010)
+simulotter_declare_module(eurobot2011)
+simulotter_declare_module(eurobot2012)
+
 
 ##
 ##  Dependencies
@@ -139,11 +158,13 @@ add_definitions(
 ##  Project targets
 ##
 
-add_library(simulotter STATIC
+set(simulotter_lib_src
   physics.cpp display.cpp object.cpp sensors.cpp robot.cpp galipeur.cpp log.cpp
-  modules/eurobot2009.cpp modules/eurobot2010.cpp modules/eurobot2011.cpp
-  modules/eurobot2012.cpp
   )
+foreach(m ${SIMULOTTER_ENABLED_MODULES})
+  list(APPEND simulotter_lib_src modules/${m}.cpp)
+endforeach()
+add_library(simulotter STATIC ${simulotter_lib_src})
 
 if(WIN32 AND CMAKE_COMPILER_IS_GNUCXX)
   set(EXTRA_LINK_FLAGS "-Wl,--enable-auto-import -mconsole -mwindows -static-libgcc -static-libstdc++")

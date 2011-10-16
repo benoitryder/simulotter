@@ -9,10 +9,10 @@ void python_export_object();
 void python_export_robot();
 void python_export_sensors();
 void python_export_galipeur();
-void python_export_eurobot2009();
-void python_export_eurobot2010();
-void python_export_eurobot2011();
-void python_export_eurobot2012();
+#define SIMULOTTER_MODULES_APPLY_EXPR(module) \
+    void python_export_##module();
+SIMULOTTER_MODULES_APPLY
+#undef SIMULOTTER_MODULES_APPLY_EXPR
 
 
 // indirection to allow module name defined by a macro
@@ -34,10 +34,10 @@ XBOOST_PYTHON_MODULE(SIMULOTTER_MODULE_NAME)
   python_export_galipeur();
 
   // sub modules
-  python_export_eurobot2009();
-  python_export_eurobot2010();
-  python_export_eurobot2011();
-  python_export_eurobot2012();
+#define SIMULOTTER_MODULES_APPLY_EXPR(module) \
+  python_export_##module();
+SIMULOTTER_MODULES_APPLY
+#undef SIMULOTTER_MODULES_APPLY_EXPR
 }
 
 
