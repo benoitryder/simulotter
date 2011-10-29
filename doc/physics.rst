@@ -240,7 +240,7 @@ When displayed, the sensor ray is drawn.
 
   Return a new ray sensor with detection range ``(min,max)``.
 
-  .. def:: hitTest()
+  .. method:: hitTest()
 
     Return the sensor collision distance or `None` if the sensor did not hit.
 
