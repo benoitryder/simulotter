@@ -4,9 +4,6 @@
 using namespace eurobot2009;
 
 
-static const btScalar ODispenser_HEIGHT = btUnscale(ODispenser::HEIGHT);
-static const btScalar ODispenser_RADIUS = btUnscale(ODispenser::RADIUS);
-
 static void ODispenser_setPos(ODispenser &o, const btVector3 &v, int side) { o.setPos(btScale(v), side); }
 static void ODispenser_fill(ODispenser &o, Object *oo, btScalar z) { o.fill(oo, btScale(z)); }
 static void OLintelStorage_setPos(OLintelStorage &o, btScalar d, int side) { o.setPos(btScale(d), side); }
@@ -21,6 +18,10 @@ static void Galipeur_set_pachev_eject_speed(btScalar v) { Galipeur2009::pachev_e
 
 void python_export_eurobot2009()
 {
+  static const btScalar ODispenser_HEIGHT = btUnscale(ODispenser::HEIGHT);
+  static const btScalar ODispenser_RADIUS = btUnscale(ODispenser::RADIUS);
+
+
   SIMULOTTER_PYTHON_SUBMODULE(_eurobot2009);
 
   py::class_<OColElem, py::bases<OSimple>, SmartPtr<OColElem>, boost::noncopyable>("OColElem");

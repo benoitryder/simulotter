@@ -3,19 +3,20 @@
 
 using namespace eurobot2012;
 
-static const btVector2 OGround2012_SIZE = btUnscale(OGround2012::SIZE);
-static const btScalar OGround2012_START_SIZE = btUnscale(OGround2012::START_SIZE);
-
-static const btVector3 OBullion_SIZE = btUnscale(OBullion::SIZE);
-
-static const btScalar OCoin_DISC_HEIGHT = btUnscale(OCoin::DISC_HEIGHT);
-static const btScalar OCoin_RADIUS = btUnscale(OCoin::RADIUS);
-static const btScalar OCoin_INNER_RADIUS = btUnscale(OCoin::INNER_RADIUS);
-static const btScalar OCoin_CUBE_SIZE = btUnscale(OCoin::CUBE_SIZE);
-
 
 void python_export_eurobot2012()
 {
+  static const btVector2 OGround2012_SIZE = btUnscale(OGround2012::SIZE);
+  static const btScalar OGround2012_START_SIZE = btUnscale(OGround2012::START_SIZE);
+
+  static const btVector3 OBullion_SIZE = btUnscale(OBullion::SIZE);
+
+  static const btScalar OCoin_DISC_HEIGHT = btUnscale(OCoin::DISC_HEIGHT);
+  static const btScalar OCoin_RADIUS = btUnscale(OCoin::RADIUS);
+  static const btScalar OCoin_INNER_RADIUS = btUnscale(OCoin::INNER_RADIUS);
+  static const btScalar OCoin_CUBE_SIZE = btUnscale(OCoin::CUBE_SIZE);
+
+
   SIMULOTTER_PYTHON_SUBMODULE(_eurobot2012);
 
   py::class_<OGround2012, py::bases<OGround>, SmartPtr<OGround2012>, boost::noncopyable>("OGround")

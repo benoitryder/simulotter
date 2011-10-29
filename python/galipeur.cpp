@@ -34,20 +34,21 @@ static void Galipeur_set_speed_stop(Galipeur &g, btScalar v, btScalar a) { g.set
 static void Galipeur_set_threshold_stop(Galipeur &g, btScalar r, btScalar l) { g.set_threshold_stop(btScale(r), l); }
 static void Galipeur_set_threshold_steering(Galipeur &g, btScalar t) { g.set_threshold_steering(btScale(t)); }
 
-static const btScalar Galipeur_Z_MASS = btUnscale(Galipeur::Z_MASS);
-static const btScalar Galipeur_GROUND_CLEARANCE = btUnscale(Galipeur::GROUND_CLEARANCE);
-static const btScalar Galipeur_HEIGHT = btUnscale(Galipeur::HEIGHT);
-static const btScalar Galipeur_SIDE = btUnscale(Galipeur::SIDE);
-static const btScalar Galipeur_W_BLOCK = btUnscale(Galipeur::W_BLOCK);
-static const btScalar Galipeur_R_WHEEL = btUnscale(Galipeur::R_WHEEL);
-static const btScalar Galipeur_H_WHEEL = btUnscale(Galipeur::H_WHEEL);
-static const btScalar Galipeur_D_SIDE = btUnscale(Galipeur::D_SIDE);
-static const btScalar Galipeur_D_WHEEL = btUnscale(Galipeur::D_WHEEL);
-static const btScalar Galipeur_RADIUS = btUnscale(Galipeur::RADIUS);
-
 
 void python_export_galipeur()
 {
+  static const btScalar Galipeur_Z_MASS = btUnscale(Galipeur::Z_MASS);
+  static const btScalar Galipeur_GROUND_CLEARANCE = btUnscale(Galipeur::GROUND_CLEARANCE);
+  static const btScalar Galipeur_HEIGHT = btUnscale(Galipeur::HEIGHT);
+  static const btScalar Galipeur_SIDE = btUnscale(Galipeur::SIDE);
+  static const btScalar Galipeur_W_BLOCK = btUnscale(Galipeur::W_BLOCK);
+  static const btScalar Galipeur_R_WHEEL = btUnscale(Galipeur::R_WHEEL);
+  static const btScalar Galipeur_H_WHEEL = btUnscale(Galipeur::H_WHEEL);
+  static const btScalar Galipeur_D_SIDE = btUnscale(Galipeur::D_SIDE);
+  static const btScalar Galipeur_D_WHEEL = btUnscale(Galipeur::D_WHEEL);
+  static const btScalar Galipeur_RADIUS = btUnscale(Galipeur::RADIUS);
+
+
   py::class_<Galipeur, py::bases<Robot>, SmartPtr<Galipeur>, boost::noncopyable>("Galipeur", py::no_init)
       .def(py::init<btScalar>())
       .add_property("color", &Galipeur::getColor, &Galipeur::setColor)

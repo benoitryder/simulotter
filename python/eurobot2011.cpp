@@ -3,16 +3,6 @@
 
 using namespace eurobot2011;
 
-static const btVector2 OGround2011_SIZE = btUnscale(OGround2011::SIZE);
-static const btScalar OGround2011_START_SIZE = btUnscale(OGround2011::START_SIZE);
-static const btScalar OGround2011_SQUARE_SIZE = btUnscale(OGround2011::SQUARE_SIZE);
-
-static const btScalar MagnetPawn_RADIUS = btUnscale(MagnetPawn::RADIUS);
-static const btScalar MagnetPawn_HEIGHT = btUnscale(MagnetPawn::HEIGHT);
-
-static const btScalar Galipeur2011_ARM_RADIUS = btUnscale(Galipeur2011::PawnArm::RADIUS);
-static const btScalar Galipeur2011_ARM_LENGTH = btUnscale(Galipeur2011::PawnArm::LENGTH);
-
 static py::object Galipeur2011_get_arms(const Galipeur2011 &o)
 {
   //XXX assume a fixed arm count to be able to use make_tuple (much simpler)
@@ -28,6 +18,17 @@ static py::object Galipeur2011_get_arms(const Galipeur2011 &o)
 
 void python_export_eurobot2011()
 {
+  static const btVector2 OGround2011_SIZE = btUnscale(OGround2011::SIZE);
+  static const btScalar OGround2011_START_SIZE = btUnscale(OGround2011::START_SIZE);
+  static const btScalar OGround2011_SQUARE_SIZE = btUnscale(OGround2011::SQUARE_SIZE);
+
+  static const btScalar MagnetPawn_RADIUS = btUnscale(MagnetPawn::RADIUS);
+  static const btScalar MagnetPawn_HEIGHT = btUnscale(MagnetPawn::HEIGHT);
+
+  static const btScalar Galipeur2011_ARM_RADIUS = btUnscale(Galipeur2011::PawnArm::RADIUS);
+  static const btScalar Galipeur2011_ARM_LENGTH = btUnscale(Galipeur2011::PawnArm::LENGTH);
+
+
   SIMULOTTER_PYTHON_SUBMODULE(_eurobot2011);
 
   py::class_<OGround2011, py::bases<OGround>, SmartPtr<OGround2011>, boost::noncopyable>("OGround")
