@@ -1,5 +1,5 @@
 
-find_package(PythonLibs REQUIRED)
+find_package(PythonLibs 2 REQUIRED)
 
 find_package(Boost COMPONENTS python REQUIRED)
 
