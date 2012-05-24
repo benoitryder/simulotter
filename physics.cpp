@@ -72,6 +72,13 @@ void Physics::scheduleTask(TaskPhysics *task, btScalar time)
   task_queue_.push( TaskQueueValue(time, SmartPtr<TaskPhysics>(task)) );
 }
 
+void Physics::transform(const btTransform &tr)
+{
+  std::set< SmartPtr<Object> >::iterator it_obj;
+  for( it_obj = objs_.begin(); it_obj != objs_.end(); ++it_obj )
+    (*it_obj)->setTrans( tr * (*it_obj)->getTrans() );
+}
+
 void Physics::worldTickCallback(btDynamicsWorld *world, btScalar /*step*/)
 {
   Physics *physics = (Physics*)world->getWorldUserInfo();

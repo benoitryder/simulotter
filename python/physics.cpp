@@ -11,6 +11,7 @@ static btVector3 Physics_get_world_aabb_min() { return btUnscale(Physics::world_
 static void Physics_set_world_aabb_min(const btVector3 &v) { Physics::world_aabb_min = btScale(v); }
 static btVector3 Physics_get_world_aabb_max() { return btUnscale(Physics::world_aabb_max); }
 static void Physics_set_world_aabb_max(const btVector3 &v) { Physics::world_aabb_max = btScale(v); }
+static void Physics_transform(Physics &ph, const btTransform &tr) { ph.transform(btScale(tr)); }
 
 static void Physics_task_cb(py::object cb, Physics *ph)
 {
@@ -72,6 +73,7 @@ void python_export_physics()
       .add_property("time", &Physics::getTime)
       .def("schedule", &Physics_schedule_task, ( py::arg("task"), py::arg("time")=py::object() ))
       .def("schedule", &Physics_schedule_cb, ( py::arg("cb"), py::arg("period"), py::arg("time")=py::object() ))
+      .def("transform", &Physics_transform)
       // statics
       .add_static_property("world_gravity", &Physics_get_world_gravity, &Physics_set_world_gravity)
       .add_static_property("margin_epsilon", &Physics_get_margin_epsilon, &Physics_set_margin_epsilon)

@@ -36,6 +36,15 @@ simulated and displayed independently.
     The second form create a new task with given *cb* and *period*.
     It is equivalent to ``schedule(Task(cb, period), time)``.
 
+  .. method:: transform(trans)
+
+    Change world's referential by applying a :ref:`transformation <transformation>` to
+    all its objects
+
+    It is intended to be called after initializing world objects (e.g. after a
+    call to :meth:`eurobot.Match.prepare()`), to use a custom referential from
+    there.
+
 
 Class attributes affect elements related to physical worlds, including
 configuration of created worlds. These values should be modified at startup if

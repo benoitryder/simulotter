@@ -69,6 +69,14 @@ public:
   std::set<SmartPtr<Object> > &getObjs() { return objs_; }
   std::set<SmartPtr<Object> > &getTickObjs() { return tick_objs_; }
 
+  /** @brief Change world's referential
+   *
+   * Apply a transformation to all world objects transformations.
+   * This method can be used to use a custom referential after inserting
+   * objects from a match.
+   */
+  void transform(const btTransform &tr);
+
   /// Common static rigid body for constraints
   static const btRigidBody static_body;
 

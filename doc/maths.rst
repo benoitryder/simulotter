@@ -265,6 +265,8 @@ Rotation matrices --- :class:`matrix3`
     Return an iterator on matrix rows, as vectors.
 
 
+.. _transformation:
+
 Transformations --- :class:`trans`
 ----------------------------------
 
