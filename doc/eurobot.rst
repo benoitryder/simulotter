@@ -14,7 +14,7 @@ Modules are available for the following Eurobot rules:
 
 .. module:: eurobot
 
-The :mod:`eurobot` module provides default definitions for eurobot rules. They
+The :mod:`eurobot` module provides default definitions for Eurobot rules. They
 are redefined by the `eurobot20XX` modules if needed.
 
 

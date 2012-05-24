@@ -71,7 +71,7 @@ needed.
 Scheduling actions
 ~~~~~~~~~~~~~~~~~~
 
-:class:`Physics.Task` allow to schedule actions at given simulation times (given by
+:class:`Physics.Task` allows to schedule actions at given simulation times (given by
 :attr:`Physics.time`). They are set using :meth:`Physics.schedule`.
 
 One of the main use is the scheduling of asserv steps and orders for
@@ -169,7 +169,7 @@ All objects derive from the abstract class :class:`Object`.
 Simple object --- :class:`OSimple`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :class:`OSimple` class provide a handy object implementation. It allows to
+The :class:`OSimple` class provides a handy object implementation. It allows to
 create static and dynamic bodies with basic geometrical shapes.
 
 .. class:: OSimple([shape, mass=0])
@@ -184,7 +184,7 @@ create static and dynamic bodies with basic geometrical shapes.
 
     The object's shape; must be set before adding the object to a world.
     Once set, it cannot be changed.
-    cannot be called twice.
+    Cannot be called twice.
 
   .. attribute:: mass
 

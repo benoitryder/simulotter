@@ -5,8 +5,8 @@ Mathematical objects
 Various classes for geometric calculations.
 
 Mathematical objects are immutable: they cannot be updated in place.
-Some implicit conversions (for instance, from :class:`vec2` to
-:class:`vec3`). This is convenient but may be tricky when using operators:
+Some implicit conversions (for instance, from :class:`vec2` to :class:`vec3`)
+are allowed. This is convenient but may be tricky when using operators:
 ``vec3(3,3,3) + vec2(2,2)`` returns ``vec3(5,5,3)`` but
 ``vec2(2,2) + vec3(3,3,3)`` returns ``vec2(5,5)``.
 
@@ -268,7 +268,7 @@ Rotation matrices --- :class:`matrix3`
 Transformations --- :class:`trans`
 ----------------------------------
 
-A 3D transformation combine a position (:class:`vec3`) and a rotation
+A 3D transformation combines a position (:class:`vec3`) and a rotation
 (:class:`quat` or :class:`matrix3`).
 
 .. class:: trans(rot, origin=vec3())
