@@ -2,6 +2,7 @@
 #include <cstring>
 #include <cstdio>
 #include <exception>
+#include <memory>
 #include <SDL/SDL_opengl.h>
 #include <png.h>
 #include "display.h"
@@ -276,16 +277,14 @@ void Display::savePNGScreenshot(const std::string &filename)
     throw(Error("display not opened"));
   }
 
-  FILE *fp = NULL;
-  png_bytep pixels = NULL;
-  png_bytepp row_pointers = NULL;
-
   try
   {
     // Open output file
-    fp = fopen(filename.c_str(), "wb");
+    FILE *fp = fopen(filename.c_str(), "wb");
     if( !fp )
       throw(Error("cannot open file '%s' for writing", filename.c_str()));
+    auto fp_deleter = [](FILE* fp) { fclose(fp); };
+    std::unique_ptr<FILE, decltype(fp_deleter)> fp_safe(fp, fp_deleter);
 
     png_error_data error;
 
@@ -322,29 +321,21 @@ void Display::savePNGScreenshot(const std::string &filename)
     SDL_LockSurface(screen_);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     SDL_UnlockSurface(screen_);
-    pixels = new unsigned char[4*screen_x_*screen_y_];
-    glReadPixels(0, 0, screen_x_, screen_y_, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-    row_pointers = new png_bytep[screen_y_];
+
+    std::unique_ptr<unsigned char[]> pixels(new unsigned char[4*screen_x_*screen_y_]);
+    glReadPixels(0, 0, screen_x_, screen_y_, GL_RGB, GL_UNSIGNED_BYTE, pixels.get());
+    std::unique_ptr<png_bytep[]> row_pointers(new png_bytep[screen_y_]);
     int i;
     for( i=0; i<screen_y_; i++ )
-      row_pointers[screen_y_-i-1] = (png_bytep)pixels+3*i*screen_x_;
-    png_set_rows(png_ptr, info_ptr, row_pointers);
+      row_pointers[screen_y_-i-1] = (png_bytep)&pixels[3*i*screen_x_];
+    png_set_rows(png_ptr, info_ptr, row_pointers.get());
 
     // Write data
     png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
     png_destroy_write_struct(&png_ptr, &info_ptr);
-
-    delete[] row_pointers; row_pointers = NULL;
-    delete[] pixels; pixels = NULL;
-    fclose(fp); fp = NULL;
   }
   catch(const Error &e)
   {
-    if( row_pointers != NULL )
-      delete[] row_pointers;
-    if( pixels != NULL )
-      delete[] pixels;
-    fclose(fp);
     throw(Error("SDL: cannot save screenshot: %s", e.what()));
   }
 }
