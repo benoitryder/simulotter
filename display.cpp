@@ -408,7 +408,7 @@ void Display::sceneInit()
   glShadeModel(GL_SMOOTH);
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
-  const GLfloat light_pos[4] = {0,btScale(.3),btScale(.8),0};
+  const GLfloat light_pos[4] = {0,btScale(.3f),btScale(.8f),0};
   glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
   glEnable(GL_DEPTH_TEST); 
