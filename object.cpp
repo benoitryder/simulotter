@@ -252,8 +252,8 @@ void OSimple::drawObject(Display *d) const
 
 
 OGround::OGround(const btVector2 &size, const Color4 &color, const Color4 &color_t1, const Color4 &color_t2):
-    size_(btVector3(size.x(), size.y(), btScale(0.1))),
-    start_size_(btScale(0.5)),
+    size_(btVector3(size.x(), size.y(), 0.1_m)),
+    start_size_(0.5_m),
     shape_(new btBoxShape(size_/2))
 {
   setShape(shape_);

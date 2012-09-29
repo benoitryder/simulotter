@@ -6,12 +6,12 @@
 
 namespace eurobot2009
 {
-  static const btScalar TABLE_HALF_X     = btScale(1.50);
-  static const btScalar TABLE_HALF_Y     = btScale(1.05);
-  static const btScalar WALL_HALF_WIDTH  = btScale(0.011);
+  static const btScalar TABLE_HALF_X     = 1.50_m;
+  static const btScalar TABLE_HALF_Y     = 1.05_m;
+  static const btScalar WALL_HALF_WIDTH  = 0.011_m;
 
 
-  SmartPtr<btCylinderShapeZ> OColElem::shape_(new btCylinderShapeZ(btScale(btVector3(0.035,0.035,0.015))));
+  SmartPtr<btCylinderShapeZ> OColElem::shape_(new btCylinderShapeZ(btVector3(0.035_m,0.035_m,0.015_m)));
 
   OColElem::OColElem()
   {
@@ -19,7 +19,7 @@ namespace eurobot2009
     setMass( 0.100 );
   }
 
-  SmartPtr<btBoxShape> OLintel::shape_(new btBoxShape(btScale(btVector3(0.100,0.035,0.015))));
+  SmartPtr<btBoxShape> OLintel::shape_(new btBoxShape(btVector3(0.100_m,0.035_m,0.015_m)));
   OLintel::OLintel()
   {
     setShape( shape_ );
@@ -27,8 +27,8 @@ namespace eurobot2009
   }
 
 
-  const btScalar ODispenser::RADIUS = btScale(0.040);
-  const btScalar ODispenser::HEIGHT = btScale(0.150);
+  const btScalar ODispenser::RADIUS = 0.040_m;
+  const btScalar ODispenser::HEIGHT = 0.150_m;
   SmartPtr<btCylinderShapeZ> ODispenser::shape_(new btCylinderShapeZ(btVector3(RADIUS,RADIUS,HEIGHT/2)));
 
   ODispenser::ODispenser()
@@ -84,9 +84,9 @@ namespace eurobot2009
 
 
   SmartPtr<btCompoundShape> OLintelStorage::shape_;
-  btBoxShape OLintelStorage::arm_shape_( btVector3(WALL_HALF_WIDTH,btScale(0.035),WALL_HALF_WIDTH) );
-  btBoxShape OLintelStorage::back_shape_( btVector3(btScale(0.100),WALL_HALF_WIDTH,btScale(0.030)) );
-  btBoxShape OLintelStorage::bottom_shape_( btVector3(btScale(0.100),WALL_HALF_WIDTH,btScale(0.035)) );
+  btBoxShape OLintelStorage::arm_shape_( btVector3(WALL_HALF_WIDTH,0.035_m,WALL_HALF_WIDTH) );
+  btBoxShape OLintelStorage::back_shape_( btVector3(0.100_m,WALL_HALF_WIDTH,0.030_m) );
+  btBoxShape OLintelStorage::bottom_shape_( btVector3(0.100_m,WALL_HALF_WIDTH,0.035_m) );
 
   OLintelStorage::OLintelStorage()
   {
@@ -96,16 +96,16 @@ namespace eurobot2009
       shape_ = new btCompoundShape();
       btTransform tr = btTransform::getIdentity();
       // Bottom
-      tr.setOrigin( btVector3(0, 3*WALL_HALF_WIDTH-btScale(0.035), WALL_HALF_WIDTH-btScale(0.035)) );
+      tr.setOrigin( btVector3(0, 3*WALL_HALF_WIDTH-0.035_m, WALL_HALF_WIDTH-0.035_m) );
       shape_->addChildShape(tr, &bottom_shape_);
       // Back
-      tr.setOrigin( btVector3(0, btScale(0.035)+WALL_HALF_WIDTH, btScale(0.030)-WALL_HALF_WIDTH) );
+      tr.setOrigin( btVector3(0, 0.035_m+WALL_HALF_WIDTH, 0.030_m-WALL_HALF_WIDTH) );
       shape_->addChildShape(tr, &back_shape_);
       // Left arm
-      tr.setOrigin( btVector3(btScale(0.100)-WALL_HALF_WIDTH, 0, 0) );
+      tr.setOrigin( btVector3(0.100_m-WALL_HALF_WIDTH, 0, 0) );
       shape_->addChildShape(tr, &arm_shape_);
       // Right arm
-      tr.setOrigin( btVector3( -(btScale(0.100)-WALL_HALF_WIDTH), 0, 0) );
+      tr.setOrigin( btVector3( -(0.100_m-WALL_HALF_WIDTH), 0, 0) );
       shape_->addChildShape(tr, &arm_shape_);
     }
 
@@ -118,29 +118,29 @@ namespace eurobot2009
     btScalar x, y;
     switch( side )
     {
-      case 0: x = d; y =  TABLE_HALF_Y+btScale(0.035); break;
-      case 1: y = d; x =  TABLE_HALF_X+btScale(0.035); break;
-      case 2: x = d; y = -TABLE_HALF_Y-btScale(0.035); break;
-      case 3: y = d; x = -TABLE_HALF_X-btScale(0.035); break;
+      case 0: x = d; y =  TABLE_HALF_Y+0.035_m; break;
+      case 1: y = d; x =  TABLE_HALF_X+0.035_m; break;
+      case 2: x = d; y = -TABLE_HALF_Y-0.035_m; break;
+      case 3: y = d; x = -TABLE_HALF_X-0.035_m; break;
       default:
         throw(Error("invalid value for lintel storage side"));
     }
-    OSimple::setPos( btVector3(x, y, btScale(0.070)+WALL_HALF_WIDTH) );
+    OSimple::setPos( btVector3(x, y, 0.070_m+WALL_HALF_WIDTH) );
   }
 
   void OLintelStorage::fill(OLintel *o)
   {
     btVector3 pos = getPos();
-    pos[2] += btScale(0.015)+WALL_HALF_WIDTH+Physics::margin_epsilon;
+    pos[2] += 0.015_m+WALL_HALF_WIDTH+Physics::margin_epsilon;
     o->setPos(pos);
   }
 
 
 
-  const btScalar Galipeur2009::Pachev::WIDTH  = btScale(0.080);
-  const btScalar Galipeur2009::Pachev::HEIGHT = btScale(0.140);
-  const btScalar Galipeur2009::Pachev::Z_MAX  = btScale(0.080);
-  btScalar Galipeur2009::pachev_eject_speed = btScale(0.001);
+  const btScalar Galipeur2009::Pachev::WIDTH  = 0.080_m;
+  const btScalar Galipeur2009::Pachev::HEIGHT = 0.140_m;
+  const btScalar Galipeur2009::Pachev::Z_MAX  = 0.080_m;
+  btScalar Galipeur2009::pachev_eject_speed = 0.001_m;
 
 
   btBoxShape Galipeur2009::Pachev::shape_( 0.5*btVector3(WIDTH,WIDTH,HEIGHT) );
@@ -156,7 +156,7 @@ namespace eurobot2009
     tr_a.getBasis().setEulerZYX(0, -M_PI_2, 0);
     tr_b.getBasis().setEulerZYX(0, -M_PI_2, 0);
     tr_a.setOrigin( btVector3(-D_SIDE, 0, -HEIGHT/2) );
-    tr_b.setOrigin( btVector3(btScale(0.04), 0, -Pachev::HEIGHT/2) );
+    tr_b.setOrigin( btVector3(0.04_m, 0, -Pachev::HEIGHT/2) );
     pachev_link_ = new btSliderConstraint(*body_, *pachev_, tr_a, tr_b, true);
     pachev_link_->setLowerAngLimit(0);
     pachev_link_->setUpperAngLimit(0);
@@ -164,7 +164,7 @@ namespace eurobot2009
     pachev_link_->setPoweredLinMotor(true);
     pachev_link_->setTargetLinMotorVelocity(0);
     // always move at full speed: do not limit acceleration
-    pachev_link_->setMaxLinMotorForce(btScale(100.0));
+    pachev_link_->setMaxLinMotorForce(100.0_m);
     pachev_link_->setLowerLinLimit(0);
     pachev_link_->setUpperLinLimit(0);
 

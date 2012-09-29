@@ -6,8 +6,8 @@
 namespace eurobot2012
 {
 
-const btVector2 OGround2012::SIZE = btScale(btVector2(3.0, 2.1));
-const btScalar OGround2012::START_SIZE = btScale(0.500);
+const btVector2 OGround2012::SIZE = btVector2(3.0_m, 2.1_m);
+const btScalar OGround2012::START_SIZE = 0.500_m;
 
 OGround2012::OGround2012():
     OGround(SIZE,
@@ -44,11 +44,11 @@ void OGround2012::draw(Display *d) const
     // black lines
     glColor4fv(color_black);
     {
-      const btScalar x0 = size_.x()/2 - btScale(0.5+0.15);
-      const btScalar y0 = size_.y()/2 - btScale(0.5-0.05);
-      const btScalar x1 = size_.x()/2 - btScale(0.5);
+      const btScalar x0 = size_.x()/2 - (0.5_m+0.15_m);
+      const btScalar y0 = size_.y()/2 - (0.5_m-0.05_m);
+      const btScalar x1 = size_.x()/2 - 0.5_m;
       const btScalar y1 = -size_.y()/2;
-      const btScalar width = btScale(0.02);
+      const btScalar width = 0.02_m;
       btglRect(x0, y0, x0+width, y1);
       btglRect(x0, y0, x1, y0-width);
       btglRect(-x0, y0, -x0-width, y1);
@@ -61,9 +61,9 @@ void OGround2012::draw(Display *d) const
     {
       const btScalar x0 = size_.x()/2;
       const btScalar y0 = -size_.y()/2;
-      const btScalar x1 = x0-btScale(0.325);
-      const btScalar x2 = x0-btScale(0.4);
-      const btScalar y1 = size_.y()/2-btScale(0.5+0.018);
+      const btScalar x1 = x0-0.325_m;
+      const btScalar x2 = x0-0.4_m;
+      const btScalar y1 = size_.y()/2-0.5_m-0.018_m;
       btglVertex3(x0, y0, 0);
       btglVertex3(x1, y0, 0);
       btglVertex3(x2, y1, 0);
@@ -78,29 +78,29 @@ void OGround2012::draw(Display *d) const
     // peanut island: draw sand first, then water and jungle above it
     // sand: two disks and two arcs to fill the middle part
     glColor4fv(color_sand);
-    btglTranslate(-btScale(0.8/2), 0, 0);
-    gluDisk(quadric, 0, btScale(0.3), 2*Display::draw_div, 2*Display::draw_div);
-    btglTranslate(2*btScale(0.8/2), 0, 0);
-    gluDisk(quadric, 0, btScale(0.3), 2*Display::draw_div, 2*Display::draw_div);
+    btglTranslate(-0.8_m/2, 0, 0);
+    gluDisk(quadric, 0, 0.3_m, 2*Display::draw_div, 2*Display::draw_div);
+    btglTranslate(2*0.8_m/2, 0, 0);
+    gluDisk(quadric, 0, 0.3_m, 2*Display::draw_div, 2*Display::draw_div);
     //TODO Y offset for the inner curve is not known
-    const btScalar curve_y = btScale(0.745);
-    btglTranslate(-btScale(0.8/2), -curve_y, 0);
-    gluPartialDisk(quadric, btScale(0.55), btScale(0.9), Display::draw_div, Display::draw_div, -30, 60);
+    const btScalar curve_y = 0.745_m;
+    btglTranslate(-0.8_m/2, -curve_y, 0);
+    gluPartialDisk(quadric, 0.55_m, 0.9_m, Display::draw_div, Display::draw_div, -30, 60);
     btglTranslate(0, 2*curve_y, 0);
-    gluPartialDisk(quadric, btScale(0.55), btScale(0.9), Display::draw_div, Display::draw_div, 150, 60);
+    gluPartialDisk(quadric, 0.55_m, 0.9_m, Display::draw_div, Display::draw_div, 150, 60);
     // jungle
     glColor4fv(color_jungle);
-    btglTranslate(-btScale(0.8/2), -curve_y, Display::draw_epsilon);
-    gluDisk(quadric, 0, btScale(0.2), 2*Display::draw_div, 2*Display::draw_div);
-    btglTranslate(2*btScale(0.8/2), 0, 0);
-    gluDisk(quadric, 0, btScale(0.2), 2*Display::draw_div, 2*Display::draw_div);
+    btglTranslate(-0.8_m/2, -curve_y, Display::draw_epsilon);
+    gluDisk(quadric, 0, 0.2_m, 2*Display::draw_div, 2*Display::draw_div);
+    btglTranslate(2*0.8_m/2, 0, 0);
+    gluDisk(quadric, 0, 0.2_m, 2*Display::draw_div, 2*Display::draw_div);
 
     // map island
-    btglTranslate(-btScale(0.8/2), size_.y()/2, -Display::draw_epsilon); // also restore Z offset
+    btglTranslate(-0.8_m/2, size_.y()/2, -Display::draw_epsilon); // also restore Z offset
     glColor4fv(color_jungle);
-    gluPartialDisk(quadric, 0, btScale(0.6/2), Display::draw_div, Display::draw_div, 90, 180);
+    gluPartialDisk(quadric, 0, 0.6_m/2, Display::draw_div, Display::draw_div, 90, 180);
     glColor4fv(color_sand);
-    gluPartialDisk(quadric, btScale(0.6/2), btScale(0.8/2), Display::draw_div, Display::draw_div, 90, 180);
+    gluPartialDisk(quadric, 0.6_m/2, 0.8_m/2, Display::draw_div, Display::draw_div, 90, 180);
 
     gluDeleteQuadric(quadric);
 
@@ -111,7 +111,7 @@ void OGround2012::draw(Display *d) const
 }
 
 
-const btVector3 OBullion::SIZE = btScale(btVector3(0.150, 0.070, 0.0485));
+const btVector3 OBullion::SIZE = btVector3(0.150_m, 0.070_m, 0.0485_m);
 const btScalar OBullion::MASS = 0.100;
 const btScalar OBullion::A_SLOPE = 75*M_PI/180;
 SmartPtr<btConvexHullShape> OBullion::shape_(new btConvexHullShape());
@@ -200,11 +200,11 @@ void OBullion::draw(Display *d) const
 }
 
 
-const btScalar OCoin::DISC_HEIGHT = btScale(0.002);
-const btScalar OCoin::RADIUS = btScale(0.120/2);
-const btScalar OCoin::INNER_RADIUS = btScale(0.015/2);
-const btScalar OCoin::CUBE_SIZE = btScale(0.018);
-const btScalar OCoin::CUBE_OFFSET = btScale(0.0315);
+const btScalar OCoin::DISC_HEIGHT = 0.002_m;
+const btScalar OCoin::RADIUS = 0.120_m/2;
+const btScalar OCoin::INNER_RADIUS = 0.015_m/2;
+const btScalar OCoin::CUBE_SIZE = 0.018_m;
+const btScalar OCoin::CUBE_OFFSET = 0.0315_m;
 const btScalar OCoin::MASS = 0.030;
 SmartPtr<btCompoundShape> OCoin::shape_;
 btCylinderShapeZ OCoin::shape_disc_(btVector3(RADIUS, RADIUS, DISC_HEIGHT/2));

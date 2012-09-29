@@ -47,6 +47,10 @@
  */
 #define BULLET_SCALE   0.1
 
+/// Literal for values in user unit (m is for meter)
+constexpr inline long double operator "" _m(long double v) { return v / BULLET_SCALE; }
+/// Literal for values in user unit, float alternative
+constexpr inline float operator "" _mf(long double v) { return v / BULLET_SCALE; }
 
 /// Scale from user units to Bullet units
 template<typename T> T btScale(const T &t) { return t / BULLET_SCALE; }

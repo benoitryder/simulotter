@@ -4,10 +4,10 @@
 #include "log.h"
 
 
-btScalar Physics::world_gravity = btScale(9.80665);
-btScalar Physics::margin_epsilon = btScale(0.001);
-btVector3 Physics::world_aabb_min = btScale(btVector3(-10,-5,-2));
-btVector3 Physics::world_aabb_max = btScale(btVector3(10,5,2));
+btScalar Physics::world_gravity = 9.80665_m;
+btScalar Physics::margin_epsilon = 0.001_m;
+btVector3 Physics::world_aabb_min = btVector3(-10.0_m,-5.0_m,-2.0_m);
+btVector3 Physics::world_aabb_max = btVector3(10.0_m,5.0_m,2.0_m);
 unsigned int Physics::world_objects_max = 300;
 
 

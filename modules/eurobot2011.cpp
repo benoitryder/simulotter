@@ -6,9 +6,9 @@
 namespace eurobot2011
 {
 
-const btVector2 OGround2011::SIZE = btScale(btVector2(3.0, 2.1));
-const btScalar OGround2011::SQUARE_SIZE = btScale(0.350);
-const btScalar OGround2011::START_SIZE = btScale(0.400);
+const btVector2 OGround2011::SIZE = btVector2(3.0_m, 2.1_m);
+const btScalar OGround2011::SQUARE_SIZE = 0.350_m;
+const btScalar OGround2011::START_SIZE = 0.400_m;
 
 OGround2011::OGround2011():
     OGround(SIZE,
@@ -73,19 +73,19 @@ void OGround2011::draw(Display *d) const
     glColor4fv(Color4(0x14,0x17,0x1c)); // RAL 9017
     for( i=0;; ) { // two steps (x>0 then x<0)
       // vertical side lines
-      btglRect(3*SQUARE_SIZE, size_[1]/2, 3*SQUARE_SIZE+btScale(0.05), -size_[1]/2);
+      btglRect(3*SQUARE_SIZE, size_[1]/2, 3*SQUARE_SIZE+0.05_m, -size_[1]/2);
       // secured zone, top
-      btglRect(3*SQUARE_SIZE, -2*SQUARE_SIZE, 1*SQUARE_SIZE, -2*SQUARE_SIZE-btScale(0.02));
+      btglRect(3*SQUARE_SIZE, -2*SQUARE_SIZE, 1*SQUARE_SIZE, -2*SQUARE_SIZE-0.02_m);
       // secured zone, right
-      btglRect(1*SQUARE_SIZE, -2*SQUARE_SIZE, 1*SQUARE_SIZE+btScale(0.02), -3*SQUARE_SIZE);
+      btglRect(1*SQUARE_SIZE, -2*SQUARE_SIZE, 1*SQUARE_SIZE+0.02_m, -3*SQUARE_SIZE);
       // bonus positions (from bottom to top)
       glPushMatrix();
       btglTranslate(0.5*SQUARE_SIZE, -2.5*SQUARE_SIZE, 0);
-      gluDisk(quadric, 0, btScale(0.1/2), Display::draw_div, Display::draw_div);
+      gluDisk(quadric, 0, 0.1_m/2, Display::draw_div, Display::draw_div);
       btglTranslate(1*SQUARE_SIZE, 2*SQUARE_SIZE, 0);
-      gluDisk(quadric, 0, btScale(0.1/2), Display::draw_div, Display::draw_div);
+      gluDisk(quadric, 0, 0.1_m/2, Display::draw_div, Display::draw_div);
       btglTranslate(0, 2*SQUARE_SIZE, 0);
-      gluDisk(quadric, 0, btScale(0.1/2), Display::draw_div, Display::draw_div);
+      gluDisk(quadric, 0, 0.1_m/2, Display::draw_div, Display::draw_div);
       glPopMatrix();
 
       if( i == 1 ) {
@@ -107,7 +107,7 @@ void OGround2011::draw(Display *d) const
 }
 
 
-const btScalar Magnet::RADIUS = btScale(0.02); //note: must be < MagnetPawn::HEIGHT/2
+const btScalar Magnet::RADIUS = 0.02_m; //note: must be < MagnetPawn::HEIGHT/2
 btSphereShape Magnet::shape_(RADIUS);
 // User defined constraint type for magnet joints.
 #define EUROBOT2011_MAGNET_CONSTRAINT_TYPE  (0x20110001)
@@ -193,8 +193,8 @@ bool Magnet::checkCollideWithOverride(btCollisionObject *co)
 }
 
 
-const btScalar MagnetPawn::RADIUS = btScale(0.1);
-const btScalar MagnetPawn::HEIGHT = btScale(0.05);
+const btScalar MagnetPawn::RADIUS = 0.1_m;
+const btScalar MagnetPawn::HEIGHT = 0.05_m;
 
 MagnetPawn::MagnetPawn(btCollisionShape *sh, btScalar mass):
     OSimple(sh, mass)
@@ -243,7 +243,7 @@ void MagnetPawn::setTrans(const btTransform &tr)
 Galipeur2011::Galipeur2011(btScalar m): Galipeur(m)
 {
   // not a static const to avoid issues of init order of globals
-  const btVector3 arm_pos( D_SIDE-btScale(0.03), 0, MagnetPawn::HEIGHT*2-Z_MASS );
+  const btVector3 arm_pos( D_SIDE-0.03_m, 0, MagnetPawn::HEIGHT*2-Z_MASS );
   const btVector3 up(0,0,1);
   const btScalar angles[GALIPEUR2011_ARM_NB] = { -M_PI/3, +M_PI/3 };
   unsigned int i;
@@ -308,8 +308,8 @@ void Galipeur2011::asserv()
 }
 
 
-const btScalar Galipeur2011::PawnArm::RADIUS = btScale(0.02);
-const btScalar Galipeur2011::PawnArm::LENGTH = btScale(0.14);
+const btScalar Galipeur2011::PawnArm::RADIUS = 0.02_m;
+const btScalar Galipeur2011::PawnArm::LENGTH = 0.14_m;
 const btScalar Galipeur2011::PawnArm::MASS = 0.1;
 const btScalar Galipeur2011::PawnArm::ANGLE_MIN = M_PI*0.1;
 const btScalar Galipeur2011::PawnArm::ANGLE_MAX = M_PI_2+M_PI*0.07;

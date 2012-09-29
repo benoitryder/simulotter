@@ -5,15 +5,15 @@
 #include "log.h"
 
 
-const btScalar Galipeur::Z_MASS = btScale(0.08);
-const btScalar Galipeur::GROUND_CLEARANCE = btScale(0.009);
+const btScalar Galipeur::Z_MASS = 0.08_m;
+const btScalar Galipeur::GROUND_CLEARANCE = 0.009_m;
 const btScalar Galipeur::ANGLE_OFFSET = -M_PI/2;
 
-const btScalar Galipeur::HEIGHT  = btScale(0.300);
-const btScalar Galipeur::SIDE    = btScale(0.110);
-const btScalar Galipeur::W_BLOCK = btScale(0.030);
-const btScalar Galipeur::R_WHEEL = btScale(0.0246);
-const btScalar Galipeur::H_WHEEL = btScale(0.0127);
+const btScalar Galipeur::HEIGHT  = 0.300_m;
+const btScalar Galipeur::SIDE    = 0.110_m;
+const btScalar Galipeur::W_BLOCK = 0.030_m;
+const btScalar Galipeur::R_WHEEL = 0.0246_m;
+const btScalar Galipeur::H_WHEEL = 0.0127_m;
 
 const btScalar Galipeur::D_SIDE  = ( SIDE + 2*W_BLOCK ) / btSqrt(3);
 const btScalar Galipeur::D_WHEEL = ( W_BLOCK + 2*SIDE ) / btSqrt(3);

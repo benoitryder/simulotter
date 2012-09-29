@@ -11,7 +11,7 @@
 #include "icon.h"
 
 
-btScalar Display::draw_epsilon = btScale(0.0005);
+btScalar Display::draw_epsilon = 0.0005_m;
 unsigned int Display::draw_div = 20;
 unsigned int Display::antialias = 0;
 
@@ -20,7 +20,7 @@ Display::Display():
     time_scale(1.0), fps(60.0),
     paused(false),
     bg_color(Color4(0.8)),
-    camera_step_linear(btScale(0.1)),
+    camera_step_linear(0.1_m),
     camera_mouse_coef(0.01),
     screen_x_(800), screen_y_(600),
     fullscreen_(false),
@@ -159,7 +159,7 @@ void Display::close()
 
 Display::Camera::Camera():
     trans(btTransform::getIdentity()),
-    fov(45.0), z_near(btScale(0.1)), z_far(btScale(300.0))
+    fov(45.0), z_near(0.1_m), z_far(300.0_m)
 {
 }
 
@@ -408,7 +408,7 @@ void Display::sceneInit()
   glShadeModel(GL_SMOOTH);
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
-  const GLfloat light_pos[4] = {0,btScale(.3f),btScale(.8f),0};
+  const GLfloat light_pos[4] = {0, 0.3_mf, 0.8_mf, 0};
   glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
   glEnable(GL_DEPTH_TEST); 
@@ -586,10 +586,10 @@ void Display::handlerCamDown(Display *d, const SDL_Event *)
 
 void Display::handlerCamReset(Display *d, const SDL_Event *)
 {
-  d->camera.trans = btScale(btTransform(
+  d->camera.trans = btTransform(
       btQuaternion(0, -M_PI/6, 0),
-      btVector3(0, -2, 3)
-      ));
+      btVector3(0.0_m, -2.0_m, 3.0_m)
+      );
 }
 
 

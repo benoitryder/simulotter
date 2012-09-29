@@ -80,8 +80,8 @@ void RBasic::drawDirection(Display *) const
   glutSolidCone(DIRECTION_CONE_R, DIRECTION_CONE_H, Display::draw_div, Display::draw_div);
 }
 
-const float RBasic::DIRECTION_CONE_R = btScale(0.05);
-const float RBasic::DIRECTION_CONE_H = btScale(0.10);
+const float RBasic::DIRECTION_CONE_R = 0.05_m;
+const float RBasic::DIRECTION_CONE_H = 0.10_m;
 
 
 void RBasic::asserv()

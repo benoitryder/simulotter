@@ -6,15 +6,15 @@
 
 namespace eurobot2010
 {
-  const btScalar ORaisedZone::WIDTH = btScale(0.500);
-  const btScalar ORaisedZone::HEIGHT = btScale(0.140);
-  const btScalar ORaisedZone::BOTTOM_LENGTH = btScale(2*0.480+0.500);
-  const btScalar ORaisedZone::TOP_LENGTH = btScale(0.500);
-  const btScalar ORaisedZone::STRIP_LENGTH = btScale(0.100);
-  const btScalar ORaisedZone::WALL_WIDTH = btScale(0.022);
-  const btScalar ORaisedZone::WALL_HEIGHT = btScale(0.070);
-  const btScalar ORaisedZone::WALL_BOTTOM_LENGTH = btScale(2*0.500+0.520);
-  const btScalar ORaisedZone::WALL_TOP_LENGTH = btScale(0.520);
+  const btScalar ORaisedZone::WIDTH = 0.500_m;
+  const btScalar ORaisedZone::HEIGHT = 0.140_m;
+  const btScalar ORaisedZone::BOTTOM_LENGTH = 2*0.480_m+0.500_m;
+  const btScalar ORaisedZone::TOP_LENGTH = 0.500_m;
+  const btScalar ORaisedZone::STRIP_LENGTH = 0.100_m;
+  const btScalar ORaisedZone::WALL_WIDTH = 0.022_m;
+  const btScalar ORaisedZone::WALL_HEIGHT = 0.070_m;
+  const btScalar ORaisedZone::WALL_BOTTOM_LENGTH = 2*0.500_m+0.520_m;
+  const btScalar ORaisedZone::WALL_TOP_LENGTH = 0.520_m;
   SmartPtr<btCompoundShape> ORaisedZone::shape_;
   btConvexHullShape ORaisedZone::body_shape_;
   btConvexHullShape ORaisedZone::wall_shape_;
@@ -171,8 +171,8 @@ namespace eurobot2010
   }
 
 
-  SmartPtr<btCylinderShapeZ> OCorn::shape_(new btCylinderShapeZ(btScale(btVector3(0.025,0.025,0.075))));
-  const btScalar OCorn::PIVOT_RADIUS = btScale(0.005);
+  SmartPtr<btCylinderShapeZ> OCorn::shape_(new btCylinderShapeZ(btVector3(0.025_m,0.025_m,0.075_m)));
+  const btScalar OCorn::PIVOT_RADIUS = 0.005_m;
   const btScalar OCorn::PIVOT_MASS = 50;
   SmartPtr<btCollisionShape> OCorn::pivot_shape_(new btSphereShape(PIVOT_RADIUS));
 
@@ -251,7 +251,7 @@ namespace eurobot2010
   }
 
 
-  SmartPtr<btCylinderShapeZ> OCornFake::shape_(new btCylinderShapeZ(btScale(btVector3(0.025,0.025,0.075))));
+  SmartPtr<btCylinderShapeZ> OCornFake::shape_(new btCylinderShapeZ(btVector3(0.025_m,0.025_m,0.075_m)));
 
   OCornFake::OCornFake()
   {
@@ -261,7 +261,7 @@ namespace eurobot2010
   }
 
 
-  SmartPtr<btSphereShape> OTomato::shape_(new btSphereShape(btScale(0.050)));
+  SmartPtr<btSphereShape> OTomato::shape_(new btSphereShape(0.050_m));
 
   OTomato::OTomato()
   {
@@ -271,7 +271,7 @@ namespace eurobot2010
   }
 
 
-  SmartPtr<btSphereShape> OOrange::shape_(new btSphereShape(btScale(0.050)));
+  SmartPtr<btSphereShape> OOrange::shape_(new btSphereShape(0.050_m));
 
   OOrange::OOrange()
   {
