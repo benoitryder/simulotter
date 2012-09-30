@@ -64,9 +64,8 @@ void Display::resize(int width, int height, int mode)
   // Delete display lists.
   // On Windows setting the video mode resets the current OpenGL context.
   // We always reset display lists, it's safer.
-  DisplayListContainer::const_iterator it;
-  for(it=display_lists_.begin(); it!=display_lists_.end(); ++it) {
-    glDeleteLists((*it).second, 1);
+  for(auto& it : display_lists_) {
+    glDeleteLists(it.second, 1);
   }
   display_lists_.clear();
 
@@ -122,12 +121,11 @@ void Display::update()
 
   // Draw objects
   const std::set<SmartPtr<Object>>& objs = physics_->getObjs();
-  std::set<SmartPtr<Object>>::const_iterator it_obj;
-  for(it_obj = objs.begin(); it_obj != objs.end(); ++it_obj) {
-    (*it_obj)->draw(this);
+  for(auto& obj : objs) {
+    obj->draw(this);
   }
-  for(it_obj = objs.begin(); it_obj != objs.end(); ++it_obj) {
-    (*it_obj)->drawLast(this);
+  for(auto& obj : objs) {
+    obj->drawLast(this);
   }
 
   glMatrixMode(GL_PROJECTION);
@@ -138,12 +136,8 @@ void Display::update()
   glLoadIdentity();
   // OSD
   glDisable(GL_LIGHTING);
-  std::set<SmartPtr<OSDMessage>>::iterator it_osd;
-  for(it_osd = osds_.begin(); it_osd != osds_.end(); ++it_osd) {
-    drawString( (*it_osd)->getText(),
-        (*it_osd)->getX(), (*it_osd)->getY(),
-        (*it_osd)->getColor(), GLUT_BITMAP_8_BY_13
-        );
+  for(auto& osd : osds_) {
+    drawString(osd->getText(), osd->getX(), osd->getY(), osd->getColor(), GLUT_BITMAP_8_BY_13);
   }
   glEnable(GL_LIGHTING);
 

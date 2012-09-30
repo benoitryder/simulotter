@@ -73,9 +73,8 @@ void Physics::scheduleTask(TaskPhysics* task, btScalar time)
 
 void Physics::transform(const btTransform& tr)
 {
-  std::set<SmartPtr<Object>>::iterator it_obj;
-  for(it_obj = objs_.begin(); it_obj != objs_.end(); ++it_obj) {
-    (*it_obj)->setTrans( tr * (*it_obj)->getTrans() );
+  for(auto obj : objs_) {
+    obj->setTrans(tr * obj->getTrans());
   }
 }
 
@@ -83,9 +82,8 @@ void Physics::worldTickCallback(btDynamicsWorld* world, btScalar /*step*/)
 {
   Physics* physics = (Physics*)world->getWorldUserInfo();
 
-  std::set<SmartPtr<Object>>::const_iterator it_obj;
-  for(it_obj = physics->tick_objs_.begin(); it_obj != physics->tick_objs_.end(); ++it_obj) {
-    (*it_obj)->tickCallback();
+  for(auto obj : physics->tick_objs_) {
+    obj->tickCallback();
   }
 }
 
@@ -134,9 +132,8 @@ void CompoundShapeSmart::updateChildReferences()
 
 void CompoundShapeSmart::clearChildReferences()
 {
-  std::vector<btCollisionShape*>::iterator it;
-  for(it=ref_children_.begin(); it!=ref_children_.end(); ++it) {
-    SmartPtr_release( (*it) );
+  for(btCollisionShape* shape : ref_children_) {
+    SmartPtr_release(shape);
   }
   ref_children_.clear();
 }
