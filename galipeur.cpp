@@ -9,17 +9,17 @@ const btScalar Galipeur::Z_MASS = 0.08_m;
 const btScalar Galipeur::GROUND_CLEARANCE = 0.009_m;
 const btScalar Galipeur::ANGLE_OFFSET = -M_PI/2;
 
-const btScalar Galipeur::HEIGHT  = 0.300_m;
-const btScalar Galipeur::SIDE    = 0.110_m;
+const btScalar Galipeur::HEIGHT = 0.300_m;
+const btScalar Galipeur::SIDE = 0.110_m;
 const btScalar Galipeur::W_BLOCK = 0.030_m;
 const btScalar Galipeur::R_WHEEL = 0.0246_m;
 const btScalar Galipeur::H_WHEEL = 0.0127_m;
 
-const btScalar Galipeur::D_SIDE  = ( SIDE + 2*W_BLOCK ) / btSqrt(3);
-const btScalar Galipeur::D_WHEEL = ( W_BLOCK + 2*SIDE ) / btSqrt(3);
-const btScalar Galipeur::A_SIDE  = 2*btAtan2( SIDE,    D_SIDE  );
-const btScalar Galipeur::A_WHEEL = 2*btAtan2( W_BLOCK, D_WHEEL );
-const btScalar Galipeur::RADIUS  = btSqrt(SIDE*SIDE+D_SIDE*D_SIDE);
+const btScalar Galipeur::D_SIDE = (SIDE + 2*W_BLOCK) / btSqrt(3);
+const btScalar Galipeur::D_WHEEL = (W_BLOCK + 2*SIDE) / btSqrt(3);
+const btScalar Galipeur::A_SIDE = 2*btAtan2(SIDE, D_SIDE);
+const btScalar Galipeur::A_WHEEL = 2*btAtan2(W_BLOCK, D_WHEEL);
+const btScalar Galipeur::RADIUS = btSqrt(SIDE*SIDE+D_SIDE*D_SIDE);
 
 SmartPtr<btCompoundShape> Galipeur::shape_;
 btConvexHullShape Galipeur::body_shape_;
@@ -33,16 +33,13 @@ Galipeur::Galipeur(btScalar m):
     target_a_(0), ramp_last_t_(0), threshold_a_(0)
 {
   // First instance: initialize shape
-  if( shape_ == NULL )
-  {
+  if(!shape_) {
     const btVector3 up(0,0,1);
     shape_ = new btCompoundShape();
     // Triangular body
-    if( body_shape_.getNumPoints() == 0 )
-    {
+    if(body_shape_.getNumPoints() == 0) {
       btVector2 p = btVector2(RADIUS,0).rotated(-A_WHEEL/2);
-      for( int i=0; i<3; i++ )
-      {
+      for(int i=0; i<3; i++) {
         body_shape_.addPoint( btVector3(p.x(),p.y(),+HEIGHT/2) );
         body_shape_.addPoint( btVector3(p.x(),p.y(),-HEIGHT/2) );
         p.rotate(A_WHEEL);
@@ -88,7 +85,7 @@ Galipeur::~Galipeur()
 {
 }
 
-void Galipeur::addToWorld(Physics *physics)
+void Galipeur::addToWorld(Physics* physics)
 {
   physics->getWorld()->addRigidBody(body_);
   Robot::addToWorld(physics);
@@ -98,12 +95,12 @@ void Galipeur::addToWorld(Physics *physics)
 
 void Galipeur::removeFromWorld()
 {
-  Physics *ph_bak = physics_;
+  Physics*ph_bak = physics_;
   Robot::removeFromWorld();
   ph_bak->getWorld()->removeRigidBody(body_);
 }
 
-void Galipeur::draw(Display *d) const
+void Galipeur::draw(Display* d) const
 {
   glColor4fv(color_);
 
@@ -111,7 +108,7 @@ void Galipeur::draw(Display *d) const
   drawTransform(body_->getCenterOfMassTransform());
   btglRotate(-ANGLE_OFFSET*180.0f/M_PI, 0.0f, 0.0f, 1.0f);
 
-  if( d->callOrCreateDisplayList(this) ) {
+  if(d->callOrCreateDisplayList(this)) {
     glPushMatrix();
 
     btglTranslate(0, 0, -Z_MASS);
@@ -130,8 +127,7 @@ void Galipeur::draw(Display *d) const
 
     v = btVector2(1,0).rotated(-A_WHEEL/2);
     btVector2 n(1,0); // normal vector
-    for( int i=0; i<3; i++ )
-    {
+    for(int i=0; i<3; i++) {
       // wheel side
       btglNormal3(n.x(), n.y(), 0.0);
       n.rotate(M_PI/3);
@@ -159,8 +155,7 @@ void Galipeur::draw(Display *d) const
     glBegin(GL_POLYGON);
     btglNormal3(0.0, 0.0, -1.0);
     v = btVector2(1,0).rotated(-A_WHEEL/2);
-    for( int i=0; i<3; i++ )
-    {
+    for(int i=0; i<3; i++) {
       btglVertex3(v.x(), v.y(), 0.0);
       v.rotate(A_WHEEL);
       btglVertex3(v.x(), v.y(), 0.0);
@@ -172,8 +167,7 @@ void Galipeur::draw(Display *d) const
     glBegin(GL_POLYGON);
     btglNormal3(0.0, 0.0, 1.0);
     v = btVector2(1,0).rotated(-A_WHEEL/2);
-    for( int i=0; i<3; i++ )
-    {
+    for(int i=0; i<3; i++) {
       btglVertex3(v.x(), v.y(), 1.0);
       v.rotate(A_WHEEL);
       btglVertex3(v.x(), v.y(), 1.0);
@@ -216,46 +210,47 @@ void Galipeur::draw(Display *d) const
 }
 
 
-void Galipeur::setPosAbove(const btVector2 &pos)
+void Galipeur::setPosAbove(const btVector2& pos)
 {
-  setPos( btVector3(pos.x(), pos.y(), Z_MASS + Physics::margin_epsilon) );
+  setPos(btVector3(pos.x(), pos.y(), Z_MASS + Physics::margin_epsilon));
 }
 
 
 void Galipeur::asserv()
 {
-  if( physics_ == NULL )
+  if(!physics_) {
     throw(Error("Galipeur is not in a world"));
+  }
 
   const btScalar tnow = physics_->getTime();
   const btScalar dt = tnow - ramp_last_t_;
-  if( dt == 0 ) {
+  if(dt == 0) {
     return; // ramp start, wait for the next step
   }
   ramp_last_t_ = dt;
 
   // position
-  if( ! order_xy_done() ) {
+  if(!order_xy_done()) {
     btVector2 dxy = (*ckpt_) - btVector2(getPos());
-    if( !lastCheckpoint() && dxy.length() < threshold_steering_ ) {
+    if(!lastCheckpoint() && dxy.length() < threshold_steering_) {
       ++ckpt_; // checkpoint change
       dxy = (*ckpt_) - btVector2(getPos());
     }
-    if( lastCheckpoint() ) {
-      ramp_xy_.var_dec = va_stop_;
-      ramp_xy_.var_v0 = v_stop_;
+    if(lastCheckpoint()) {
+      ramp_xy_.var_dec_ = va_stop_;
+      ramp_xy_.var_v0_ = v_stop_;
     } else {
-      ramp_xy_.var_dec = va_steering_;
-      ramp_xy_.var_v0 = v_steering_;
+      ramp_xy_.var_dec_ = va_steering_;
+      ramp_xy_.var_v0_ = v_steering_;
     }
-    set_v( dxy.normalized() * ramp_xy_.step(dt, dxy.length()) );
+    set_v(dxy.normalized() * ramp_xy_.step(dt, dxy.length()));
   }
 
   // angle
-  if( ! order_a_done() ) {
+  if(!order_a_done()) {
     const btScalar da = btNormalizeAngle( target_a_-getAngle() );
     const btScalar new_av = ramp_a_.step(dt, btFabs(da));
-    set_av( da > 0 ? new_av : -new_av );
+    set_av(da > 0 ? new_av : -new_av);
   }
 }
 
@@ -279,19 +274,22 @@ inline void Galipeur::set_av(btScalar v)
 void Galipeur::order_xy(btVector2 xy, bool rel)
 {
   CheckPoints v(1);
-  if( rel )
+  if(rel) {
     xy += btVector2(getPos());
+  }
   v[0] = xy;
   order_trajectory(v);
 }
 
 void Galipeur::order_a(btScalar a, bool rel)
 {
-  if( physics_ == NULL )
+  if(!physics_) {
     throw(Error("Galipeur is not in a world"));
+  }
 
-  if( rel )
+  if(rel) {
     a += getAngle();
+  }
   target_a_ = btNormalizeAngle(a);
 
   ramp_last_t_ = physics_->getTime();
@@ -299,9 +297,9 @@ void Galipeur::order_a(btScalar a, bool rel)
 
 void Galipeur::order_xya(btVector2 xy, btScalar a, bool rel)
 {
-  if( physics_ == NULL )
+  if(!physics_) {
     throw(Error("Galipeur is not in a world"));
-
+  }
   order_xy(xy, rel);
   order_a(a, rel);
 }
@@ -313,12 +311,14 @@ void Galipeur::order_stop()
 }
 
 
-void Galipeur::order_trajectory(const std::vector<btVector2> &pts)
+void Galipeur::order_trajectory(const std::vector<btVector2>& pts)
 {
-  if( physics_ == NULL )
+  if(!physics_) {
     throw(Error("Galipeur is not in a world"));
-  if( pts.empty() )
+  }
+  if(pts.empty()) {
     throw(Error("empty checkpoint list"));
+  }
   checkpoints_ = pts;
   ckpt_ = checkpoints_.begin();
 
@@ -328,14 +328,14 @@ void Galipeur::order_trajectory(const std::vector<btVector2> &pts)
 
 btScalar Galipeur::Quadramp::step(btScalar dt, btScalar d)
 {
-  btFullAssert( d >= 0 );
-  const btScalar d_dec = 0.5 * (cur_v_*cur_v_ - var_v0*var_v0) / var_dec;
-  if( d < d_dec ) {
+  btFullAssert(d >= 0);
+  const btScalar d_dec = 0.5 * (cur_v_*cur_v_ - var_v0_*var_v0_) / var_dec_;
+  if(d < d_dec) {
     // deceleration
-    cur_v_ = btMax(var_v0, cur_v_ - var_dec * dt);
-  } else if( cur_v_ < var_v ) {
+    cur_v_ = btMax(var_v0_, cur_v_ - var_dec_ * dt);
+  } else if(cur_v_ < var_v_) {
     // acceleration
-    cur_v_ = btMin(var_v, cur_v_ + var_dec * dt);
+    cur_v_ = btMin(var_v_, cur_v_ + var_dec_ * dt);
   } else {
     // stable, nothing to do
   }

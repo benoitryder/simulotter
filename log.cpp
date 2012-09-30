@@ -6,7 +6,7 @@
 
 
 
-std::string stringf(const char *fmt, ...)
+std::string stringf(const char* fmt, ...)
 {
   va_list ap;
   va_start(ap, fmt);
@@ -15,7 +15,7 @@ std::string stringf(const char *fmt, ...)
   return ret;
 }
 
-std::string vstringf(const char *fmt, va_list ap)
+std::string vstringf(const char* fmt, va_list ap)
 {
   va_list ap2;
   va_copy(ap2,ap);
@@ -27,15 +27,15 @@ std::string vstringf(const char *fmt, va_list ap)
 }
 
 
-void Logger::log(const char *fmt, ...)
+void Logger::log(const char* fmt, ...)
 {
   va_list ap;
   va_start(ap, fmt);
-  this->vlog(fmt, ap);
+  vlog(fmt, ap);
   va_end(ap);
 }
 
-void Logger::vlog(const char *fmt, va_list ap)
+void Logger::vlog(const char* fmt, va_list ap)
 {
   // build the message string
   va_list ap2;
@@ -49,7 +49,7 @@ void Logger::vlog(const char *fmt, va_list ap)
   fflush(stdout);
 }
 
-void Logger::glog(const char *fmt, ...)
+void Logger::glog(const char* fmt, ...)
 {
   va_list ap;
   va_start(ap, fmt);
@@ -61,7 +61,7 @@ Logger Logger::logger_;
 
 
 
-Error::Error(const char *fmt, ...): std::exception()
+Error::Error(const char* fmt, ...): std::exception()
 {
   va_list ap;
   va_start(ap, fmt);

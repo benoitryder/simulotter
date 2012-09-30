@@ -16,25 +16,25 @@
  */
 class Galipeur: public Robot
 {
-public:
+ public:
   Galipeur(btScalar m);
   virtual ~Galipeur();
 
-  virtual void addToWorld(Physics *physics);
+  virtual void addToWorld(Physics* physics);
   virtual void removeFromWorld();
 
   Color4 getColor() const { return color_; }
-  void setColor(const Color4 &color) { color_ = color; }
+  void setColor(const Color4& color) { color_ = color; }
 
   /** @brief Draw the robot
    *
    * Assumes that the robot is not rotated (robot's Z axis aligned with world's
    * Z axis).
    */
-  virtual void draw(Display *d) const;
+  virtual void draw(Display* d) const;
 
   virtual const btTransform getTrans() const { return body_->getCenterOfMassTransform(); }
-  virtual void setTrans(const btTransform &tr) { body_->setCenterOfMassTransform(tr); }
+  virtual void setTrans(const btTransform& tr) { body_->setCenterOfMassTransform(tr); }
 
   /** @brief Place above (not on or in) the ground
    *
@@ -43,7 +43,7 @@ public:
    * btVector3 (since it can be converted to). This would lead to tricky bugs
    * if one forgets to force using Galipeur::setPos().
    */
-  void setPosAbove(const btVector2 &pos);
+  void setPosAbove(const btVector2& pos);
 
   /** @brief Asserv step
    *
@@ -69,29 +69,29 @@ public:
   void order_xya(btVector2 xy, btScalar a, bool rel=false);
   void order_stop();
 
-  void order_trajectory(const CheckPoints &pts);
+  void order_trajectory(const CheckPoints& pts);
 
-  /// Return \e true if position target has been reached.
+  /// Return \e true if position target has been reached
   inline bool order_xy_done() const;
-  /// Return \e true if angle target has been reached.
+  /// Return \e true if angle target has been reached
   inline bool order_a_done() const;
   inline bool is_waiting() const { return order_xy_done() && order_a_done(); }
-  /// Return the current zero-based checkpoint index.
+  /// Return the current zero-based checkpoint index
   inline size_t current_checkpoint() const { return ckpt_ - checkpoints_.begin(); }
   //@}
 
-  /** @name Asserv configuration.
+  /** @name Asserv configuration
    */
   //@{
-  void set_speed_xy(btScalar v, btScalar a) { ramp_xy_.var_v = v; ramp_xy_.var_acc = a; }
-  void set_speed_a (btScalar v, btScalar a) { ramp_a_ .var_v = v; ramp_a_ .var_acc = ramp_a_ .var_dec = a; }
+  void set_speed_xy(btScalar v, btScalar a) { ramp_xy_.var_v_ = v; ramp_xy_.var_acc_ = a; }
+  void set_speed_a(btScalar v, btScalar a) { ramp_a_.var_v_ = v; ramp_a_.var_acc_ = ramp_a_.var_dec_ = a; }
   void set_speed_steering(btScalar v, btScalar a) { v_steering_ = v; va_steering_ = a; }
   void set_speed_stop(btScalar v, btScalar a) { v_stop_ = v; va_stop_ = a; }
   void set_threshold_stop(btScalar r, btScalar l) { threshold_stop_ = r; threshold_a_ = l; }
   void set_threshold_steering(btScalar t) { threshold_steering_ = t; }
   //@}
 
-  /** @brief Implementation of a quadramp filter.
+  /** @brief Implementation of a quadramp filter
    *
    * It is not an exact equivalent of the aversive module, it is only intended
    * to have the same behavior. Actually it offers more possibilities.
@@ -109,23 +109,23 @@ public:
    */
   class Quadramp
   {
-  public:
-    Quadramp(): var_v(0), var_v0(0), var_acc(0), var_dec(0), cur_v_(0) {}
-    /// Reset current values.
+   public:
+    Quadramp(): var_v_(0), var_v0_(0), var_acc_(0), var_dec_(0), cur_v_(0) {}
+    /// Reset current values
     void reset(btScalar v=0) { cur_v_ = v; }
-    /** @brief Feed the filter and return the new velocity.
+    /** @brief Feed the filter and return the new velocity
      *
      * @param dt  elapsed time since the last step
      * @param d   actual distance to target
      */
     btScalar step(btScalar dt, btScalar d);
 
-  public:
-    btScalar var_v;    ///< maximum speed (cruise speed)
-    btScalar var_v0;   ///< maximum speed when reaching target
-    btScalar var_acc;  ///< maximum acceleration
-    btScalar var_dec;  ///< maximum deceleration
-  private:
+   public:
+    btScalar var_v_;  ///< maximum speed (cruise speed)
+    btScalar var_v0_;  ///< maximum speed when reaching target
+    btScalar var_acc_;  ///< maximum acceleration
+    btScalar var_dec_;  ///< maximum deceleration
+   private:
     btScalar cur_v_;
   };
 
@@ -134,27 +134,27 @@ public:
   //@{
   static const btScalar Z_MASS;   ///< Z position of the center of mass
   static const btScalar GROUND_CLEARANCE;
-  static const btScalar ANGLE_OFFSET; ///< angle of the first wheel
+  static const btScalar ANGLE_OFFSET;  ///< angle of the first wheel
 
-  static const btScalar HEIGHT;   ///< body height
-  static const btScalar SIDE;     ///< triangle side half size
+  static const btScalar HEIGHT;  ///< body height
+  static const btScalar SIDE;  ///< triangle side half size
   static const btScalar W_BLOCK;  ///< motor block half width (small side)
   static const btScalar R_WHEEL;  ///< wheel radius
   static const btScalar H_WHEEL;  ///< wheel height (when laid flat)
 
-  static const btScalar D_SIDE;   ///< distance center/triangle side
+  static const btScalar D_SIDE;  ///< distance center/triangle side
   static const btScalar D_WHEEL;  ///< distance center/wheel side
-  static const btScalar A_SIDE;   ///< center angle of triangle side
+  static const btScalar A_SIDE;  ///< center angle of triangle side
   static const btScalar A_WHEEL;  ///< center angle of wheel side
-  static const btScalar RADIUS;   ///< outer circle radius
+  static const btScalar RADIUS;  ///< outer circle radius
   //@}
 
-protected:
-  btRigidBody *body_;
+ protected:
+  btRigidBody* body_;
 
   Color4 color_;
 
-  /** @name Orders and parameters.
+  /** @name Orders and parameters
    */
   //@{
 
@@ -166,7 +166,7 @@ protected:
 
   btScalar target_a_;
   Quadramp ramp_a_;
-  btScalar ramp_last_t_; ///< Last update time of ramps.
+  btScalar ramp_last_t_; ///< Last update time of ramps
   btScalar threshold_a_;
 
   //@}
@@ -175,7 +175,7 @@ protected:
   void set_av(btScalar v);
   bool lastCheckpoint() const { return ckpt_ >= checkpoints_.end()-1; }
 
-private:
+ private:
   static SmartPtr<btCompoundShape> shape_;
   static btConvexHullShape body_shape_;
   static btBoxShape wheel_shape_;
@@ -184,10 +184,12 @@ private:
 
 bool Galipeur::order_xy_done() const
 {
-  if( checkpoints_.empty() )
+  if(checkpoints_.empty()) {
     return true;
-  if( !lastCheckpoint() )
+  }
+  if(!lastCheckpoint()) {
     return false;
+  }
   return ((*ckpt_) - btVector2(getPos())).length() < threshold_stop_;
 }
 

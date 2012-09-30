@@ -1,28 +1,28 @@
+#include <functional>
 #include "python/common.h"
 #include <boost/python/stl_iterator.hpp>
 #include "physics.h"
-
 
 static btScalar Physics_get_world_gravity() { return btUnscale(Physics::world_gravity); }
 static void Physics_set_world_gravity(btScalar v) { Physics::world_gravity = btScale(v); }
 static btScalar Physics_get_margin_epsilon() { return btUnscale(Physics::margin_epsilon); }
 static void Physics_set_margin_epsilon(btScalar v) { Physics::margin_epsilon = btScale(v); }
 static btVector3 Physics_get_world_aabb_min() { return btUnscale(Physics::world_aabb_min); }
-static void Physics_set_world_aabb_min(const btVector3 &v) { Physics::world_aabb_min = btScale(v); }
+static void Physics_set_world_aabb_min(const btVector3& v) { Physics::world_aabb_min = btScale(v); }
 static btVector3 Physics_get_world_aabb_max() { return btUnscale(Physics::world_aabb_max); }
-static void Physics_set_world_aabb_max(const btVector3 &v) { Physics::world_aabb_max = btScale(v); }
-static void Physics_transform(Physics &ph, const btTransform &tr) { ph.transform(btScale(tr)); }
+static void Physics_set_world_aabb_max(const btVector3& v) { Physics::world_aabb_max = btScale(v); }
+static void Physics_transform(Physics& ph, const btTransform& tr) { ph.transform(btScale(tr)); }
 
-static void Physics_task_cb(py::object cb, Physics *ph)
+static void Physics_task_cb(py::object cb, Physics* ph)
 {
   py::call<void>(cb.ptr(), py::ptr(ph));
 }
 
-static void Physics_task_iter(SmartPtr<TaskBasic> task, py::object iter, Physics *)
+static void Physics_task_iter(SmartPtr<TaskBasic> task, py::object iter, Physics*)
 {
   // note: instantiating the iterator iterate it
   py::stl_input_iterator<void*> it(iter), end;
-  if( it == end ) {
+  if(it == end) {
     task->cancel(); // end, do nothing
   }
 }
@@ -31,34 +31,34 @@ static SmartPtr<TaskBasic> Task_init(py::object cb, py::object period)
 {
   SmartPtr<TaskBasic> task;
 
-  if( period.ptr() == Py_None ) {
+  if(period.ptr() == Py_None) {
     task = new TaskBasic();
   } else {
     task = new TaskBasic( py::extract<btScalar>(period) );
   }
 
-  if( PyObject_HasAttrString(cb.ptr(), "__iter__") ) {
-    task->setCallback( boost::bind(&Physics_task_iter, task, cb, _1) );
-  } else if( !PyCallable_Check(cb.ptr()) ) {
+  if(PyObject_HasAttrString(cb.ptr(), "__iter__")) {
+    task->setCallback(boost::bind(Physics_task_iter, task, cb, _1));
+  } else if(!PyCallable_Check(cb.ptr())) {
     PyErr_SetString(PyExc_TypeError, "callback is not callable");
-    throw py::error_already_set(); 
+    throw py::error_already_set();
   } else {
-    task->setCallback( boost::bind(&Physics_task_cb, cb, _1) );
+    task->setCallback(boost::bind(Physics_task_cb, cb, _1));
   }
   return task;
 }
 
-static SmartPtr<TaskBasic> Physics_schedule_task(Physics &ph, TaskBasic *task, py::object time)
+static SmartPtr<TaskBasic> Physics_schedule_task(Physics& ph, TaskBasic* task, py::object time)
 {
   btScalar cpp_time = -1;
-  if( time.ptr() != Py_None ) {
+  if(time.ptr() != Py_None) {
     cpp_time = py::extract<btScalar>(time);
   }
   ph.scheduleTask(task, cpp_time);
   return task;
 }
 
-static SmartPtr<TaskBasic> Physics_schedule_cb(Physics &ph, py::object cb, py::object period, py::object time)
+static SmartPtr<TaskBasic> Physics_schedule_cb(Physics& ph, py::object cb, py::object period, py::object time)
 {
   SmartPtr<TaskBasic> cpp_task = Task_init(cb, period);
   return Physics_schedule_task(ph, cpp_task, time);

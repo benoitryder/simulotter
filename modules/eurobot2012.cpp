@@ -3,8 +3,8 @@
 #include "log.h"
 
 
-namespace eurobot2012
-{
+namespace eurobot2012 {
+
 
 const btVector2 OGround2012::SIZE = btVector2(3.0_m, 2.1_m);
 const btScalar OGround2012::START_SIZE = 0.500_m;
@@ -18,21 +18,21 @@ OGround2012::OGround2012():
   setStartSize(START_SIZE);
 }
 
-void OGround2012::draw(Display *d) const
+void OGround2012::draw(Display* d) const
 {
   glPushMatrix();
 
   drawTransform(m_worldTransform);
 
-  if( d->callOrCreateDisplayList(this) ) {
+  if(d->callOrCreateDisplayList(this)) {
     drawBase();
     drawStartingAreas();
 
     btglTranslate(0, 0, size_[2]/2);
     btglTranslate(0, 0, Display::draw_epsilon);
 
-    GLUquadric *quadric = gluNewQuadric();
-    if( quadric == NULL ) {
+    GLUquadric* quadric = gluNewQuadric();
+    if(!quadric) {
       throw(Error("quadric creation failed"));
     }
 
@@ -119,7 +119,7 @@ SmartPtr<btConvexHullShape> OBullion::shape_(new btConvexHullShape());
 OBullion::OBullion()
 {
   // First instance: initialize shape
-  if( shape_->getNumPoints() == 0 ) {
+  if(shape_->getNumPoints() == 0) {
     const btScalar z = SIZE.z()/2;
     const btScalar wslope = SIZE.z() * btCos(A_SLOPE);
     const btVector2 p0 = btVector2(SIZE.x()/2, SIZE.y()/2);
@@ -135,19 +135,19 @@ OBullion::OBullion()
     shape_->setMargin(shape_->getMargin()/2);
   }
 
-  this->setShape(shape_);
-  this->setMass(MASS);
-  this->setColor(Color4(0xfc,0xbd,0x1f)); // RAL 1023
+  setShape(shape_);
+  setMass(MASS);
+  setColor(Color4(0xfc,0xbd,0x1f)); // RAL 1023
 }
 
 
-void OBullion::draw(Display *d) const
+void OBullion::draw(Display* d) const
 {
   glColor4fv(color_);
   glPushMatrix();
   drawTransform(m_worldTransform);
 
-  if( d->callOrCreateDisplayList(m_collisionShape) ) {
+  if(d->callOrCreateDisplayList(m_collisionShape)) {
     // same values as in constructor
     const btScalar z = SIZE.z()/2;
     const btScalar wslope = SIZE.z() * btCos(A_SLOPE);
@@ -213,7 +213,7 @@ btBoxShape OCoin::shape_cube_(btVector3(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)/2);
 OCoin::OCoin(bool white)
 {
   // First instance: initialize shape
-  if( shape_ == NULL ) {
+  if(!shape_) {
     shape_disc_.setMargin(shape_disc_.getMargin()/4);
     btTransform tr = btTransform::getIdentity();
     shape_ = new btCompoundShape();
@@ -222,22 +222,22 @@ OCoin::OCoin(bool white)
     shape_->addChildShape(tr, &shape_cube_);
   }
 
-  this->setShape(shape_);
-  this->setMass(MASS);
-  this->setColor(white ? Color4::white() : Color4::black());
+  setShape(shape_);
+  setMass(MASS);
+  setColor(white ? Color4::white() : Color4::black());
 }
 
-void OCoin::draw(Display *d) const
+void OCoin::draw(Display* d) const
 {
   glPushMatrix();
 
   drawTransform(m_worldTransform);
   glColor4fv(color_);
 
-  if( d->callOrCreateDisplayList(m_collisionShape) ) {
+  if(d->callOrCreateDisplayList(m_collisionShape)) {
     // disc: outer/inner cylinders, bottom/bottom disks
     btglTranslate(0, 0, -DISC_HEIGHT/2);
-    GLUquadric *quadric = gluNewQuadric();
+    GLUquadric* quadric = gluNewQuadric();
     gluCylinder(quadric, RADIUS, RADIUS, DISC_HEIGHT, Display::draw_div, 1);
     gluQuadricOrientation(quadric, GLU_INSIDE);
     gluCylinder(quadric, INNER_RADIUS, INNER_RADIUS, DISC_HEIGHT, Display::draw_div/2, 1);

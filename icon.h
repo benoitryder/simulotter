@@ -1,9 +1,9 @@
 
 static struct {
-  unsigned int 	 width;
-  unsigned int 	 height;
-  unsigned int 	 bpp; /* 3:RGB, 4:RGBA */ 
-  unsigned char	 data[32 * 32 * 4 + 1];
+  unsigned int  width;
+  unsigned int  height;
+  unsigned int  bpp; /* 3:RGB, 4:RGBA */
+  unsigned char data[32 * 32 * 4 + 1];
 } icon = {
   32, 32, 4,
   "\315\314\314\377\315\314\314\377\315\314\314\377\315\314\314\377\315\314"

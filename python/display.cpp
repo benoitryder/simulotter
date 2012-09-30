@@ -4,17 +4,17 @@
 #include "object.h"
 
 
-static void Display_resize(Display &d, int width, int height, py::object mode)
+static void Display_resize(Display& d, int width, int height, py::object mode)
 {
   int mode_cpp;
-  if( mode.ptr() == py::object().ptr() ) {
+  if(mode.ptr() == py::object().ptr()) {
     mode_cpp = -1; // none: use current state
   } else {
     mode_cpp = mode ? 1 : 0;
   }
   d.resize(width, height, mode_cpp);
 }
-static py::object Display_get_screen_size(const Display &d)
+static py::object Display_get_screen_size(const Display& d)
 {
   return py::make_tuple( d.getScreenWidth(), d.getScreenHeight() );
 }
@@ -24,12 +24,12 @@ static py::object Display_get_screen_size(const Display &d)
 static py::object py_event_cls;
 static py::object py_key_enum;
 
-static void Display_handler_cb(py::object cb, Display *d, const SDL_Event *event)
+static void Display_handler_cb(py::object cb, Display* d, const SDL_Event* event)
 {
   py::object py_ev = py_event_cls(); // new instance
   // fill py_ev with event infos
   py_ev.attr("type") = event->type;
-  switch( event->type ) {
+  switch(event->type) {
     case SDL_KEYDOWN:
     case SDL_KEYUP:
       py_ev.attr("key") = event->key.keysym.sym;
@@ -47,45 +47,43 @@ static void Display_handler_cb(py::object cb, Display *d, const SDL_Event *event
       break;
     default:
       PyErr_SetString(PyExc_ValueError, "unhandled event type");
-      throw py::error_already_set(); 
+      throw py::error_already_set();
   }
 
   py::call<void>(cb.ptr(), py::ptr(d), py_ev);
 }
 
-static void Display_set_handler(Display &d, py::object cb, Uint8 type, py::dict kw)
+static void Display_set_handler(Display& d, py::object cb, Uint8 type, py::dict kw)
 {
   Display::EventCallback cpp_cb;
-  if( cb.ptr() == Py_None ) {
+  if(cb.ptr() == Py_None) {
     cpp_cb = NULL;
   } else {
-    if( !PyCallable_Check(cb.ptr()) ) {
+    if(!PyCallable_Check(cb.ptr())) {
       PyErr_SetString(PyExc_TypeError, "callback is not callable");
-      throw py::error_already_set(); 
+      throw py::error_already_set();
     }
-    cpp_cb = boost::bind(&Display_handler_cb, cb, _1, _2);
+    cpp_cb = boost::bind(Display_handler_cb, cb, _1, _2);
   }
 
   SDL_Event ev;
   ev.type = type;
-  switch( ev.type ) {
+  switch(ev.type) {
     case SDL_KEYDOWN:
-    case SDL_KEYUP:
-      {
-        py::object okey = kw["key"];
-        py::extract<SDLKey> xkey(okey);
-        if( xkey.check() ) {
-          ev.key.keysym.sym = xkey;
-        } else if( PyString_Check(okey.ptr()) && PyString_GET_SIZE(okey.ptr()) == 1 ) {
-          // single character: use ord()
-          // (code from Python implementation)
-          ev.key.keysym.sym = static_cast<SDLKey>(*PyString_AS_STRING(okey.ptr()));
-        } else {
-          // try enum name
-          ev.key.keysym.sym = py::extract<SDLKey>(py_key_enum.attr(okey));
-        }
+    case SDL_KEYUP: {
+      py::object okey = kw["key"];
+      py::extract<SDLKey> xkey(okey);
+      if(xkey.check()) {
+        ev.key.keysym.sym = xkey;
+      } else if(PyString_Check(okey.ptr()) && PyString_GET_SIZE(okey.ptr()) == 1) {
+        // single character: use ord()
+        // (code from Python implementation)
+        ev.key.keysym.sym = static_cast<SDLKey>(*PyString_AS_STRING(okey.ptr()));
+      } else {
+        // try enum name
+        ev.key.keysym.sym = py::extract<SDLKey>(py_key_enum.attr(okey));
       }
-      break;
+    } break;
     case SDL_MOUSEMOTION:
       ev.motion.state = py::extract<Uint8>(kw["state"]);
       break;
@@ -95,7 +93,7 @@ static void Display_set_handler(Display &d, py::object cb, Uint8 type, py::dict 
       break;
     default:
       PyErr_SetString(PyExc_ValueError, "invalid event type");
-      throw py::error_already_set(); 
+      throw py::error_already_set();
   }
 
   d.setHandler(ev, cpp_cb);
@@ -104,12 +102,12 @@ static void Display_set_handler(Display &d, py::object cb, Uint8 type, py::dict 
 // simple wrapper to expand arguments
 static py::tuple Display_set_handler_wrap(py::tuple args, py::dict kw)
 {
-  if( py::len(args) != 3 ) {
+  if(py::len(args) != 3) {
     PyErr_SetString(PyExc_TypeError, "expected 3 arguments");
-    throw py::error_already_set(); 
+    throw py::error_already_set();
   }
   Display_set_handler(
-      py::extract<Display &>(args[0]), py::object(args[1]),
+      py::extract<Display&>(args[0]), py::object(args[1]),
       py::extract<Uint8>(args[2]), kw);
   return py::make_tuple();
 }
@@ -118,14 +116,14 @@ static py::tuple Display_set_handler_wrap(py::tuple args, py::dict kw)
 static btScalar Display_get_draw_epsilon() { return btUnscale(Display::draw_epsilon); }
 static void Display_set_draw_epsilon(btScalar v) { Display::draw_epsilon = btScale(v); }
 
-static btTransform Camera_get_trans(const Display::Camera &o) { return btUnscale(o.trans); }
-static void Camera_set_trans(Display::Camera &o, const btTransform &tr) { o.trans = btScale(tr); }
-static SmartPtr<Object> Camera_get_obj(const Display::Camera &o) { return o.obj; }
-static void Camera_set_obj(Display::Camera &o, const SmartPtr<Object> &obj) { o.obj = obj; }
-static float Camera_get_z_near(const Display::Camera &o) { return btUnscale(o.z_near); }
-static void Camera_set_z_near(Display::Camera &o, float v) { o.z_near = btScale(v); }
-static float Camera_get_z_far(const Display::Camera &o) { return btUnscale(o.z_far); }
-static void Camera_set_z_far(Display::Camera &o, float v) { o.z_far = btScale(v); }
+static btTransform Camera_get_trans(const Display::Camera& o) { return btUnscale(o.trans); }
+static void Camera_set_trans(Display::Camera& o, const btTransform& tr) { o.trans = btScale(tr); }
+static SmartPtr<Object> Camera_get_obj(const Display::Camera& o) { return o.obj; }
+static void Camera_set_obj(Display::Camera& o, const SmartPtr<Object>& obj) { o.obj = obj; }
+static float Camera_get_z_near(const Display::Camera& o) { return btUnscale(o.z_near); }
+static void Camera_set_z_near(Display::Camera& o, float v) { o.z_near = btScale(v); }
+static float Camera_get_z_far(const Display::Camera& o) { return btUnscale(o.z_far); }
+static void Camera_set_z_far(Display::Camera& o, float v) { o.z_far = btScale(v); }
 
 
 void python_export_display()
@@ -145,11 +143,11 @@ void python_export_display()
       .def("set_handler", py::raw_function(&Display_set_handler_wrap, 3))
       .def("set_default_handlers", &Display::setDefaultHandlers)
       // dynamic configuration
-      .def_readwrite("time_scale", &Display::time_scale)
-      .def_readwrite("fps", &Display::fps)
-      .def_readwrite("paused", &Display::paused)
-      .def_readwrite("bg_color", &Display::bg_color)
-      .add_property("camera", py::make_getter(&Display::camera, py::return_internal_reference<>()))
+      .def_readwrite("time_scale", &Display::time_scale_)
+      .def_readwrite("fps", &Display::fps_)
+      .def_readwrite("paused", &Display::paused_)
+      .def_readwrite("bg_color", &Display::bg_color_)
+      .add_property("camera", py::make_getter(&Display::camera_, py::return_internal_reference<>()))
       // statics
       .add_static_property("draw_epsilon", &Display_get_draw_epsilon, &Display_set_draw_epsilon)
       .def_readwrite("draw_div", &Display::draw_div)

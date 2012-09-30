@@ -1,54 +1,54 @@
 #include "python/common.h"
 
 
-static const btScalar *vec2_begin(const btVector2 &v) { return v.xy; }
-static const btScalar *vec2_end(const btVector2 &v) { return v.xy+2; }
-static std::string vec2_str(const btVector2 &v)
+static const btScalar* vec2_begin(const btVector2& v) { return v.xy_; }
+static const btScalar* vec2_end(const btVector2& v) { return v.xy_+2; }
+static std::string vec2_str(const btVector2& v)
 {
   return stringf("<xy: %.2f %.2f>", v.x(), v.y());
 }
 
-static const btScalar *vec3_begin(const btVector3 &v) { return v.m_floats; }
-static const btScalar *vec3_end(const btVector3 &v) { return v.m_floats+3; }
-static std::string vec3_str(const btVector3 &v)
+static const btScalar* vec3_begin(const btVector3& v) { return v.m_floats; }
+static const btScalar* vec3_end(const btVector3& v) { return v.m_floats+3; }
+static std::string vec3_str(const btVector3& v)
 {
   return stringf("<xyz: %.2f %.2f %.2f>", v.x(), v.y(), v.z());
 }
 
 
-static btQuaternion *quat_init_matrix3(const btMatrix3x3 &m)
+static btQuaternion* quat_init_matrix3(const btMatrix3x3& m)
 {
-  btQuaternion *q = new btQuaternion();
+  btQuaternion* q = new btQuaternion();
   m.getRotation(*q);
   return q;
 }
-static btScalar quat_x(const btQuaternion &q) { return q.x(); }
-static btScalar quat_y(const btQuaternion &q) { return q.y(); }
-static btScalar quat_z(const btQuaternion &q) { return q.z(); }
-static btScalar quat_w(const btQuaternion &q) { return q.w(); }
-static const btScalar *quat_begin(const btQuaternion &q) { return &q[0]; }
-static const btScalar *quat_end(const btQuaternion &q) { return &q[0]+4; }
-static std::string quat_str(const btQuaternion &q)
+static btScalar quat_x(const btQuaternion& q) { return q.x(); }
+static btScalar quat_y(const btQuaternion& q) { return q.y(); }
+static btScalar quat_z(const btQuaternion& q) { return q.z(); }
+static btScalar quat_w(const btQuaternion& q) { return q.w(); }
+static const btScalar* quat_begin(const btQuaternion& q) { return &q[0]; }
+static const btScalar* quat_end(const btQuaternion& q) { return &q[0]+4; }
+static std::string quat_str(const btQuaternion& q)
 {
   return stringf("<xyzw: %.2f %.2f %.2f %.2f>", q.x(), q.y(), q.z(), q.w());
 }
 
 
-static btMatrix3x3 *matrix3_init_def()
+static btMatrix3x3* matrix3_init_def()
 {
-  btMatrix3x3 *m = new btMatrix3x3();
+  btMatrix3x3* m = new btMatrix3x3();
   m->setIdentity();
   return m;
 }
-static btMatrix3x3 *matrix3_init_rows(const btVector3 &r0, const btVector3 &r1, const btVector3 &r2)
+static btMatrix3x3* matrix3_init_rows(const btVector3& r0, const btVector3& r1, const btVector3& r2)
 {
-  btMatrix3x3 *m = new btMatrix3x3();
+  btMatrix3x3* m = new btMatrix3x3();
   (*m)[0] = r0; (*m)[1] = r1; (*m)[2] = r2;
   return m;
 }
-static btMatrix3x3 *matrix3_init_euler(const btScalar yaw, const btScalar pitch, const btScalar roll)
+static btMatrix3x3* matrix3_init_euler(const btScalar yaw, const btScalar pitch, const btScalar roll)
 {
-  btMatrix3x3 *m = new btMatrix3x3();
+  btMatrix3x3* m = new btMatrix3x3();
 #ifndef BT_EULER_DEFAULT_ZYX
   m->setEulerYPR(yaw, pitch, roll);
 #else
@@ -56,38 +56,38 @@ static btMatrix3x3 *matrix3_init_euler(const btScalar yaw, const btScalar pitch,
 #endif
   return m;
 }
-static btVector3 matrix3_row(const btMatrix3x3 &m, int i)
+static btVector3 matrix3_row(const btMatrix3x3& m, int i)
 {
-  if( i < 0 || i > 2 ) {
+  if(i < 0 || i > 2) {
     PyErr_SetObject(PyExc_IndexError, PyInt_FromLong(i));
-    throw py::error_already_set(); 
+    throw py::error_already_set();
   }
   return m.getRow(i);
 }
-static btVector3 matrix3_col(const btMatrix3x3 &m, int i)
+static btVector3 matrix3_col(const btMatrix3x3& m, int i)
 {
-  if( i < 0 || i > 2 ) {
+  if(i < 0 || i > 2) {
     PyErr_SetObject(PyExc_IndexError, PyInt_FromLong(i));
-    throw py::error_already_set(); 
+    throw py::error_already_set();
   }
   return m.getColumn(i);
 }
-static py::tuple matrix3_get_euler_ypr(const btMatrix3x3 &m)
+static py::tuple matrix3_get_euler_ypr(const btMatrix3x3& m)
 {
   btScalar y,p,r;
   m.getEulerYPR(y,p,r);
   return py::make_tuple(y,p,r);
 }
-static py::tuple matrix3_get_euler_zyx(const btMatrix3x3 &m)
+static py::tuple matrix3_get_euler_zyx(const btMatrix3x3& m)
 {
   //XXX we don't support the extra solution_number parameter
   btScalar z,y,x;
   m.getEulerZYX(z,y,x);
   return py::make_tuple(z,y,x);
 }
-static const btVector3 *matrix3_begin(const btMatrix3x3 &m) { return &m[0]; }
-static const btVector3 *matrix3_end(const btMatrix3x3 &m) { return &m[0]+3; }
-static std::string matrix3_str(const btMatrix3x3 &m)
+static const btVector3* matrix3_begin(const btMatrix3x3& m) { return &m[0]; }
+static const btVector3* matrix3_end(const btMatrix3x3& m) { return &m[0]+3; }
+static std::string matrix3_str(const btMatrix3x3& m)
 {
   return stringf("<m3x3: %.2f %.2f %.2f | %.2f %.2f %.2f | %.2f %.2f %.2f>",
                  m[0][0], m[0][1], m[0][2],
@@ -122,13 +122,13 @@ struct matrix3_to_quat_converter
 };
 
 
-static btTransform *trans_init_vec(const btVector3 &v)
+static btTransform* trans_init_vec(const btVector3& v)
 {
   return new btTransform(btMatrix3x3::getIdentity(), v);
 }
-static std::string trans_str(const btTransform &t)
+static std::string trans_str(const btTransform& t)
 {
-  const btVector3 &v = t.getOrigin();
+  const btVector3& v = t.getOrigin();
   const btQuaternion q = t.getRotation();
   return stringf("<xyz: %.2f %.2f %.2f | xyzw: %.2f %.2f %.2f %.2f>",
                  v.x(), v.y(), v.z(), q.x(), q.y(), q.z(), q.w());

@@ -3,15 +3,15 @@
 
 using namespace eurobot2011;
 
-static py::object Galipeur2011_get_arms(const Galipeur2011 &o)
+static py::object Galipeur2011_get_arms(const Galipeur2011& o)
 {
   //XXX assume a fixed arm count to be able to use make_tuple (much simpler)
 #if GALIPEUR2011_ARM_NB != 2
 #error "Unexpected Galipeur2011 arm count."
 #endif
   return py::make_tuple(
-      py::pointer_wrapper<Galipeur2011::PawnArm *>(o.getArms()[0]),
-      py::pointer_wrapper<Galipeur2011::PawnArm *>(o.getArms()[1])
+      py::pointer_wrapper<Galipeur2011::PawnArm*>(o.getArms()[0]),
+      py::pointer_wrapper<Galipeur2011::PawnArm*>(o.getArms()[1])
       );
 }
 

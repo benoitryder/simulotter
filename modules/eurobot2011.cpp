@@ -2,9 +2,8 @@
 #include "display.h"
 #include "log.h"
 
+namespace eurobot2011 {
 
-namespace eurobot2011
-{
 
 const btVector2 OGround2011::SIZE = btVector2(3.0_m, 2.1_m);
 const btScalar OGround2011::SQUARE_SIZE = 0.350_m;
@@ -19,13 +18,13 @@ OGround2011::OGround2011():
   setStartSize(START_SIZE);
 }
 
-void OGround2011::draw(Display *d) const
+void OGround2011::draw(Display* d) const
 {
   glPushMatrix();
 
   drawTransform(m_worldTransform);
 
-  if( d->callOrCreateDisplayList(this) ) {
+  if(d->callOrCreateDisplayList(this)) {
     drawBase();
     drawStartingAreas();
 
@@ -39,21 +38,20 @@ void OGround2011::draw(Display *d) const
     btglScale(SQUARE_SIZE, SQUARE_SIZE, 1);
 
     // 6 lines, 6 columns, 1 square out of 2 (for each color)
-    int i, j;
 
     glColor4fv(color_t1_);
-    for( i=-3; i<3; i++ ) {
-      for( j=-3; j<3; j++ ) {
-        if( (i+j)%2 == 0 ) {
+    for(int i=-3; i<3; i++) {
+      for(int j=-3; j<3; j++) {
+        if((i+j)%2 == 0) {
           btglRect(i, j, i+1, j+1);
         }
       }
     }
 
     glColor4fv(color_t2_);
-    for( i=-3; i<3; i++ ) {
-      for( j=-3; j<3; j++ ) {
-        if( (i+j)%2 != 0 ) {
+    for(int i=-3; i<3; i++) {
+      for(int j=-3; j<3; j++) {
+        if((i+j)%2 != 0) {
           btglRect(i, j, i+1, j+1);
         }
       }
@@ -62,8 +60,8 @@ void OGround2011::draw(Display *d) const
     glPopMatrix();
 
     // draw black marks
-    GLUquadric *quadric = gluNewQuadric();
-    if( quadric == NULL ) {
+    GLUquadric* quadric = gluNewQuadric();
+    if(!quadric) {
       throw(Error("quadric creation failed"));
     }
 
@@ -71,7 +69,7 @@ void OGround2011::draw(Display *d) const
     btglTranslate(0, 0, 2*Display::draw_epsilon);
 
     glColor4fv(Color4(0x14,0x17,0x1c)); // RAL 9017
-    for( i=0;; ) { // two steps (x>0 then x<0)
+    for(int i=0;;) { // two steps (x>0 then x<0)
       // vertical side lines
       btglRect(3*SQUARE_SIZE, size_[1]/2, 3*SQUARE_SIZE+0.05_m, -size_[1]/2);
       // secured zone, top
@@ -88,7 +86,7 @@ void OGround2011::draw(Display *d) const
       gluDisk(quadric, 0, 0.1_m/2, Display::draw_div, Display::draw_div);
       glPopMatrix();
 
-      if( i == 1 ) {
+      if(i == 1) {
         break;
       }
       // reverse X
@@ -121,19 +119,19 @@ Magnet::Magnet(): btRigidBody(btRigidBodyConstructionInfo(0,NULL,&shape_)),
   shape_.calculateLocalInertia(0.01, inertia);
   setupRigidBody( btRigidBodyConstructionInfo(0.01,NULL,&shape_,inertia) );
 
-  this->setCollisionFlags( this->getCollisionFlags() | CF_NO_CONTACT_RESPONSE );
+  setCollisionFlags(getCollisionFlags() | CF_NO_CONTACT_RESPONSE);
 }
 
 Magnet::~Magnet()
 {
-  if( enabled() ) {
-    this->disable(); // release objects
+  if(enabled()) {
+    disable();  // release objects
   }
 }
 
-void Magnet::enable(Physics *ph)
+void Magnet::enable(Physics* ph)
 {
-  if( enabled() ) {
+  if(enabled()) {
     throw(Error("magnet is already enabled"));
   }
   physics_ = ph;
@@ -141,13 +139,13 @@ void Magnet::enable(Physics *ph)
 
 void Magnet::disable()
 {
-  if( !enabled() ) {
+  if(!enabled()) {
     throw(Error("magnet is not enabled"));
   }
   // release objects
-  for(int i=this->getNumConstraintRefs()-1; i>=0; i--) {
-    btTypedConstraint *constraint = this->getConstraintRef(i);
-    if( constraint->getUserConstraintType() == EUROBOT2011_MAGNET_CONSTRAINT_TYPE ) {
+  for(int i=getNumConstraintRefs()-1; i>=0; i--) {
+    btTypedConstraint* constraint = getConstraintRef(i);
+    if(constraint->getUserConstraintType() == EUROBOT2011_MAGNET_CONSTRAINT_TYPE) {
       physics_->getWorld()->removeConstraint(constraint);
       delete constraint;
     }
@@ -155,9 +153,9 @@ void Magnet::disable()
   physics_ = NULL;
 }
 
-bool Magnet::checkCollideWithOverride(btCollisionObject *co)
+bool Magnet::checkCollideWithOverride(btCollisionObject* co)
 {
-  if( !enabled() ) {
+  if(!enabled()) {
     return false;
   }
 
@@ -165,26 +163,26 @@ bool Magnet::checkCollideWithOverride(btCollisionObject *co)
   //XXX This callback is used to detect magnets close from each other, not to
   // known whether an object should collide. They may be a more appropriated
   // way to do this.
-  Magnet *o = dynamic_cast<Magnet*>(co);
-  if( ! o || !o->enabled() ) {
+  Magnet* o = dynamic_cast<Magnet*>(co);
+  if(!o || !o->enabled()) {
     return false;
   }
   // check if objects are close enough
-  const btScalar d = (this->getCenterOfMassTransform().getOrigin() - o->getCenterOfMassTransform().getOrigin()).length();
-  if( d > 2*RADIUS ) {
+  const btScalar d = (getCenterOfMassTransform().getOrigin() - o->getCenterOfMassTransform().getOrigin()).length();
+  if(d > 2*RADIUS) {
     return false;
   }
 
   // check if object is already constrained
   for(int i=0; i < getNumConstraintRefs(); i++) {
-    btTypedConstraint *constraint = getConstraintRef(i);
-    if( o == &constraint->getRigidBodyA() || o == &constraint->getRigidBodyB() ) {
+    btTypedConstraint* constraint = getConstraintRef(i);
+    if(o == &constraint->getRigidBodyA() || o == &constraint->getRigidBodyB()) {
       return false;
     }
   }
 
   // new constraint
-  btGeneric6DofConstraint *constraint = new btGeneric6DofConstraint(
+  btGeneric6DofConstraint* constraint = new btGeneric6DofConstraint(
       *this, *o, btTransform::getIdentity(), btTransform::getIdentity(), true);
   constraint->setUserConstraintType(EUROBOT2011_MAGNET_CONSTRAINT_TYPE);
   physics_->getWorld()->addConstraint(constraint, true);
@@ -196,7 +194,7 @@ bool Magnet::checkCollideWithOverride(btCollisionObject *co)
 const btScalar MagnetPawn::RADIUS = 0.1_m;
 const btScalar MagnetPawn::HEIGHT = 0.05_m;
 
-MagnetPawn::MagnetPawn(btCollisionShape *sh, btScalar mass):
+MagnetPawn::MagnetPawn(btCollisionShape* sh, btScalar mass):
     OSimple(sh, mass)
 {
   magnet_links_[0] = NULL;
@@ -205,7 +203,7 @@ MagnetPawn::MagnetPawn(btCollisionShape *sh, btScalar mass):
 
 MagnetPawn::~MagnetPawn() {}
 
-void MagnetPawn::addToWorld(Physics *physics)
+void MagnetPawn::addToWorld(Physics* physics)
 {
   OSimple::addToWorld(physics);
   for(int i=0; i<2; i++) {
@@ -213,7 +211,7 @@ void MagnetPawn::addToWorld(Physics *physics)
     btTransform tr = btTransform::getIdentity();
     tr.getOrigin().setZ( (i==0 ? +1 : -1) * HEIGHT/2 );
     magnet_links_[i] = new btGeneric6DofConstraint(*this, magnets_[i], tr, btTransform::getIdentity(), true);
-    magnets_[i].setCenterOfMassTransform( this->getCenterOfMassTransform() );
+    magnets_[i].setCenterOfMassTransform(getCenterOfMassTransform());
     physics_->getWorld()->addConstraint(magnet_links_[i], true);
     magnets_[i].enable(physics_);
   }
@@ -230,7 +228,7 @@ void MagnetPawn::removeFromWorld()
   OSimple::removeFromWorld();
 }
 
-void MagnetPawn::setTrans(const btTransform &tr)
+void MagnetPawn::setTrans(const btTransform& tr)
 {
   OSimple::setTrans(tr);
   for(int i=0; i<2; i++) {
@@ -246,8 +244,7 @@ Galipeur2011::Galipeur2011(btScalar m): Galipeur(m)
   const btVector3 arm_pos( D_SIDE-0.03_m, 0, MagnetPawn::HEIGHT*2-Z_MASS );
   const btVector3 up(0,0,1);
   const btScalar angles[GALIPEUR2011_ARM_NB] = { -M_PI/3, +M_PI/3 };
-  unsigned int i;
-  for( i=0; i<GALIPEUR2011_ARM_NB; i++ ) {
+  for(unsigned int i=0; i<GALIPEUR2011_ARM_NB; i++) {
     btMatrix3x3 m;
     m.setEulerZYX( 0, 0, -angles[i] );
     btTransform tr( m, arm_pos.rotate(up, M_PI_2-angles[i]) );
@@ -261,40 +258,35 @@ Galipeur2011::~Galipeur2011()
   delete arms_[1];
 }
 
-void Galipeur2011::addToWorld(Physics *physics)
+void Galipeur2011::addToWorld(Physics* physics)
 {
   Galipeur::addToWorld(physics);
-  unsigned int i;
-  for( i=0; i<GALIPEUR2011_ARM_NB; i++ ) {
+  for(unsigned int i=0; i<GALIPEUR2011_ARM_NB; i++) {
     arms_[i]->addToWorld();
   }
 }
 
 void Galipeur2011::removeFromWorld()
 {
-  unsigned int i;
-  for( i=0; i<GALIPEUR2011_ARM_NB; i++ ) {
+  for(unsigned int i=0; i<GALIPEUR2011_ARM_NB; i++) {
     arms_[i]->removeFromWorld();
   }
   Galipeur::removeFromWorld();
 }
 
 
-void Galipeur2011::draw(Display *d) const
+void Galipeur2011::draw(Display* d) const
 {
   Galipeur::draw(d);
-
-  unsigned int i;
-  for( i=0; i<GALIPEUR2011_ARM_NB; i++ ) {
+  for(unsigned int i=0; i<GALIPEUR2011_ARM_NB; i++) {
     arms_[i]->draw(d);
   }
 }
 
-void Galipeur2011::setTrans(const btTransform &tr)
+void Galipeur2011::setTrans(const btTransform& tr)
 {
   Galipeur::setTrans(tr);
-  unsigned int i;
-  for( i=0; i<GALIPEUR2011_ARM_NB; i++ ) {
+  for(unsigned int i=0; i<GALIPEUR2011_ARM_NB; i++) {
     arms_[i]->resetTrans();
   }
 }
@@ -302,7 +294,7 @@ void Galipeur2011::setTrans(const btTransform &tr)
 void Galipeur2011::asserv()
 {
   Galipeur::asserv();
-  for(int i=0; i<2; i++) {
+  for(unsigned int i=0; i<2; i++) {
     arms_[i]->asserv();
   }
 }
@@ -316,7 +308,7 @@ const btScalar Galipeur2011::PawnArm::ANGLE_MAX = M_PI_2+M_PI*0.07;
 
 btCapsuleShape Galipeur2011::PawnArm::shape_( RADIUS, LENGTH );
 
-Galipeur2011::PawnArm::PawnArm(Galipeur2011 *robot, const btTransform &tr):
+Galipeur2011::PawnArm::PawnArm(Galipeur2011* robot, const btTransform& tr):
     btRigidBody(btRigidBodyConstructionInfo(0,NULL,NULL)),
     robot_(robot), robot_tr_(tr)
 {
@@ -339,7 +331,7 @@ Galipeur2011::PawnArm::PawnArm(Galipeur2011 *robot, const btTransform &tr):
   tr2.setOrigin( btVector3(0, LENGTH/2, -RADIUS) );
   magnet_link_ = new btGeneric6DofConstraint(*this, magnet_, tr2, btTransform::getIdentity(), true);
 
-  this->resetTrans();
+  resetTrans();
 }
 
 Galipeur2011::PawnArm::~PawnArm()
@@ -365,14 +357,14 @@ void Galipeur2011::PawnArm::lower()
 
 void Galipeur2011::PawnArm::grab()
 {
-  if( !magnet_.enabled() ) {
+  if(!magnet_.enabled()) {
     magnet_.enable( robot_->physics_ );
   }
 }
 
 void Galipeur2011::PawnArm::release()
 {
-  if( magnet_.enabled() ) {
+  if(magnet_.enabled()) {
     magnet_.disable();
   }
 }
@@ -381,14 +373,14 @@ void Galipeur2011::PawnArm::asserv()
 {
   const btScalar threshold = 0.01;
   const btScalar av = robot_link_->getTargetAngMotorVelocity();
-  if( av < 0 ) {
-    if( btFabs(M_PI_2-ANGLE_MIN - this->angle()) < threshold ) {
+  if(av < 0) {
+    if(btFabs(M_PI_2-ANGLE_MIN - angle()) < threshold) {
       robot_link_->setLowerAngLimit(M_PI_2-ANGLE_MIN);
       robot_link_->setUpperAngLimit(M_PI_2-ANGLE_MIN);
       robot_link_->setTargetAngMotorVelocity(0);
     }
-  } else if( av > 0 ) {
-    if( btFabs(M_PI_2-ANGLE_MAX - this->angle()) < threshold ) {
+  } else if(av > 0) {
+    if(btFabs(M_PI_2-ANGLE_MAX - angle()) < threshold) {
       robot_link_->setLowerAngLimit(M_PI_2-ANGLE_MAX);
       robot_link_->setUpperAngLimit(M_PI_2-ANGLE_MAX);
       robot_link_->setTargetAngMotorVelocity(0);
@@ -397,11 +389,11 @@ void Galipeur2011::PawnArm::asserv()
 }
 
 
-void Galipeur2011::PawnArm::draw(Display *d) const
+void Galipeur2011::PawnArm::draw(Display* d) const
 {
   glPushMatrix();
-  drawTransform(this->getCenterOfMassTransform());
-  if( d->callOrCreateDisplayList(&PawnArm::shape_) ) {
+  drawTransform(getCenterOfMassTransform());
+  if(d->callOrCreateDisplayList(&PawnArm::shape_)) {
     Object::drawShape(&PawnArm::shape_);
     d->endDisplayList();
   }
@@ -414,14 +406,14 @@ void Galipeur2011::PawnArm::resetTrans()
   const btTransform raised( btQuaternion(btVector3(1,0,0), M_PI_2-ANGLE_MIN), btVector3(0,0,0) );
   btTransform tr = robot_->body_->getCenterOfMassTransform() * robot_tr_ * raised;
   tr.getOrigin() += btVector3(0, LENGTH/2, 0);
-  this->setCenterOfMassTransform(tr);
+  setCenterOfMassTransform(tr);
   tr.getOrigin() -= btVector3(0, LENGTH, 0);
   magnet_.setCenterOfMassTransform(tr);
 }
 
 void Galipeur2011::PawnArm::addToWorld()
 {
-  btDynamicsWorld *world = robot_->physics_->getWorld();
+  btDynamicsWorld* world = robot_->physics_->getWorld();
   world->addRigidBody(this);
   world->addRigidBody(&magnet_);
   world->addConstraint(robot_link_, true);
@@ -431,8 +423,8 @@ void Galipeur2011::PawnArm::addToWorld()
 
 void Galipeur2011::PawnArm::removeFromWorld()
 {
-  btDynamicsWorld *world = robot_->physics_->getWorld();
-  if( magnet_.enabled() ) {
+  btDynamicsWorld* world = robot_->physics_->getWorld();
+  if(magnet_.enabled()) {
     magnet_.disable();
   }
   world->removeConstraint(magnet_link_);

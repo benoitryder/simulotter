@@ -8,9 +8,9 @@
 
 class Color4
 {
-  friend Color4 operator*(const Color4 &c, const GLfloat &f);
+  friend Color4 operator*(const Color4& c, const GLfloat& f);
  private:
-  GLfloat rgba[4];
+  GLfloat rgba_[4];
  public:
 
   Color4() { set(0,0,0,1); }
@@ -21,36 +21,36 @@ class Color4
 
   void set(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
   {
-    rgba[0] = CLAMP(r,0.0,1.0);
-    rgba[1] = CLAMP(g,0.0,1.0);
-    rgba[2] = CLAMP(b,0.0,1.0);
-    rgba[3] = CLAMP(a,0.0,1.0);
+    rgba_[0] = CLAMP(r, 0.0, 1.0);
+    rgba_[1] = CLAMP(g, 0.0, 1.0);
+    rgba_[2] = CLAMP(b, 0.0, 1.0);
+    rgba_[3] = CLAMP(a, 0.0, 1.0);
   }
 
   static Color4 white() { return Color4(1.0); }
   static Color4 black() { return Color4(0.0); }
   static Color4 plexi() { return Color4(.70, .90, .95, 0.5); }
 
-  inline operator const GLfloat *() const { return rgba; }
-  inline GLfloat r() const { return rgba[0]; }
-  inline GLfloat g() const { return rgba[1]; }
-  inline GLfloat b() const { return rgba[2]; }
-  inline GLfloat a() const { return rgba[3]; }
+  inline operator const GLfloat* () const { return rgba_; }
+  inline GLfloat r() const { return rgba_[0]; }
+  inline GLfloat g() const { return rgba_[1]; }
+  inline GLfloat b() const { return rgba_[2]; }
+  inline GLfloat a() const { return rgba_[3]; }
 
-  //inline GLfloat operator[](int i) { return rgba[i]; }
+  //inline GLfloat operator[](int i) { return rgba_[i]; }
 
-  inline const Color4 &operator*=(const GLfloat &f)
+  inline const Color4& operator*=(const GLfloat& f)
   {
-    set(rgba[0]*f, rgba[1]*f, rgba[2]*f, rgba[3]*f);
+    set(rgba_[0]*f, rgba_[1]*f, rgba_[2]*f, rgba_[3]*f);
     return *this;
   }
 };
 
-inline Color4 operator*(const Color4 &c, const GLfloat &f)
+inline Color4 operator*(const Color4& c, const GLfloat& f)
 {
-  return Color4(c.rgba[0]*f, c.rgba[1]*f, c.rgba[2]*f, c.rgba[3]*f);
+  return Color4(c.rgba_[0]*f, c.rgba_[1]*f, c.rgba_[2]*f, c.rgba_[3]*f);
 }
-inline Color4 operator*(const GLfloat &f, const Color4 &c) { return c*f; }
+inline Color4 operator*(const GLfloat& f, const Color4& c) { return c*f; }
 
 
 #endif

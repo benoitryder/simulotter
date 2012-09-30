@@ -14,23 +14,23 @@ class Display;
  */
 class Object: public SmartObject
 {
-protected:
+ protected:
   Object(): physics_(NULL) {}
-public:
+ public:
   virtual ~Object() {}
 
-  /** @brief Add an object to a physical world.
+  /** @brief Add an object to a physical world
    *
    * Add bodies and constraint to the Bullet world.
    * Object is added to the physics object array.
    *
    * @note Overload functions should call this parent function.
    */
-  virtual void addToWorld(Physics *physics);
+  virtual void addToWorld(Physics* physics);
 
-  Physics *getPhysics() const { return physics_; }
+  Physics* getPhysics() const { return physics_; }
 
-  /** @brief Remove an object from its physical world.
+  /** @brief Remove an object from its physical world
    *
    * It is the opposite of addToWorld().
    * Object is removed from the physics object array, an exception is raised if
@@ -41,7 +41,7 @@ public:
    */
   virtual void removeFromWorld();
 
-  /** @brief Callback for when a simulation substep happens.
+  /** @brief Callback for when a simulation substep happens
    *
    * This method is intended to be defined by each subclasse and should not be called, except by Physics.
    *
@@ -50,46 +50,46 @@ public:
   virtual void tickCallback();
 
   /// Draw the whole object
-  virtual void draw(Display *d) const = 0;
+  virtual void draw(Display* d) const = 0;
   /** @brief Draw last object parts
    *
    * This is used for transparent parts which have to be drawn last.
    */
-  virtual void drawLast(Display *d) const {}
+  virtual void drawLast(Display* d) const {}
 
   /** @name Transformation, position and rotation accessors
    */
   //@{
   virtual const btTransform getTrans() const = 0;
-  virtual void setTrans(const btTransform &tr) = 0;
-  const btVector3   getPos() const { return getTrans().getOrigin(); }
-  const btMatrix3x3 getRot() const { return getTrans().getBasis();  }
-  void setPos(const btVector3 &pos)   { setTrans(btTransform(getRot(), pos)); }
-  void setRot(const btMatrix3x3 &rot) { setTrans(btTransform(rot, getPos())); }
+  virtual void setTrans(const btTransform& tr) = 0;
+  const btVector3 getPos() const { return getTrans().getOrigin(); }
+  const btMatrix3x3 getRot() const { return getTrans().getBasis(); }
+  void setPos(const btVector3& pos) { setTrans(btTransform(getRot(), pos)); }
+  void setRot(const btMatrix3x3& rot) { setTrans(btTransform(rot, getPos())); }
   //@}
 
-protected:
+ protected:
   /// Change the GL matrix according to position and rotation
-  static void drawTransform(const btTransform &transform);
+  static void drawTransform(const btTransform& transform);
 
   /** @brief Draw a collision shape
    *
    * @note This function is based on <em>GL_ShapeDrawer::drawOpenGL</em> method
    * from <em>Bullet</em>'s demos.
    */
-  static void drawShape(const btCollisionShape *shape);
+  static void drawShape(const btCollisionShape* shape);
 
-  /** @brief Physical world the object was added to.
+  /** @brief Physical world the object was added to
    *
    * Since the world keep a reference to its objects, it will not be deleted
    * before them. This means that a deleted object has been removed from its
    * world.
    */
-  Physics *physics_;
+  Physics* physics_;
 
-  /// Enable the tick callback.
+  /// Enable the tick callback
   void enableTickCallback();
-  /// Disable the tick callback.
+  /// Disable the tick callback
   void disableTickCallback();
 };
 
@@ -106,7 +106,7 @@ protected:
  */
 class OSimple: public Object, public btRigidBody
 {
-public:
+ public:
   /** @brief Default empty constructor
    *
    * Bullet does not provide empty constructor. Empty construction info are
@@ -114,8 +114,8 @@ public:
    * afterwards.
    */
   OSimple();
-  OSimple(btCollisionShape *sh, btScalar mass=0);
-  OSimple(const btRigidBodyConstructionInfo &info): btRigidBody(info) {}
+  OSimple(btCollisionShape* sh, btScalar mass=0);
+  OSimple(const btRigidBodyConstructionInfo& info): btRigidBody(info) {}
 
   virtual ~OSimple();
 
@@ -127,7 +127,7 @@ public:
    *
    * @note This function must be called to initialize the object.
    */
-  void setShape(btCollisionShape *shape);
+  void setShape(btCollisionShape* shape);
 
   /** @brief Set object mass and inertia
    *
@@ -138,11 +138,11 @@ public:
   void setMass(btScalar mass);
   btScalar getMass() const { return getInvMass() == 0 ? 0 : 1./getInvMass(); }
 
-  /** @brief Add an object in a physics world.
+  /** @brief Add an object in a physics world
    *
    * Object has to be initialized before being added to a world.
    */
-  virtual void addToWorld(Physics *physics);
+  virtual void addToWorld(Physics* physics);
   virtual void removeFromWorld();
 
   bool isInitialized() { return getCollisionShape() != NULL; }
@@ -153,21 +153,21 @@ public:
    * Object color is used in default drawing function and may ignored by
    * subclass implementations.
    */
-  void setColor(const Color4 &color) { color_ = color; }
+  void setColor(const Color4& color) { color_ = color; }
 
   /// Draw the object, if not transparent
-  virtual void draw(Display *d) const;
+  virtual void draw(Display* d) const;
   /// Draw the object last, if transparent
-  virtual void drawLast(Display *d) const;
-  /** @brief Draw the object, whichever the color.
+  virtual void drawLast(Display* d) const;
+  /** @brief Draw the object, whichever the color
    *
    * This method is called by draw() and drawLast().
    * Shape drawing is stored in a display list.
    */
-  void drawObject(Display *d) const;
+  void drawObject(Display* d) const;
 
   virtual const btTransform getTrans() const { return getCenterOfMassTransform(); }
-  virtual void setTrans(const btTransform &tr) { setCenterOfMassTransform(tr); }
+  virtual void setTrans(const btTransform& tr) { setCenterOfMassTransform(tr); }
 
   /** @brief Place above (not on or in) the ground
    *
@@ -176,9 +176,9 @@ public:
    * btVector3 (since it can be converted to). This would lead to tricky bugs
    * if one forgets to force using Object::setPos().
    */
-  void setPosAbove(const btVector2 &pos);
+  void setPosAbove(const btVector2& pos);
 
-protected:
+ protected:
   /// Object main color
   Color4 color_;
 };
@@ -191,11 +191,11 @@ protected:
  * Areas are positioned at positive y.
  * First team field part is at negative x.
  *
- * Default starting area size is 50cm. 
+ * Default starting area size is 50cm.
  */
 class OGround: public OSimple
 {
-public:
+ public:
   /** @brief Constructor
    *
    * @param size      table size
@@ -203,27 +203,27 @@ public:
    * @param color_t1  first team color
    * @param color_t2  second team color
    */
-  OGround(const btVector2 &size, const Color4 &color, const Color4 &color_t1, const Color4 &color_t2);
+  OGround(const btVector2& size, const Color4& color, const Color4& color_t1, const Color4& color_t2);
   ~OGround();
 
   btVector2 getSize() const { return btVector2(size_); }
   btScalar getStartSize() const { return start_size_; }
-  void setStartSize(const btScalar &size) { start_size_ = size; }
+  void setStartSize(const btScalar& size) { start_size_ = size; }
 
-  virtual void draw(Display *d) const;
+  virtual void draw(Display* d) const;
 
-protected:
+ protected:
   Color4 color_t1_;
   Color4 color_t2_;
   btVector3 size_;
   btScalar start_size_;
 
-  /// Draw the ground base.
+  /// Draw the ground base
   void drawBase() const;
-  /// Draw starting areas.
+  /// Draw starting areas
   void drawStartingAreas() const;
 
-private:
+ private:
   SmartPtr<btBoxShape> shape_;
 };
 

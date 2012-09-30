@@ -138,7 +138,7 @@ class Match(_eb.Match):
       o = OColElem()
       o.addToWorld(ph)
       o.color = TEAM_COLORS[0]
-      o.pos = COL_SPACE_XY * _vec2(j%3-2,   j//3) - COL_OFFSET_XY
+      o.pos = COL_SPACE_XY * _vec2(j%3-2, j//3) - COL_OFFSET_XY
       # second team
       o = OColElem()
       o.addToWorld(ph)
@@ -147,7 +147,7 @@ class Match(_eb.Match):
       o = OColElem()
       o.addToWorld(ph)
       o.color = TEAM_COLORS[1]
-      o.pos = (COL_SPACE_XY * _vec2(j%3-2,   j//3) - COL_OFFSET_XY)*_vec2(-1,1)
+      o.pos = (COL_SPACE_XY * _vec2(j%3-2, j//3) - COL_OFFSET_XY)*_vec2(-1,1)
 
 
     # Dispensers

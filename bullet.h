@@ -2,7 +2,7 @@
 #define BULLET_H_
 
 /** @file
- * @brief Bullet related declarations.
+ * @brief Bullet related declarations
  */
 
 #include <btBulletDynamicsCommon.h>
@@ -53,13 +53,13 @@ constexpr inline long double operator "" _m(long double v) { return v / BULLET_S
 constexpr inline float operator "" _mf(long double v) { return v / BULLET_SCALE; }
 
 /// Scale from user units to Bullet units
-template<typename T> T btScale(const T &t) { return t / BULLET_SCALE; }
+template<typename T> T btScale(const T& t) { return t / BULLET_SCALE; }
 
 /// Scale from Bullet units to user units
-template<typename T> T btUnscale(const T &t) { return t * BULLET_SCALE; }
+template<typename T> T btUnscale(const T& t) { return t * BULLET_SCALE; }
 
-template<> inline btTransform btScale(const btTransform &tr) { return btTransform(tr.getBasis(),btScale(tr.getOrigin())); }
-template<> inline btTransform btUnscale(const btTransform &tr) { return btTransform(tr.getBasis(),btUnscale(tr.getOrigin())); }
+template<> inline btTransform btScale(const btTransform& tr) { return btTransform(tr.getBasis(),btScale(tr.getOrigin())); }
+template<> inline btTransform btUnscale(const btTransform& tr) { return btTransform(tr.getBasis(),btUnscale(tr.getOrigin())); }
 
 #undef BULLET_SCALE
 

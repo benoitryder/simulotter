@@ -18,26 +18,26 @@ class TaskPhysics;
  */
 class Physics: public SmartObject
 {
-public:
-  
-  /** @name Configuration values.
+ public:
+
+  /** @name Configuration values
    */
   //@{
 
-  /// Gravity at the world's surface.
+  /// Gravity at the world's surface
   static btScalar world_gravity;
-  /** @brief Minimal margin distance.
+  /** @brief Minimal margin distance
    *
    * Used as gap distance between objects to ensure they do not overlap (e.g.
    * for object dropping height).
    */
   static btScalar margin_epsilon;
 
-  /// AABB's minimum for new worlds.
+  /// AABB's minimum for new worlds
   static btVector3 world_aabb_min;
-  /// AABB's maximum for new worlds.
+  /// AABB's maximum for new worlds
   static btVector3 world_aabb_max;
-  /// Maximum object count for new worlds.
+  /// Maximum object count for new worlds
   static unsigned int world_objects_max;
 
   //@}
@@ -61,13 +61,13 @@ public:
    * @note Precision of execution time will depends on simulation time step.
    * Execution order is not affected.
    */
-  void scheduleTask(TaskPhysics *task, btScalar time=-1);
+  void scheduleTask(TaskPhysics* task, btScalar time=-1);
 
-  btDynamicsWorld *getWorld() { return world_; }
-  const btDynamicsWorld *getWorld() const { return world_; }
+  btDynamicsWorld* getWorld() { return world_; }
+  const btDynamicsWorld* getWorld() const { return world_; }
 
-  std::set<SmartPtr<Object> > &getObjs() { return objs_; }
-  std::set<SmartPtr<Object> > &getTickObjs() { return tick_objs_; }
+  std::set<SmartPtr<Object>>& getObjs() { return objs_; }
+  std::set<SmartPtr<Object>>& getTickObjs() { return tick_objs_; }
 
   /** @brief Change world's referential
    *
@@ -75,40 +75,40 @@ public:
    * This method can be used to use a custom referential after inserting
    * objects from a match.
    */
-  void transform(const btTransform &tr);
+  void transform(const btTransform& tr);
 
   /// Common static rigid body for constraints
   static const btRigidBody static_body;
 
-private:
-  /** @brief Encapsulated world.
+ private:
+  /** @brief Encapsulated world
    *
    * The world user info is set to the physics instance pointer.
    */
-  btDynamicsWorld          *world_;
-  btDispatcher             *dispatcher_;
-  btConstraintSolver       *solver_;
-  btBroadphaseInterface    *broadphase_;
-  btCollisionConfiguration *col_config_;
+  btDynamicsWorld* world_;
+  btDispatcher* dispatcher_;
+  btConstraintSolver* solver_;
+  btBroadphaseInterface* broadphase_;
+  btCollisionConfiguration* col_config_;
 
   /// All simulated objects
-  std::set<SmartPtr<Object> > objs_;
+  std::set<SmartPtr<Object>> objs_;
 
-  /** @brief Object whose tick callback must be called.
+  /** @brief Object whose tick callback must be called
    * @sa Object::tickCallback()
    */
-  std::set<SmartPtr<Object> > tick_objs_;
+  std::set<SmartPtr<Object>> tick_objs_;
 
-  /// Tick callback called by Bullet.
-  static void worldTickCallback(btDynamicsWorld *world, btScalar step);
+  /// Tick callback called by Bullet
+  static void worldTickCallback(btDynamicsWorld* world, btScalar step);
 
   /// Simulation time step, must not be modified
   btScalar step_dt_;
 
   btScalar time_;
 
-  typedef std::pair< btScalar, SmartPtr<TaskPhysics> > TaskQueueValue;
-  typedef std::priority_queue< TaskQueueValue, std::vector<TaskQueueValue>, std::greater<TaskQueueValue> > TaskQueue;
+  typedef std::pair<btScalar, SmartPtr<TaskPhysics>> TaskQueueValue;
+  typedef std::priority_queue<TaskQueueValue, std::vector<TaskQueueValue>, std::greater<TaskQueueValue>> TaskQueue;
   /// Scheduled tasks
   TaskQueue task_queue_;
 };
@@ -120,39 +120,39 @@ private:
  */
 class TaskPhysics: public SmartObject
 {
-public:
+ public:
   TaskPhysics() {}
   virtual ~TaskPhysics() {}
 
-  virtual void process(Physics *ph) = 0;
+  virtual void process(Physics* ph) = 0;
 };
 
 /** @brief Basic task
  */
 class TaskBasic: public TaskPhysics
 {
-public:
+ public:
   TaskBasic(btScalar period=0.0);
   virtual ~TaskBasic() {}
 
-  virtual void process(Physics *ph);
+  virtual void process(Physics* ph);
 
   /// Cancel the task
   void cancel() { cancelled_ = true; }
 
-  typedef boost::function<void (Physics *)> Callback;
+  typedef boost::function<void (Physics*)> Callback;
   void setCallback(Callback cb) { callback_ = cb; }
 
   bool cancelled() const { return cancelled_; }
 
-protected:
+ protected:
   btScalar period_; /// Period for repeated tasks (or 0)
   Callback callback_;
   bool cancelled_;
 };
 
 
-/** @brief Compound shape which hold reference on children.
+/** @brief Compound shape which hold reference on children
  *
  * The default btCompoundShape does not allow to keep references on children.
  * This class fulfil this need, especially for bindings.
@@ -165,7 +165,7 @@ protected:
  */
 class CompoundShapeSmart: public btCompoundShape
 {
-public:
+ public:
   CompoundShapeSmart(bool enableDynamicAabbTree=true):
     btCompoundShape(enableDynamicAabbTree) {}
   virtual ~CompoundShapeSmart();
@@ -175,11 +175,11 @@ public:
   /// Release referenced children
   void clearChildReferences();
 
-  virtual const char *getName() const { return "CompoundSmart"; }
+  virtual const char* getName() const { return "CompoundSmart"; }
 
-private:
+ private:
   /// Store a copy of each referenced child
-  std::vector<btCollisionShape *> ref_children_;
+  std::vector<btCollisionShape*> ref_children_;
 };
 
 

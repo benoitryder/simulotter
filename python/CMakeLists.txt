@@ -72,7 +72,7 @@ if(NOT PYTHON_INSTALL_DIR)
     COMMAND ${PYTHON_EXECUTABLE} -c
       "from distutils import sysconfig; print sysconfig.get_python_lib(1,0)"
     OUTPUT_VARIABLE PYTHON_INSTALL_DIR
-    OUTPUT_STRIP_TRAILING_WHITESPACE 
+    OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 endif()
 if(PYTHON_INSTALL_DIR)

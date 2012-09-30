@@ -7,8 +7,8 @@
 
 #include "object.h"
 
-namespace eurobot2012
-{
+namespace eurobot2012 {
+
 
 class OGround2012: public OGround
 {
@@ -19,7 +19,7 @@ class OGround2012: public OGround
   OGround2012();
   ~OGround2012() {}
 
-  virtual void draw(Display *d) const;
+  virtual void draw(Display* d) const;
 };
 
 
@@ -31,7 +31,7 @@ class OBullion: public OSimple
   static const btScalar A_SLOPE;
 
   OBullion();
-  virtual void draw(Display *d) const;
+  virtual void draw(Display* d) const;
 
  private:
   static SmartPtr<btConvexHullShape> shape_;
@@ -49,7 +49,7 @@ class OCoin: public OSimple
   static const btScalar MASS;
 
   OCoin(bool white);
-  virtual void draw(Display *d) const;
+  virtual void draw(Display* d) const;
 
  private:
   static SmartPtr<btCompoundShape> shape_;
@@ -59,6 +59,5 @@ class OCoin: public OSimple
 
 
 }
-
 
 #endif

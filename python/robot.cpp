@@ -2,15 +2,15 @@
 #include "robot.h"
 
 
-static btScalar RBasic_get_v(const RBasic &r) { return btUnscale(r.getVelocity()); }
-static btScalar RBasic_get_v_max(const RBasic &r) { return btUnscale(r.v_max); }
-static void RBasic_set_v_max(RBasic &r, btScalar v) { r.v_max = btScale(v); }
-static btScalar RBasic_get_threshold_xy(const RBasic &r) { return btUnscale(r.threshold_xy); }
-static void RBasic_set_threshold_xy(RBasic &r, btScalar v) { r.threshold_xy = btScale(v); }
+static btScalar RBasic_get_v(const RBasic& r) { return btUnscale(r.getVelocity()); }
+static btScalar RBasic_get_v_max(const RBasic& r) { return btUnscale(r.v_max); }
+static void RBasic_set_v_max(RBasic& r, btScalar v) { r.v_max = btScale(v); }
+static btScalar RBasic_get_threshold_xy(const RBasic& r) { return btUnscale(r.threshold_xy); }
+static void RBasic_set_threshold_xy(RBasic& r, btScalar v) { r.threshold_xy = btScale(v); }
 
-static void RBasic_order_xy(RBasic &r, const btVector2 &xy, bool rel) { r.order_xy(btScale(xy), rel); }
-static void RBasic_order_xya(RBasic &r, const btVector2 &xy, btScalar a, bool rel) { r.order_xya(btScale(xy), a, rel); }
-static void RBasic_order_back(RBasic &r, btScalar d) { r.order_back(btScale(d)); }
+static void RBasic_order_xy(RBasic& r, const btVector2& xy, bool rel) { r.order_xy(btScale(xy), rel); }
+static void RBasic_order_xya(RBasic& r, const btVector2& xy, btScalar a, bool rel) { r.order_xya(btScale(xy), a, rel); }
+static void RBasic_order_back(RBasic& r, btScalar d) { r.order_back(btScale(d)); }
 
 
 
@@ -19,7 +19,7 @@ void python_export_robot()
   py::class_<Robot, py::bases<Object>, SmartPtr<Robot>, boost::noncopyable>("Robot", py::no_init);
 
   py::class_<RBasic, py::bases<Robot>, SmartPtr<RBasic>, boost::noncopyable>("RBasic", py::no_init)
-      .def(py::init<btCollisionShape *, btScalar>(
+      .def(py::init<btCollisionShape*, btScalar>(
               (py::arg("shape"), py::arg("mass"))))
       .add_property("color", &RBasic::getColor, &RBasic::setColor)
       .def("asserv", &RBasic::asserv)

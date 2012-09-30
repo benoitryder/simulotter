@@ -1,5 +1,5 @@
 /** @file
- * @brief Utilities and basic classes.
+ * @brief Utilities and basic classes
  */
 
 #include "python/common.h"
@@ -11,35 +11,35 @@
 static const Color4 Color_white = Color4::white();
 static const Color4 Color_black = Color4::black();
 static const Color4 Color_plexi = Color4::plexi();
-static std::string Color_str(const Color4 &c)
+static std::string Color_str(const Color4& c)
 {
   return stringf("<rgba: %.2f %.2f %.2f %.2f>",
                  c.r(), c.g(), c.b(), c.a());
 }
 
-static const GLfloat *Color4_begin(const Color4 &c) { return (const GLfloat *)c; }
-static const GLfloat *Color4_end(const Color4 &c) { return (const GLfloat *)c+4; }
+static const GLfloat* Color4_begin(const Color4& c) { return (const GLfloat*)c; }
+static const GLfloat* Color4_end(const Color4& c) { return (const GLfloat*)c+4; }
 
 // templates for shape constructors with scaling
-template <class T, class A1> SmartPtr<T> Shape_init_scale(const A1 &a1) { return new T(btScale(a1)); }
-template <class T, class A1, class A2> SmartPtr<T> Shape_init_scale(const A1 &a1, const A2 &a2) { return new T(btScale(a1), btScale(a2)); }
+template <class T, class A1> SmartPtr<T> Shape_init_scale(const A1& a1) { return new T(btScale(a1)); }
+template <class T, class A1, class A2> SmartPtr<T> Shape_init_scale(const A1& a1, const A2& a2) { return new T(btScale(a1), btScale(a2)); }
 
 
-/// Compound shape constructor: list of (shape, trans) pairs.
+/// Compound shape constructor: list of (shape, trans) pairs
 static SmartPtr<CompoundShapeSmart> CompoundShape_init(const py::object o)
 {
   SmartPtr<CompoundShapeSmart> ret_shape = new CompoundShapeSmart();
 
   py::stl_input_iterator<py::object> it(o), it_end;
   for( ; it != it_end; ++it ) {
-    const py::object &p = *it;
+    const py::object& p = *it;
     py::ssize_t n = py::len(p);
-    if( n != 2 ) {
+    if(n != 2) {
       // cast to avoid type length issues
       throw Error("invalid pair length: %u", (unsigned int)n);
     }
-    btCollisionShape *sh = py::extract<btCollisionShape *>( p[0] );
-    const btTransform &tr = py::extract<const btTransform &>( p[1] );
+    btCollisionShape* sh = py::extract<btCollisionShape*>( p[0] );
+    const btTransform& tr = py::extract<const btTransform&>( p[1] );
     ret_shape->addChildShape(btScale(tr), sh);
   }
   // On error, updateChildReferences is not called and pointers owned by the

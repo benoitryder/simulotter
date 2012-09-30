@@ -3,7 +3,7 @@
 
 using namespace eurobot2010;
 
-static void OCorn_plant(OCorn &o, btScalar x, btScalar y) { o.plant(btScale(x), btScale(y)); }
+static void OCorn_plant(OCorn& o, btScalar x, btScalar y) { o.plant(btScale(x), btScale(y)); }
 
 
 

@@ -3,25 +3,25 @@
 #include "physics.h"
 
 
-static btVector3 Object_getPos(const Object &o) { return btUnscale(o.getPos()); }
-static void Object_setPos(Object &o, const btVector3 &v) { o.setPos(btScale(v)); }
-static btTransform Object_getTrans(const Object &o) { return btUnscale(o.getTrans()); }
-static void Object_setTrans(Object &o, const btTransform &tr) { o.setTrans(btScale(tr)); }
+static btVector3 Object_getPos(const Object& o) { return btUnscale(o.getPos()); }
+static void Object_setPos(Object& o, const btVector3& v) { o.setPos(btScale(v)); }
+static btTransform Object_getTrans(const Object& o) { return btUnscale(o.getTrans()); }
+static void Object_setTrans(Object& o, const btTransform& tr) { o.setTrans(btScale(tr)); }
 
-static SmartPtr<OGround> OGround_init(const btVector2 &size, const Color4 &color, const Color4 &color_t1, const Color4 &color_t2) { return new OGround(btScale(size), color, color_t1, color_t2); }
-static btVector2 OGround_getSize(const OGround &o) { return btUnscale(o.getSize()); }
-static btScalar OGround_getStartSize(const OGround &o) { return btUnscale(o.getStartSize()); }
-static void OGround_setStartSize(OGround &o, const btScalar &v) { o.setStartSize(btScale(v)); }
+static SmartPtr<OGround> OGround_init(const btVector2& size, const Color4& color, const Color4& color_t1, const Color4& color_t2) { return new OGround(btScale(size), color, color_t1, color_t2); }
+static btVector2 OGround_getSize(const OGround& o) { return btUnscale(o.getSize()); }
+static btScalar OGround_getStartSize(const OGround& o) { return btUnscale(o.getStartSize()); }
+static void OGround_setStartSize(OGround& o, const btScalar& v) { o.setStartSize(btScale(v)); }
 
 // SmartPtr and not const, otherwise Boost.Python cannot convert the shape.
-static SmartPtr<btCollisionShape> OSimple_getShape(OSimple &o) { return o.getCollisionShape(); }
-static void OSimple_setPos(OSimple &o, const py::object v)
+static SmartPtr<btCollisionShape> OSimple_getShape(OSimple& o) { return o.getCollisionShape(); }
+static void OSimple_setPos(OSimple& o, const py::object v)
 {
-  py::extract<const btVector2 &> py_vec2(v);
-  if( py_vec2.check() ) {
+  py::extract<const btVector2&> py_vec2(v);
+  if(py_vec2.check()) {
     o.setPosAbove(btScale(py_vec2()));
   } else {
-    o.setPos(btScale(py::extract<const btVector3 &>(v)()));
+    o.setPos(btScale(py::extract<const btVector3&>(v)()));
   }
 }
 
@@ -41,7 +41,7 @@ void python_export_object()
       ;
 
   py::class_<OSimple, py::bases<Object>, SmartPtr<OSimple>, boost::noncopyable>("OSimple")
-      .def(py::init<btCollisionShape *, btScalar>(
+      .def(py::init<btCollisionShape*, btScalar>(
               (py::arg("shape"), py::arg("mass")=0)))
       .add_property("shape", &OSimple_getShape, &OSimple::setShape)
       .add_property("mass", &OSimple::getMass, &OSimple::setMass)

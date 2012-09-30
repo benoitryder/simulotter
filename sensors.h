@@ -19,7 +19,7 @@
  */
 class SRay: public Object
 {
-public:
+ public:
   SRay(btScalar min, btScalar max);
   virtual ~SRay();
 
@@ -28,33 +28,33 @@ public:
    */
   btScalar hitTest() const;
 
-  Object *getAttachObject() const { return obj_; }
-  /** @brief Attach the sensor to an object.
+  Object* getAttachObject() const { return obj_; }
+  /** @brief Attach the sensor to an object
    *
    * The sensor is removed from its current world and added to the one of the
    * given object. If \e obj is \e NULL, the sensor is detached from its
    * current object but not removed from its world.
    */
-  void setAttachObject(Object *obj);
+  void setAttachObject(Object* obj);
 
-  const btTransform &getAttachPoint() const { return attach_; }
-  void setAttachPoint(const btTransform &tr) { attach_ = tr; }
+  const btTransform& getAttachPoint() const { return attach_; }
+  void setAttachPoint(const btTransform& tr) { attach_ = tr; }
 
   virtual void removeFromWorld();
 
   virtual const btTransform getTrans() const;
-  virtual void setTrans(const btTransform &tr);
+  virtual void setTrans(const btTransform& tr);
 
   /// Draw the sensor hit zone
-  virtual void draw(Display *d) const;
+  virtual void draw(Display* d) const;
 
   Color4 getColor() const { return color_; }
-  void setColor(const Color4 &color) { color_ = color; }
+  void setColor(const Color4& color) { color_ = color; }
 
-protected:
-  /// Attach point.
+ protected:
+  /// Attach point
   btTransform attach_;
-  /// Reference object for attached sensors.
+  /// Reference object for attached sensors
   SmartPtr<Object> obj_;
   /// Hit range
   btScalar range_min_, range_max_;

@@ -8,8 +8,8 @@
 #include "object.h"
 #include "galipeur.h"
 
-namespace eurobot2011
-{
+namespace eurobot2011 {
+
 
 class OGround2011: public OGround
 {
@@ -21,11 +21,11 @@ class OGround2011: public OGround
   OGround2011();
   ~OGround2011() {}
 
-  virtual void draw(Display *d) const;
+  virtual void draw(Display* d) const;
 };
 
 
-/** @brief Pawn magnet.
+/** @brief Pawn magnet
  *
  * Physics provided to enable() is only used to store the physical world of
  * constraints in order to create or release them.
@@ -38,21 +38,21 @@ class Magnet: public btRigidBody
 
   Magnet();
   ~Magnet();
-  /// Return \e true object grabbing is enabled.
+  /// Return \e true object grabbing is enabled
   bool enabled() const { return physics_ != NULL; }
-  /// Enable object grabbing.
-  void enable(Physics *ph);
-  /// Release all objects, disable object grabbing.
+  /// Enable object grabbing
+  void enable(Physics* ph);
+  /// Release all objects, disable object grabbing
   void disable();
 
-  virtual bool checkCollideWithOverride(btCollisionObject *co);
+  virtual bool checkCollideWithOverride(btCollisionObject* co);
  protected:
   static btSphereShape shape_;
-  Physics *physics_; ///< Physical world, \e NULL if disabled.
+  Physics* physics_; ///< Physical world, \e NULL if disabled
 };
 
 
-/** @brief A pawn with magnets.
+/** @brief A pawn with magnets
  *
  * Each pawn has two magnets, one on each face.
  *
@@ -64,20 +64,20 @@ class MagnetPawn: public OSimple
   static const btScalar RADIUS;
   static const btScalar HEIGHT;
 
-  MagnetPawn(btCollisionShape *sh, btScalar mass=0);
+  MagnetPawn(btCollisionShape* sh, btScalar mass=0);
   virtual ~MagnetPawn();
-  virtual void addToWorld(Physics *physics);
+  virtual void addToWorld(Physics* physics);
   virtual void removeFromWorld();
-  virtual void setTrans(const btTransform &tr);
+  virtual void setTrans(const btTransform& tr);
  private:
   Magnet magnets_[2];
-  btGeneric6DofConstraint *magnet_links_[2];
+  btGeneric6DofConstraint* magnet_links_[2];
 };
 
 
 #define GALIPEUR2011_ARM_NB  2
 
-/** @brief Rob'Oter robot.
+/** @brief Rob'Oter robot
  *
  * Galipeur with mobile arms to catch pawns.
  */
@@ -87,11 +87,11 @@ class Galipeur2011: public Galipeur
   Galipeur2011(btScalar m);
   virtual ~Galipeur2011();
 
-  virtual void addToWorld(Physics *physics);
+  virtual void addToWorld(Physics* physics);
   virtual void removeFromWorld();
-  virtual void draw(Display *d) const;
-  virtual void setTrans(const btTransform &tr);
-  /// Handle arm moves.
+  virtual void draw(Display* d) const;
+  virtual void setTrans(const btTransform& tr);
+  /// Handle arm moves
   virtual void asserv();
 
   void set_arm_av(btScalar av) { arm_av_ = av; }
@@ -107,22 +107,22 @@ class Galipeur2011: public Galipeur
     static const btScalar ANGLE_MIN;
     static const btScalar ANGLE_MAX;
 
-    /// Get angle position (0 is lower, Pi/2 is raised).
+    /// Get angle position (0 is lower, Pi/2 is raised)
     btScalar angle() const { return M_PI_2-robot_link_->getAngularPos(); }
-    /// Raise the arm.
+    /// Raise the arm
     void raise();
-    /// Lower the arm.
+    /// Lower the arm
     void lower();
-    /// Enable magnet.
+    /// Enable magnet
     void grab();
-    /// Disable magnet.
+    /// Disable magnet
     void release();
     void asserv();
 
-    void draw(Display *d) const;
+    void draw(Display* d) const;
 
    protected:
-    PawnArm(Galipeur2011 *robot, const btTransform &tr);
+    PawnArm(Galipeur2011* robot, const btTransform& tr);
     ~PawnArm();
     /// Reset arm's transform according to robot's transform
     void resetTrans();
@@ -132,21 +132,21 @@ class Galipeur2011: public Galipeur
 
    private:
     static btCapsuleShape shape_;
-    Galipeur2011 *robot_;
-    btTransform robot_tr_; ///< Transformation relative to the robot.
-    btSliderConstraint *robot_link_;
+    Galipeur2011* robot_;
+    btTransform robot_tr_; ///< Transformation relative to the robot
+    btSliderConstraint* robot_link_;
     Magnet magnet_;
-    btGeneric6DofConstraint *magnet_link_;
+    btGeneric6DofConstraint* magnet_link_;
   };
 
-  PawnArm *const *getArms() const { return arms_; }
+  PawnArm* const* getArms() const { return arms_; }
 
  private:
-  PawnArm *arms_[GALIPEUR2011_ARM_NB];
+  PawnArm* arms_[GALIPEUR2011_ARM_NB];
   btScalar arm_av_;  ///< Arm angle velocity
 };
 
-}
 
+}
 
 #endif
