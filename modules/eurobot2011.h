@@ -19,7 +19,7 @@ class OGround2011: public OGround
   static const btScalar START_SIZE;
 
   OGround2011();
-  ~OGround2011() {}
+  virtual ~OGround2011() {}
 
   virtual void draw(Display* d) const;
 };

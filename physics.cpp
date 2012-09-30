@@ -73,7 +73,7 @@ void Physics::scheduleTask(TaskPhysics* task, btScalar time)
 
 void Physics::transform(const btTransform& tr)
 {
-  for(auto obj : objs_) {
+  for(auto& obj : objs_) {
     obj->setTrans(tr * obj->getTrans());
   }
 }
@@ -82,7 +82,7 @@ void Physics::worldTickCallback(btDynamicsWorld* world, btScalar /*step*/)
 {
   Physics* physics = (Physics*)world->getWorldUserInfo();
 
-  for(auto obj : physics->tick_objs_) {
+  for(auto& obj : physics->tick_objs_) {
     obj->tickCallback();
   }
 }

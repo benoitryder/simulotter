@@ -204,7 +204,7 @@ class OGround: public OSimple
    * @param color_t2  second team color
    */
   OGround(const btVector2& size, const Color4& color, const Color4& color_t1, const Color4& color_t2);
-  ~OGround();
+  virtual ~OGround();
 
   btVector2 getSize() const { return btVector2(size_); }
   btScalar getStartSize() const { return start_size_; }
