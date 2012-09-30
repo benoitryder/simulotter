@@ -8,7 +8,7 @@
 #include <string>
 #include <map>
 #include <set>
-#include <boost/function.hpp>
+#include <functional>
 #include "smart.h"
 #include "physics.h"
 #include "colors.h"
@@ -211,7 +211,7 @@ class Display: public SmartObject
 
  public:
   /// Event handler callback
-  typedef boost::function<void (Display*, const SDL_Event*)> EventCallback;
+  typedef std::function<void (Display*, const SDL_Event*)> EventCallback;
   /// Process SDL events
   void processEvents();
   /// Add, replace or remove an event handler
