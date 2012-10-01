@@ -1,3 +1,4 @@
+#include <cassert>
 #include "modules/eurobot2011.h"
 #include "display.h"
 #include "log.h"

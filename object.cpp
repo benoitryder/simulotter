@@ -1,3 +1,4 @@
+#include <cassert>
 #include "display.h"
 #include "physics.h"
 #include "object.h"
