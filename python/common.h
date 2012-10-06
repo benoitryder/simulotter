@@ -6,6 +6,15 @@
  */
 
 // this header is precompiled and thus include some "extra" headers.
+
+#ifdef _WIN32
+// workaround for pyconfig.h defining hypot to _hypot (which is bad)
+#include <cmath>
+#endif
+#ifdef _WIN64
+// workaround for python bug #4709
+#define MS_WIN64
+#endif
 #include <boost/python.hpp>
 #include <boost/python/raw_function.hpp>
 #include "smart.h"
