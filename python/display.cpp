@@ -1,4 +1,5 @@
 #include "python/common.h"
+#include <boost/python/raw_function.hpp>
 #include "display.h"
 #include "physics.h"
 #include "object.h"

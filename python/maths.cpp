@@ -1,4 +1,5 @@
 #include "python/common.h"
+#include "log.h"
 
 
 static const btScalar* vec2_begin(const btVector2& v) { return v.xy_; }

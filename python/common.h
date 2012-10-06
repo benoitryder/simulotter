@@ -5,8 +5,6 @@
  * @brief Common declarations for Python binding
  */
 
-// this header is precompiled and thus include some "extra" headers.
-
 #ifdef _WIN32
 // workaround for pyconfig.h defining hypot to _hypot (which is bad)
 #include <cmath>
@@ -16,10 +14,8 @@
 #define MS_WIN64
 #endif
 #include <boost/python.hpp>
-#include <boost/python/raw_function.hpp>
 #include "smart.h"
 #include "maths.h"
-#include "log.h"
 
 namespace py = boost::python;
 

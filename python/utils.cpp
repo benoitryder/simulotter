@@ -6,6 +6,7 @@
 #include <boost/python/stl_iterator.hpp>
 #include "colors.h"
 #include "physics.h"
+#include "log.h"
 
 
 static const Color4 Color_white = Color4::white();
