@@ -13,14 +13,6 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 endif()
 
-if(MSYS)
-  # Add /mingw as system prefix.
-  execute_process(COMMAND sh -c "cd /mingw && pwd -W"
-    OUTPUT_VARIABLE MINGW_ROOT_PATH
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-  list(APPEND CMAKE_SYSTEM_PREFIX_PATH ${MINGW_ROOT_PATH})
-endif()
-
 
 ##
 ##  Modules
