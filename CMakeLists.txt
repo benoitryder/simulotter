@@ -115,8 +115,14 @@ endif()
 
 
 # Other dependencies
+if(SDL_USE_STATIC_LIBS)
+  prefer_static_set()
+endif()
 set(SDL_BUILDING_LIBRARY 1)
 find_package(SDL)
+if(SDL_USE_STATIC_LIBS)
+  prefer_static_restore()
+endif()
 find_package(OpenGL)
 
 if(PNG_USE_STATIC_LIBS)
