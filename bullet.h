@@ -5,7 +5,14 @@
  * @brief Bullet related declarations
  */
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 #include <btBulletDynamicsCommon.h>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 // check bullet version
 #if BT_BULLET_VERSION < 278

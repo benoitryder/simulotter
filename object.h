@@ -55,7 +55,7 @@ class Object: public SmartObject
    *
    * This is used for transparent parts which have to be drawn last.
    */
-  virtual void drawLast(Display* d) const {}
+  virtual void drawLast(Display*) const {}
 
   /** @name Transformation, position and rotation accessors
    */
