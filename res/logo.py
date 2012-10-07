@@ -51,7 +51,7 @@ def build_logo(ph):
     o.addToWorld(ph)
 
   # Ground
-  o = OGround(color0, color1, color2)
+  o = OGroundSquareStart(color0, color1, color2)
   o.addToWorld(ph)
 
   sh = ShBox(vec3(start_c*0.5, start_c*0.5, Display.draw_epsilon*2))

@@ -11,98 +11,87 @@ const btScalar OGround2011::SQUARE_SIZE = 0.350_m;
 const btScalar OGround2011::START_SIZE = 0.400_m;
 
 OGround2011::OGround2011():
-    OGround(SIZE,
-            Color4(0x24,0x91,0x40), // RAL 6024
-            Color4(0xc7,0x17,0x12), // RAL 3020
-            Color4(0x00,0x3b,0x80)) // RAL 5017
+    OGroundSquareStart(SIZE,
+                       Color4(0x24,0x91,0x40), // RAL 6024
+                       Color4(0xc7,0x17,0x12), // RAL 3020
+                       Color4(0x00,0x3b,0x80)) // RAL 5017
 {
   setStartSize(START_SIZE);
 }
 
-void OGround2011::draw(Display* d) const
+void OGround2011::drawDisplayList() const
 {
+  OGroundSquareStart::drawDisplayList();
+
+  btglTranslate(0, 0, size_[2]/2);
+
+  // draw the checkerboard
   glPushMatrix();
+  btglNormal3(0.0, 0.0, 1.0);
 
-  drawTransform(m_worldTransform);
+  btglTranslate(0, 0, Display::draw_epsilon);
+  btglScale(SQUARE_SIZE, SQUARE_SIZE, 1);
 
-  if(d->callOrCreateDisplayList(this)) {
-    drawBase();
-    drawStartingAreas();
+  // 6 lines, 6 columns, 1 square out of 2 (for each color)
 
-    btglTranslate(0, 0, size_[2]/2);
-
-    // draw the checkerboard
-    glPushMatrix();
-    btglNormal3(0.0, 0.0, 1.0);
-
-    btglTranslate(0, 0, Display::draw_epsilon);
-    btglScale(SQUARE_SIZE, SQUARE_SIZE, 1);
-
-    // 6 lines, 6 columns, 1 square out of 2 (for each color)
-
-    glColor4fv(color_t1_);
-    for(int i=-3; i<3; i++) {
-      for(int j=-3; j<3; j++) {
-        if((i+j)%2 == 0) {
-          btglRect(i, j, i+1, j+1);
-        }
+  glColor4fv(color_t1_);
+  for(int i=-3; i<3; i++) {
+    for(int j=-3; j<3; j++) {
+      if((i+j)%2 == 0) {
+        btglRect(i, j, i+1, j+1);
       }
     }
+  }
 
-    glColor4fv(color_t2_);
-    for(int i=-3; i<3; i++) {
-      for(int j=-3; j<3; j++) {
-        if((i+j)%2 != 0) {
-          btglRect(i, j, i+1, j+1);
-        }
+  glColor4fv(color_t2_);
+  for(int i=-3; i<3; i++) {
+    for(int j=-3; j<3; j++) {
+      if((i+j)%2 != 0) {
+        btglRect(i, j, i+1, j+1);
       }
     }
-
-    glPopMatrix();
-
-    // draw black marks
-    GLUquadric* quadric = gluNewQuadric();
-    if(!quadric) {
-      throw(Error("quadric creation failed"));
-    }
-
-    glPushMatrix();
-    btglTranslate(0, 0, 2*Display::draw_epsilon);
-
-    glColor4fv(Color4(0x14,0x17,0x1c)); // RAL 9017
-    for(int i=0;;) { // two steps (x>0 then x<0)
-      // vertical side lines
-      btglRect(3*SQUARE_SIZE, size_[1]/2, 3*SQUARE_SIZE+0.05_m, -size_[1]/2);
-      // secured zone, top
-      btglRect(3*SQUARE_SIZE, -2*SQUARE_SIZE, 1*SQUARE_SIZE, -2*SQUARE_SIZE-0.02_m);
-      // secured zone, right
-      btglRect(1*SQUARE_SIZE, -2*SQUARE_SIZE, 1*SQUARE_SIZE+0.02_m, -3*SQUARE_SIZE);
-      // bonus positions (from bottom to top)
-      glPushMatrix();
-      btglTranslate(0.5*SQUARE_SIZE, -2.5*SQUARE_SIZE, 0);
-      gluDisk(quadric, 0, 0.1_m/2, Display::draw_div, Display::draw_div);
-      btglTranslate(1*SQUARE_SIZE, 2*SQUARE_SIZE, 0);
-      gluDisk(quadric, 0, 0.1_m/2, Display::draw_div, Display::draw_div);
-      btglTranslate(0, 2*SQUARE_SIZE, 0);
-      gluDisk(quadric, 0, 0.1_m/2, Display::draw_div, Display::draw_div);
-      glPopMatrix();
-
-      if(i == 1) {
-        break;
-      }
-      // reverse X
-      btglScale(-1,1,1);
-      i = 1;
-    }
-
-    glPopMatrix();
-
-    gluDeleteQuadric(quadric);
-
-    d->endDisplayList();
   }
 
   glPopMatrix();
+
+  // draw black marks
+  GLUquadric* quadric = gluNewQuadric();
+  if(!quadric) {
+    throw(Error("quadric creation failed"));
+  }
+
+  glPushMatrix();
+  btglTranslate(0, 0, 2*Display::draw_epsilon);
+
+  glColor4fv(Color4(0x14,0x17,0x1c)); // RAL 9017
+  for(int i=0;;) { // two steps (x>0 then x<0)
+    // vertical side lines
+    btglRect(3*SQUARE_SIZE, size_[1]/2, 3*SQUARE_SIZE+0.05_m, -size_[1]/2);
+    // secured zone, top
+    btglRect(3*SQUARE_SIZE, -2*SQUARE_SIZE, 1*SQUARE_SIZE, -2*SQUARE_SIZE-0.02_m);
+    // secured zone, right
+    btglRect(1*SQUARE_SIZE, -2*SQUARE_SIZE, 1*SQUARE_SIZE+0.02_m, -3*SQUARE_SIZE);
+    // bonus positions (from bottom to top)
+    glPushMatrix();
+    btglTranslate(0.5*SQUARE_SIZE, -2.5*SQUARE_SIZE, 0);
+    gluDisk(quadric, 0, 0.1_m/2, Display::draw_div, Display::draw_div);
+    btglTranslate(1*SQUARE_SIZE, 2*SQUARE_SIZE, 0);
+    gluDisk(quadric, 0, 0.1_m/2, Display::draw_div, Display::draw_div);
+    btglTranslate(0, 2*SQUARE_SIZE, 0);
+    gluDisk(quadric, 0, 0.1_m/2, Display::draw_div, Display::draw_div);
+    glPopMatrix();
+
+    if(i == 1) {
+      break;
+    }
+    // reverse X
+    btglScale(-1,1,1);
+    i = 1;
+  }
+
+  glPopMatrix();
+
+  gluDeleteQuadric(quadric);
 }
 
 

@@ -219,16 +219,26 @@ create static and dynamic bodies with basic geometrical shapes.
 Table ground --- :class:`OGround`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. class:: OGround(size, ground_color, team1_color, team2_color)
+.. class:: OGround(size, ground_color)
 
-  Ground of the game table, with square starting areas in corners, symmetric
-  with respect to the y-axis.
+  Ground of the game table.
   *size* is the table size as a :class:`vec2`.
   *ground_color* is the main color, *team1_color* and *team2_color* are colors
   of the starting areas.
 
   When added to a world, a ground is placed so that the center of the top of
   the table is at the world's origin.
+
+
+A subclass is defined for grounds with square starting areas which are often
+used in Eurobot rules.
+
+.. class:: OGroundSquareStart(size, ground_color, team1_color, team2_color)
+
+  Ground of the game table, with square starting areas in corners, symmetric
+  with respect to the y-axis.
+  *size* and *ground_color* are passed to :class:`OGround`.
+  *team1_color* and *team2_color* are colors of the starting areas.
 
   .. attribute:: start_size
 

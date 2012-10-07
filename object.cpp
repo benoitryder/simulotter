@@ -248,22 +248,18 @@ void OSimple::drawObject(Display* d) const
 }
 
 
-OGround::OGround(const btVector2& size, const Color4& color, const Color4& color_t1, const Color4& color_t2):
+OGround::OGround(const btVector2& size, const Color4& color):
     size_(btVector3(size.x(), size.y(), 0.1_m)),
-    start_size_(0.5_m),
     shape_(new btBoxShape(size_/2))
 {
   setShape(shape_);
   setPos( btVector3(0, 0, -size_[2]/2) );
   setColor(color);
-  color_t1_ = color_t1;
-  color_t2_ = color_t2;
 }
 
 OGround::~OGround()
 {
 }
-
 
 void OGround::draw(Display* d) const
 {
@@ -274,15 +270,14 @@ void OGround::draw(Display* d) const
   if(d->callOrCreateDisplayList(this)) {
     // Their should be only one ground instance, thus we create one display
     // list per instance. This allow to put color changes in it.
-    drawBase();
-    drawStartingAreas();
+    drawDisplayList();
     d->endDisplayList();
   }
 
   glPopMatrix();
 }
 
-void OGround::drawBase() const
+void OGround::drawDisplayList() const
 {
   glPushMatrix();
 
@@ -293,8 +288,23 @@ void OGround::drawBase() const
   glPopMatrix();
 }
 
-void OGround::drawStartingAreas() const
+
+OGroundSquareStart::OGroundSquareStart(const btVector2& size, const Color4& color, const Color4& color_t1, const Color4& color_t2):
+    OGround(size, color),
+    color_t1_(color_t1), color_t2_(color_t2),
+    start_size_(0.5_m),
+    shape_(new btBoxShape(size_/2))
 {
+}
+
+OGroundSquareStart::~OGroundSquareStart()
+{
+}
+
+void OGroundSquareStart::drawDisplayList() const
+{
+  OGround::drawDisplayList();
+
   glPushMatrix();
   btglNormal3(0.0, 0.0, 1.0);
   btglTranslate(0, 0, size_[2]/2+Display::draw_epsilon);

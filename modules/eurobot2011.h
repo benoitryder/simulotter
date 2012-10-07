@@ -11,7 +11,7 @@
 namespace eurobot2011 {
 
 
-class OGround2011: public OGround
+class OGround2011: public OGroundSquareStart
 {
  public:
   static const btVector2 SIZE;
@@ -21,7 +21,8 @@ class OGround2011: public OGround
   OGround2011();
   virtual ~OGround2011() {}
 
-  virtual void draw(Display* d) const;
+ protected:
+  virtual void drawDisplayList() const;
 };
 
 

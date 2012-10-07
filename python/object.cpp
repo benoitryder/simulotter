@@ -8,10 +8,12 @@ static void Object_setPos(Object& o, const btVector3& v) { o.setPos(btScale(v));
 static btTransform Object_getTrans(const Object& o) { return btUnscale(o.getTrans()); }
 static void Object_setTrans(Object& o, const btTransform& tr) { o.setTrans(btScale(tr)); }
 
-static SmartPtr<OGround> OGround_init(const btVector2& size, const Color4& color, const Color4& color_t1, const Color4& color_t2) { return new OGround(btScale(size), color, color_t1, color_t2); }
+static SmartPtr<OGround> OGround_init(const btVector2& size, const Color4& color) { return new OGround(btScale(size), color); }
 static btVector2 OGround_getSize(const OGround& o) { return btUnscale(o.getSize()); }
-static btScalar OGround_getStartSize(const OGround& o) { return btUnscale(o.getStartSize()); }
-static void OGround_setStartSize(OGround& o, const btScalar& v) { o.setStartSize(btScale(v)); }
+
+static SmartPtr<OGroundSquareStart> OGroundSquareStart_init(const btVector2& size, const Color4& color, const Color4& color_t1, const Color4& color_t2) { return new OGroundSquareStart(btScale(size), color, color_t1, color_t2); }
+static btScalar OGroundSquareStart_getStartSize(const OGroundSquareStart& o) { return btUnscale(o.getStartSize()); }
+static void OGroundSquareStart_setStartSize(OGroundSquareStart& o, const btScalar& v) { o.setStartSize(btScale(v)); }
 
 // SmartPtr and not const, otherwise Boost.Python cannot convert the shape.
 static SmartPtr<btCollisionShape> OSimple_getShape(OSimple& o) { return o.getCollisionShape(); }
@@ -54,7 +56,11 @@ void python_export_object()
   py::class_<OGround, py::bases<OSimple>, SmartPtr<OGround>, boost::noncopyable>("OGround", py::no_init)
       .def("__init__", py::make_constructor(&OGround_init))
       .add_property("size", &OGround_getSize)
-      .add_property("start_size", &OGround_getStartSize, &OGround_setStartSize)
+      ;
+
+  py::class_<OGroundSquareStart, py::bases<OGround>, SmartPtr<OGroundSquareStart>, boost::noncopyable>("OGroundSquareStart", py::no_init)
+      .def("__init__", py::make_constructor(&OGroundSquareStart_init))
+      .add_property("start_size", &OGroundSquareStart_getStartSize, &OGroundSquareStart_setStartSize)
       ;
 }
 

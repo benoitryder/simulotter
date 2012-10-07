@@ -24,9 +24,9 @@ COL_POS = (
     )
 
 
-class OGround(_so.OGround):
+class OGround(_so.OGroundSquareStart):
   def __init__(self):
-    _so.OGround.__init__(self, TABLE_SIZE, _eb.RAL[5015], *TEAM_COLORS)
+    _so.OGroundSquareStart.__init__(self, TABLE_SIZE, _eb.RAL[5015], *TEAM_COLORS)
 
 
 class Match(_eb.Match):

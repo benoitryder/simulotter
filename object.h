@@ -185,15 +185,41 @@ class OSimple: public Object, public btRigidBody
 
 
 /** @brief Table ground
- *
- * Standard table ground with starting areas.
+ */
+class OGround: public OSimple
+{
+ public:
+  /** @brief Constructor
+   *
+   * @param size      table size
+   * @param color     table color
+   */
+  OGround(const btVector2& size, const Color4& color);
+  virtual ~OGround();
+
+  btVector2 getSize() const { return btVector2(size_); }
+
+  virtual void draw(Display* d) const;
+
+ protected:
+  btVector3 size_;
+
+  /// Do the actual drawing, in the display list
+  virtual void drawDisplayList() const;
+
+ private:
+  SmartPtr<btBoxShape> shape_;
+};
+
+
+/** @brief Standard table ground with square starting areas.
  *
  * Areas are positioned at positive y.
  * First team field part is at negative x.
  *
  * Default starting area size is 50cm.
  */
-class OGround: public OSimple
+class OGroundSquareStart: public OGround
 {
  public:
   /** @brief Constructor
@@ -203,25 +229,19 @@ class OGround: public OSimple
    * @param color_t1  first team color
    * @param color_t2  second team color
    */
-  OGround(const btVector2& size, const Color4& color, const Color4& color_t1, const Color4& color_t2);
-  virtual ~OGround();
+  OGroundSquareStart(const btVector2& size, const Color4& color, const Color4& color_t1, const Color4& color_t2);
+  virtual ~OGroundSquareStart();
 
   btVector2 getSize() const { return btVector2(size_); }
   btScalar getStartSize() const { return start_size_; }
   void setStartSize(const btScalar& size) { start_size_ = size; }
 
-  virtual void draw(Display* d) const;
-
  protected:
+  virtual void drawDisplayList() const;
+
   Color4 color_t1_;
   Color4 color_t2_;
-  btVector3 size_;
   btScalar start_size_;
-
-  /// Draw the ground base
-  void drawBase() const;
-  /// Draw starting areas
-  void drawStartingAreas() const;
 
  private:
   SmartPtr<btBoxShape> shape_;

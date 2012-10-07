@@ -63,9 +63,9 @@ FAKES_FPOS_CENTER = tuple( frozenset(_vec2(*x) for x in l) for l in FAKES_FPOS_C
 
 
 
-class OGround(_so.OGround):
+class OGround(_so.OGroundSquareStart):
   def __init__(self):
-    _so.OGround.__init__(self, TABLE_SIZE, _eb.RAL[6018], *TEAM_COLORS)
+    _so.OGroundSquareStart.__init__(self, TABLE_SIZE, _eb.RAL[6018], *TEAM_COLORS)
 
 
 class OBranch(_so.OSimple):

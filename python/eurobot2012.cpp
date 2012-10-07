@@ -19,7 +19,7 @@ void python_export_eurobot2012()
 
   SIMULOTTER_PYTHON_SUBMODULE(_eurobot2012);
 
-  py::class_<OGround2012, py::bases<OGround>, SmartPtr<OGround2012>, boost::noncopyable>("OGround")
+  py::class_<OGround2012, py::bases<OGroundSquareStart>, SmartPtr<OGround2012>, boost::noncopyable>("OGround")
       .def_readonly("SIZE", OGround2012_SIZE)
       .def_readonly("START_SIZE", OGround2012_START_SIZE)
       ;

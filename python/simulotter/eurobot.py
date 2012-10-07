@@ -5,8 +5,6 @@ Common Eurobot definitions.
 
 """
 
-from _simulotter import vec2 as _vec2, vec3 as _vec3, OGround as _OGround
-
 WALL_WIDTH = 0.022
 WALL_HEIGHT = 0.070
 

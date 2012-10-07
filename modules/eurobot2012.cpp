@@ -10,104 +10,93 @@ const btVector2 OGround2012::SIZE = btVector2(3.0_m, 2.1_m);
 const btScalar OGround2012::START_SIZE = 0.500_m;
 
 OGround2012::OGround2012():
-    OGround(SIZE,
-            Color4(0x29,0x73,0xb8), // RAL 5012
-            Color4(0x7d,0x1f,0x7a), // RAL 4008
-            Color4(0xa3,0x17,0x1a)) // RAL 3001
+    OGroundSquareStart(SIZE,
+                       Color4(0x29,0x73,0xb8), // RAL 5012
+                       Color4(0x7d,0x1f,0x7a), // RAL 4008
+                       Color4(0xa3,0x17,0x1a)) // RAL 3001
 {
   setStartSize(START_SIZE);
 }
 
-void OGround2012::draw(Display* d) const
+void OGround2012::drawDisplayList() const
 {
-  glPushMatrix();
+  OGroundSquareStart::drawDisplayList();
 
-  drawTransform(m_worldTransform);
+  btglTranslate(0, 0, size_[2]/2);
+  btglTranslate(0, 0, Display::draw_epsilon);
 
-  if(d->callOrCreateDisplayList(this)) {
-    drawBase();
-    drawStartingAreas();
-
-    btglTranslate(0, 0, size_[2]/2);
-    btglTranslate(0, 0, Display::draw_epsilon);
-
-    GLUquadric* quadric = gluNewQuadric();
-    if(!quadric) {
-      throw(Error("quadric creation failed"));
-    }
-
-    const Color4 color_black(0x03,0x05,0x0a); // RAL 9005
-    const Color4 color_boat(0x6e,0x3b,0x3a); // RAL 8002
-    const Color4 color_sand(0xfc,0xbd,0x1f); // RAL 1023
-    const Color4 color_jungle(0x4f,0xa8,0x33); // RAL 6018
-
-    // black lines
-    glColor4fv(color_black);
-    {
-      const btScalar x0 = size_.x()/2 - (0.5_m+0.15_m);
-      const btScalar y0 = size_.y()/2 - (0.5_m-0.05_m);
-      const btScalar x1 = size_.x()/2 - 0.5_m;
-      const btScalar y1 = -size_.y()/2;
-      const btScalar width = 0.02_m;
-      btglRect(x0, y0, x0+width, y1);
-      btglRect(x0, y0, x1, y0-width);
-      btglRect(-x0, y0, -x0-width, y1);
-      btglRect(-x0, y0, -x1, y0-width);
-    }
-
-    // boats
-    glColor4fv(color_boat);
-    glBegin(GL_QUADS);
-    {
-      const btScalar x0 = size_.x()/2;
-      const btScalar y0 = -size_.y()/2;
-      const btScalar x1 = x0-0.325_m;
-      const btScalar x2 = x0-0.4_m;
-      const btScalar y1 = size_.y()/2-0.5_m-0.018_m;
-      btglVertex3(x0, y0, 0);
-      btglVertex3(x1, y0, 0);
-      btglVertex3(x2, y1, 0);
-      btglVertex3(x0, y1, 0);
-      btglVertex3(-x0, y0, 0);
-      btglVertex3(-x1, y0, 0);
-      btglVertex3(-x2, y1, 0);
-      btglVertex3(-x0, y1, 0);
-    }
-    glEnd();
-
-    // peanut island: draw sand first, then water and jungle above it
-    // sand: two disks and two arcs to fill the middle part
-    glColor4fv(color_sand);
-    btglTranslate(-0.8_m/2, 0, 0);
-    gluDisk(quadric, 0, 0.3_m, 2*Display::draw_div, 2*Display::draw_div);
-    btglTranslate(2*0.8_m/2, 0, 0);
-    gluDisk(quadric, 0, 0.3_m, 2*Display::draw_div, 2*Display::draw_div);
-    //TODO Y offset for the inner curve is not known
-    const btScalar curve_y = 0.745_m;
-    btglTranslate(-0.8_m/2, -curve_y, 0);
-    gluPartialDisk(quadric, 0.55_m, 0.9_m, Display::draw_div, Display::draw_div, -30, 60);
-    btglTranslate(0, 2*curve_y, 0);
-    gluPartialDisk(quadric, 0.55_m, 0.9_m, Display::draw_div, Display::draw_div, 150, 60);
-    // jungle
-    glColor4fv(color_jungle);
-    btglTranslate(-0.8_m/2, -curve_y, Display::draw_epsilon);
-    gluDisk(quadric, 0, 0.2_m, 2*Display::draw_div, 2*Display::draw_div);
-    btglTranslate(2*0.8_m/2, 0, 0);
-    gluDisk(quadric, 0, 0.2_m, 2*Display::draw_div, 2*Display::draw_div);
-
-    // map island
-    btglTranslate(-0.8_m/2, size_.y()/2, -Display::draw_epsilon); // also restore Z offset
-    glColor4fv(color_jungle);
-    gluPartialDisk(quadric, 0, 0.6_m/2, Display::draw_div, Display::draw_div, 90, 180);
-    glColor4fv(color_sand);
-    gluPartialDisk(quadric, 0.6_m/2, 0.8_m/2, Display::draw_div, Display::draw_div, 90, 180);
-
-    gluDeleteQuadric(quadric);
-
-    d->endDisplayList();
+  GLUquadric* quadric = gluNewQuadric();
+  if(!quadric) {
+    throw(Error("quadric creation failed"));
   }
 
-  glPopMatrix();
+  const Color4 color_black(0x03,0x05,0x0a); // RAL 9005
+  const Color4 color_boat(0x6e,0x3b,0x3a); // RAL 8002
+  const Color4 color_sand(0xfc,0xbd,0x1f); // RAL 1023
+  const Color4 color_jungle(0x4f,0xa8,0x33); // RAL 6018
+
+  // black lines
+  glColor4fv(color_black);
+  {
+    const btScalar x0 = size_.x()/2 - (0.5_m+0.15_m);
+    const btScalar y0 = size_.y()/2 - (0.5_m-0.05_m);
+    const btScalar x1 = size_.x()/2 - 0.5_m;
+    const btScalar y1 = -size_.y()/2;
+    const btScalar width = 0.02_m;
+    btglRect(x0, y0, x0+width, y1);
+    btglRect(x0, y0, x1, y0-width);
+    btglRect(-x0, y0, -x0-width, y1);
+    btglRect(-x0, y0, -x1, y0-width);
+  }
+
+  // boats
+  glColor4fv(color_boat);
+  glBegin(GL_QUADS);
+  {
+    const btScalar x0 = size_.x()/2;
+    const btScalar y0 = -size_.y()/2;
+    const btScalar x1 = x0-0.325_m;
+    const btScalar x2 = x0-0.4_m;
+    const btScalar y1 = size_.y()/2-0.5_m-0.018_m;
+    btglVertex3(x0, y0, 0);
+    btglVertex3(x1, y0, 0);
+    btglVertex3(x2, y1, 0);
+    btglVertex3(x0, y1, 0);
+    btglVertex3(-x0, y0, 0);
+    btglVertex3(-x1, y0, 0);
+    btglVertex3(-x2, y1, 0);
+    btglVertex3(-x0, y1, 0);
+  }
+  glEnd();
+
+  // peanut island: draw sand first, then water and jungle above it
+  // sand: two disks and two arcs to fill the middle part
+  glColor4fv(color_sand);
+  btglTranslate(-0.8_m/2, 0, 0);
+  gluDisk(quadric, 0, 0.3_m, 2*Display::draw_div, 2*Display::draw_div);
+  btglTranslate(2*0.8_m/2, 0, 0);
+  gluDisk(quadric, 0, 0.3_m, 2*Display::draw_div, 2*Display::draw_div);
+  //TODO Y offset for the inner curve is not known
+  const btScalar curve_y = 0.745_m;
+  btglTranslate(-0.8_m/2, -curve_y, 0);
+  gluPartialDisk(quadric, 0.55_m, 0.9_m, Display::draw_div, Display::draw_div, -30, 60);
+  btglTranslate(0, 2*curve_y, 0);
+  gluPartialDisk(quadric, 0.55_m, 0.9_m, Display::draw_div, Display::draw_div, 150, 60);
+  // jungle
+  glColor4fv(color_jungle);
+  btglTranslate(-0.8_m/2, -curve_y, Display::draw_epsilon);
+  gluDisk(quadric, 0, 0.2_m, 2*Display::draw_div, 2*Display::draw_div);
+  btglTranslate(2*0.8_m/2, 0, 0);
+  gluDisk(quadric, 0, 0.2_m, 2*Display::draw_div, 2*Display::draw_div);
+
+  // map island
+  btglTranslate(-0.8_m/2, size_.y()/2, -Display::draw_epsilon); // also restore Z offset
+  glColor4fv(color_jungle);
+  gluPartialDisk(quadric, 0, 0.6_m/2, Display::draw_div, Display::draw_div, 90, 180);
+  glColor4fv(color_sand);
+  gluPartialDisk(quadric, 0.6_m/2, 0.8_m/2, Display::draw_div, Display::draw_div, 90, 180);
+
+  gluDeleteQuadric(quadric);
 }
 
 
