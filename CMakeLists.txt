@@ -32,6 +32,7 @@ simulotter_declare_module(eurobot2009)
 simulotter_declare_module(eurobot2010)
 simulotter_declare_module(eurobot2011)
 simulotter_declare_module(eurobot2012)
+simulotter_declare_module(eurobot2013)
 
 
 ##
