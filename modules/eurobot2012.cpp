@@ -224,7 +224,7 @@ OCoin::OCoin(bool white)
 
   setShape(shape_);
   setMass(MASS);
-  setColor(white ? Color4::white() : Color4::black());
+  setColor(white ? Color4::white : Color4::black);
 }
 
 void OCoin::draw(Display* d) const

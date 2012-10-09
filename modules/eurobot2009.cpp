@@ -34,7 +34,7 @@ SmartPtr<btCylinderShapeZ> ODispenser::shape_(new btCylinderShapeZ(btVector3(RAD
 ODispenser::ODispenser()
 {
   setShape(shape_);
-  setColor(Color4::plexi());
+  setColor(Color4::plexi);
   m_checkCollideWith = true;
 }
 
@@ -108,7 +108,7 @@ OLintelStorage::OLintelStorage()
   }
 
   setShape(shape_);
-  setColor(Color4::black());
+  setColor(Color4::black);
 }
 
 void OLintelStorage::setPos(btScalar d, int side)

@@ -9,9 +9,6 @@
 #include "log.h"
 
 
-static const Color4 Color_white = Color4::white();
-static const Color4 Color_black = Color4::black();
-static const Color4 Color_plexi = Color4::plexi();
 static std::string Color_str(const Color4& c)
 {
   return stringf("<rgba: %.2f %.2f %.2f %.2f>",
@@ -66,9 +63,9 @@ void python_export_utils()
       .add_property("a", &Color4::a)
       .def(py::self * GLfloat())
       .def(GLfloat() * py::self)
-      .def_readonly("white", &Color_white)
-      .def_readonly("black", &Color_black)
-      .def_readonly("plexi", &Color_plexi)
+      .def_readonly("white", &Color4::white)
+      .def_readonly("black", &Color4::black)
+      .def_readonly("plexi", &Color4::plexi)
       .def("__repr__", Color_str)
       .def("__iter__", py::range(&Color4_begin, &Color4_end))
       ;

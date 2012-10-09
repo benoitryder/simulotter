@@ -160,7 +160,7 @@ add_definitions(
 ##
 
 set(simulotter_lib_src
-  physics.cpp display.cpp object.cpp sensors.cpp robot.cpp galipeur.cpp log.cpp
+  physics.cpp display.cpp object.cpp sensors.cpp robot.cpp galipeur.cpp log.cpp colors.cpp
   )
 foreach(m ${SIMULOTTER_ENABLED_MODULES})
   list(APPEND simulotter_lib_src modules/${m}.cpp)

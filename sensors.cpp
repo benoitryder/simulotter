@@ -6,7 +6,7 @@
 
 SRay::SRay(btScalar min, btScalar max):
   range_min_(min), range_max_(max),
-  color_(Color4::white())
+  color_(Color4::white)
 {
   if(min < 0 || max <= min) {
     throw(Error("invalid sensor range: %f - %f", min, max));
