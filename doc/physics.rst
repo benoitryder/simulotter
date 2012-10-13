@@ -213,6 +213,19 @@ create static and dynamic bodies with basic geometrical shapes.
     Extends :attr:`Object.pos`. If set to a :class:`vec2`, places the object
     above the ground (based on its bounding box) instead of setting *z* to 0.
 
+  .. attribute:: restitution
+
+    Object restitution coefficient, between 0 and 1.
+    Use higher values for a more bouncy object.
+
+    Bounciness depends on the two colliding objects. If one of the two objects
+    has a null restitution, they will not bounce.
+
+  .. attribute:: friction
+
+    Friction coefficient of the object. Higher values will make objects lose
+    their speed faster.
+
 
 .. _oground:
 

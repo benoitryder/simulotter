@@ -51,6 +51,8 @@ void python_export_object()
       .add_property("color", &OSimple::getColor, &OSimple::setColor)
       // redefine to use setPosAbove() when setting vec2
       .add_property("pos", &Object_getPos, &OSimple_setPos)
+      .add_property("restitution", &OSimple::getRestitution, &OSimple::setRestitution)
+      .add_property("friction", &OSimple::getFriction, &OSimple::setFriction)
       ;
 
   py::class_<OGround, py::bases<OSimple>, SmartPtr<OGround>, boost::noncopyable>("OGround", py::no_init)
