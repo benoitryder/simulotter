@@ -14,23 +14,22 @@ for testing strategies or just visualize the game table.
 Building SimulOtter
 -------------------
 
-SimulOtter is known to successfully build on Linux using GCC and on Windows
-using MinGW/MSYS. Any feedback on other platforms is welcome!
+SimulOtter uses features from C++11. A not-to-old compilator is required.
+
+SimulOtter is known to successfully build on Linux using G++ 4.7 and on Windows
+using MinGW/MSYS or MinGW-w64/MSYS with G++ 4.7.
+Any feedback on other platforms is welcome!
 
 SimulOtter uses `CMake <http://cmake.org>`_ as build system.
 Get it `from here <http://cmake.org/cmake/resources/software.html>` or from
 your the packages of your distribution (Linux users).
 
-.. note::
-  Do not use the Makefile available in SimulOtter sources. It is here for
-  developer needs and is not supported.
-
 The following dependencies are needed:
 
 - Bullet;
-- OpenGL, SDL and Freeglut;
+- OpenGL, SDL and GLUT;
 - Boost with the Boost.Python component;
-- Python 2.6 or 2.7.
+- Python 2.7.
 
 
 Building Bullet
@@ -50,7 +49,7 @@ On Windows, using MinGW/MSYS, you should provide the MinGW base directory::
 
   cmake -G "MSYS Makefiles" -DCMAKE_INSTALL_PREFIX=/mingw -DINSTALL_LIBS=ON -DBUILD_EXTRAS=OFF -DBUILD_DEMOS=OFF -DUSE_GLUT=OFF
 
-When compiling with *g++* for 64-bit architecture you may have to add::
+When compiling with *g++* on Linux for 64-bit architecture you may have to add::
 
   -DCMAKE_CXX_FLAGS="-fPIC"
 
@@ -73,11 +72,18 @@ On Windows, sources and/or binaries can be retrieved from the official websites.
 - Python: http://www.python.org/download/
 
 On Windows, if Python is installed on your system, you should already have the needed files.
+However, when compiling with MinGW64 for Python 64-bit, you may need to
+generate the ``libpython27.a`` file using the following commands::
+
+  pexports C:/Windows/system32/python27.dll > python27.def
+  dlltool --dllname python27.dll --def python27.def --output-lib libpython27.a
+  rm python27.def
+  mv libpython27.a PYTHON_INSTALL_DIR/libs/
 
 Since Boost.Python is not a header-only library, you will have to compile it
 (or get precompiled binaries). Windows users should refer to `this
 documentation <http://www.boost.org/doc/libs/release/more/getting_started/windows.html>`__.
-When invoking ``bootstra.sh``, provide the ``--with-python``
+When invoking ``bootstrap.sh``, provide the ``--with-python``
 option with your Python installation directory. When invoking ``bjam``, add
 ``python`` to the arguments to build Boost.Python component.
 
