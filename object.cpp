@@ -1,5 +1,6 @@
 #include <cassert>
 #include "display.h"
+#include "graphics.h"
 #include "physics.h"
 #include "object.h"
 #include "log.h"
@@ -50,7 +51,7 @@ void Object::drawShape(const btCollisionShape* shape)
       const btScalar r = capsule_shape->getRadius();
       const btScalar len = capsule_shape->getHalfHeight();
       btglTranslate(0, 0, -len);
-      glutSolidCylinder(r, 2*len, Display::draw_div, 1);
+      graphics::drawCylinder(r, 2*len, Display::draw_div);
       glutSolidSphere(r, Display::draw_div, Display::draw_div);
       btglTranslate(0, 0, 2*len);
       glutSolidSphere(r, Display::draw_div, Display::draw_div);
@@ -71,7 +72,7 @@ void Object::drawShape(const btCollisionShape* shape)
           throw(Error("invalid cylinder up axis"));
       }
       btglTranslate(0, 0, -len);
-      glutSolidCylinder(r, 2*len, Display::draw_div, 1);
+      graphics::drawClosedCylinder(r, 2*len, Display::draw_div);
     } break;
 
     case CONE_SHAPE_PROXYTYPE: {

@@ -79,38 +79,48 @@ FIND_BULLET_LIBRARY(BULLET_MATH_LIB      LinearMath)
 set(BULLET_LIBRARIES ${BULLET_DYNAMICS_LIB} ${BULLET_COLLISION_LIB} ${BULLET_MATH_LIB})
 
 
-## Freeglut
+## Freeglut / GLUT
 
-find_path(FREEGLUT_INCLUDE_DIR
-  NAMES GL/freeglut.h
-)
-if(NOT FREEGLUT_INCLUDE_DIR)
-  message(FATAL_ERROR "Freeglut include path not found.")
-endif()
+if(USE_FREEGLUT OR Freeglut_USE_STATIC_LIBS)
+  find_path(GLUT_INCLUDE_DIR
+    NAMES GL/freeglut.h
+  )
+  if(NOT GLUT_INCLUDE_DIR)
+    message(FATAL_ERROR "Freeglut include path not found.")
+  endif()
 
-set(Freeglut_LIB_NAMES libfreeglut freeglut glut)
-if(Freeglut_USE_STATIC_LIBS)
-  prefer_static_set()
+  set(Freeglut_LIB_NAMES libfreeglut freeglut glut)
+  if(Freeglut_USE_STATIC_LIBS OR GLUT_USE_STATIC_LIBS)
+    prefer_static_set()
+    if(WIN32)
+      set(Freeglut_LIB_NAMES libfreeglut_static freeglut_static ${Freeglut_LIB_NAMES})
+    endif()
+  endif()
+
+  find_library(GLUT_LIBRARY NAMES ${Freeglut_LIB_NAMES})
+  if(NOT GLUT_LIBRARY)
+    message(FATAL_ERROR "Freeglut library not found.")
+  endif()
+  set(GLUT_LIBRARIES "${GLUT_LIBRARY}")
+
+  if(Freeglut_USE_STATIC_LIBS OR GLUT_USE_STATIC_LIBS)
+    prefer_static_restore()
+  endif()
+  set(GLUT_DEFINITIONS "")
   if(WIN32)
-    set(Freeglut_LIB_NAMES libfreeglut_static freeglut_static ${Freeglut_LIB_NAMES})
+    if(Freeglut_USE_STATIC_LIBS OR GLUT_USE_STATIC_LIBS)
+      set(GLUT_DEFINITIONS -DFREEGLUT_STATIC)
+    endif()
+    list(APPEND GLUT_LIBRARIES winmm)
   endif()
-endif()
-
-find_library(FREEGLUT_LIBRARY NAMES ${Freeglut_LIB_NAMES})
-if(NOT FREEGLUT_LIBRARY)
-  message(FATAL_ERROR "Freeglut library not found.")
-endif()
-set(FREEGLUT_LIBRARIES "${FREEGLUT_LIBRARY}")
-
-if(Freeglut_USE_STATIC_LIBS)
-  prefer_static_restore()
-endif()
-set(FREEGLUT_DEFINITIONS "")
-if(WIN32)
-  if(Freeglut_USE_STATIC_LIBS)
-    set(FREEGLUT_DEFINITIONS -DFREEGLUT_STATIC)
+else()
+  if(GLUT_USE_STATIC_LIBS)
+    prefer_static_set()
   endif()
-  list(APPEND FREEGLUT_LIBRARIES winmm)
+  find_package(GLUT)
+  if(GLUT_USE_STATIC_LIBS)
+    prefer_static_restore()
+  endif()
 endif()
 
 
@@ -140,17 +150,17 @@ if(UNIX AND CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 set(SIMULOTTER_LIBS ${BULLET_LIBRARIES}
-  ${SDL_LIBRARY} ${FREEGLUT_LIBRARIES} ${OPENGL_LIBRARIES}
+  ${SDL_LIBRARY} ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES}
   ${PNG_LIBRARIES})
 
 include_directories(
   ${CMAKE_SOURCE_DIR} ${BULLET_INCLUDE_DIR}
-  ${SDL_INCLUDE_DIR} ${FREEGLUT_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR}
+  ${SDL_INCLUDE_DIR} ${GLUT_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR}
   ${PNG_INCLUDE_DIR}
   )
 
 add_definitions(
-  ${FREEGLUT_DEFINITIONS}
+  ${GLUT_DEFINITIONS}
   ${PNG_DEFINITIONS}
   )
 

@@ -1,6 +1,7 @@
 #include "modules/eurobot2009.h"
 #include "physics.h"
 #include "display.h"
+#include "graphics.h"
 #include "log.h"
 
 namespace eurobot2009 {
@@ -65,7 +66,7 @@ void ODispenser::drawLast(Display*) const
   glPushMatrix();
   drawTransform(m_worldTransform);
   glTranslatef(0, 0, -HEIGHT/2);
-  glutSolidCylinder(RADIUS, HEIGHT, Display::draw_div, 1);
+  graphics::drawCylinder(RADIUS, HEIGHT, Display::draw_div);
   glPopMatrix();
 }
 

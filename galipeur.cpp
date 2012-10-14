@@ -1,5 +1,6 @@
 #include "galipeur.h"
 #include "display.h"
+#include "graphics.h"
 #include "physics.h"
 #include "sensors.h"
 #include "log.h"
@@ -184,21 +185,21 @@ void Galipeur::draw(Display* d) const
 
     glPushMatrix();
     btglTranslate(0, vw.y(), vw.x());
-    glutSolidCylinder(R_WHEEL, H_WHEEL, Display::draw_div, Display::draw_div);
+    graphics::drawClosedCylinder(R_WHEEL, H_WHEEL, Display::draw_div);
     glPopMatrix();
 
     glPushMatrix();
     vw.rotate(2*M_PI/3);
     btglTranslate(0, vw.y(), vw.x());
     btglRotate(-120.0f, 1.0f, 0.0f, 0.0f);
-    glutSolidCylinder(R_WHEEL, H_WHEEL, Display::draw_div, Display::draw_div);
+    graphics::drawClosedCylinder(R_WHEEL, H_WHEEL, Display::draw_div);
     glPopMatrix();
 
     glPushMatrix();
     vw.rotate(-4*M_PI/3);
     btglTranslate(0, vw.y(), vw.x());
     btglRotate(120.0f, 1.0f, 0.0f, 0.0f);
-    glutSolidCylinder(R_WHEEL, H_WHEEL, Display::draw_div, Display::draw_div);
+    graphics::drawClosedCylinder(R_WHEEL, H_WHEEL, Display::draw_div);
     glPopMatrix();
 
     glPopMatrix();

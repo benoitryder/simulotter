@@ -4,7 +4,7 @@
 ///@file
 
 #include <SDL/SDL.h>
-#include <GL/freeglut.h>
+#include <GL/glut.h>
 #include <string>
 #include <map>
 #include <set>
